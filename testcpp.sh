@@ -1,0 +1,1 @@
+(cd ios && g++ -std=c++11 mainCode.cpp tester.cpp -o tester && ./tester)
