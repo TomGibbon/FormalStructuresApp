@@ -95,7 +95,7 @@ namespace mainCode {
   NFA convertNFAtoDFA(NFA oldNfa);
   bool runDFA(NFA oldDfa, std::string word);
   bool runNFA(NFA oldNfa, std::string word);
-  std::string photoToNFA(cv::Mat img, std::string path, bool isBase64);
+  std::string photoToNFA(cv::Mat img, std::string path, bool isBase64, bool testing);
 }
 
 #endif

@@ -12,9 +12,9 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		5E3FEFBC2B7D3BD50017C8BC /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E3FEFBB2B7D3BD50017C8BC /* opencv2.framework */; };
 		5E7E672E2B0B6E3E006F4A98 /* RCTCPPCode.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5E7E672D2B0B6E3E006F4A98 /* RCTCPPCode.mm */; };
 		5E7E67332B0B6F43006F4A98 /* mainCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5E7E67312B0B6F43006F4A98 /* mainCode.cpp */; };
+		5EB3B3662B82669F00AAED40 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E3FEFBB2B7D3BD50017C8BC /* opencv2.framework */; };
 		7699B88040F8A987B510C191 /* libPods-FormalStructuresApp-FormalStructuresAppTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-FormalStructuresApp-FormalStructuresAppTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
@@ -68,7 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5E3FEFBC2B7D3BD50017C8BC /* opencv2.framework in Frameworks */,
+				5EB3B3662B82669F00AAED40 /* opencv2.framework in Frameworks */,
 				0C80B921A6F3F58F76C31292 /* libPods-FormalStructuresApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

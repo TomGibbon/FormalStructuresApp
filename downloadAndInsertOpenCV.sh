@@ -1,7 +1,7 @@
 # taken from https://github.com/brainhubeu/react-native-opencv-tutorial/blob/master/downloadAndInsertOpenCV.sh
 
 # ios
-version=4.1.0
+version=4.9.0
 base_url=https://razaoinfo.dl.sourceforge.net/project/opencvlibrary/${version}/
 
 wget ${base_url}/opencv-${version}-ios-framework.zip

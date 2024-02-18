@@ -152,7 +152,7 @@ bool runNFATest() {
 bool photoToNFATest() {
   std::cout << "\n";
   std::string predictedResult = "";
-  std::string result = photoToNFA(cv::Mat(), "test-photo.jpg", false);
+  std::string result = photoToNFA(cv::Mat(), "test-photo.jpg", false, true);
   std::cout << result << "\n";
 
   return result == predictedResult;

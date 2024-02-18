@@ -121,7 +121,7 @@ RCT_EXPORT_METHOD(photoToNFABase64:(NSString *)input
 {
   @try {
     cv::Mat img = [self decodeBase64ToMat:input];
-    std::string result = mainCode::photoToNFA(img, "", true);
+    std::string result = mainCode::photoToNFA(img, "", true, false);
     resolve(@(result.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
@@ -133,7 +133,7 @@ RCT_EXPORT_METHOD(photoToNFA:(NSString *)path
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   @try {
-    std::string result = mainCode::photoToNFA(cv::Mat(), [path UTF8String], false);
+    std::string result = mainCode::photoToNFA(cv::Mat(), [path UTF8String], false, false);
     resolve(@(result.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);

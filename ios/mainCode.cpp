@@ -262,7 +262,7 @@ namespace mainCode {
 
   // Exported
 
-  std::string photoToNFA(cv::Mat img, std::string path, bool imgPreMade) {
+  std::string photoToNFA(cv::Mat img, std::string path, bool imgPreMade, bool testing) {
     std::string result;
     if (!imgPreMade) {
       img = cv::imread(path, cv::IMREAD_COLOR);
@@ -294,19 +294,21 @@ namespace mainCode {
     std::vector<Transition> transitions;
     result += NFA(false, states, transitions).convertToJSON(false);
 
-    for(size_t i = 0; i < circles.size(); i++) {
-      cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-      int radius = cvRound(circles[i][2]);
-      // draw the circle center
-      circle(img, center, 3, cv::Scalar(0, 255, 0), cv::FILLED);
-      // draw the circle outline
-      circle(img, center, radius, cv::Scalar(0, 0, 255), 3);
+    if (testing) {
+      for(size_t i = 0; i < circles.size(); i++) {
+        cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+        int radius = cvRound(circles[i][2]);
+        // draw the circle center
+        circle(img, center, 3, cv::Scalar(0, 255, 0), cv::FILLED);
+        // draw the circle outline
+        circle(img, center, radius, cv::Scalar(0, 0, 255), 3);
+      }
+      cv::namedWindow("gray", cv::WINDOW_AUTOSIZE);
+      cv::imshow("gray", gray);
+      cv::namedWindow("circles", cv::WINDOW_AUTOSIZE);
+      cv::imshow("circles", img);
+      cv::waitKey(0);
     }
-    cv::namedWindow("gray", cv::WINDOW_AUTOSIZE);
-    cv::imshow("gray", gray);
-    cv::namedWindow("circles", cv::WINDOW_AUTOSIZE);
-    cv::imshow("circles", img);
-    cv::waitKey(0);
 
     return result;
   }
