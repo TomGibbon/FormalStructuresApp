@@ -1,6 +1,5 @@
 #include "mainCode.hpp"
 #include <iostream>
-#include <exception>
 
 namespace mainCode {
   // ==================================
@@ -38,25 +37,25 @@ namespace mainCode {
   std::string NFA::convertToJSON(bool testing) {
     std::string statesJSON = "";
     int i = 0;
-    for (; i < States.size() - 1; i++) {
-      statesJSON += States[i].convertToJSON(testing) + ",";
-      if (testing) {
-        statesJSON += " ";
+    if (States.size() > 0) { // Initial check due to size_t underflow probelem
+      for (; i < States.size() - 1; i++) {
+        statesJSON += States[i].convertToJSON(testing) + ",";
+        if (testing) {
+          statesJSON += " ";
+        }
       }
-    }
-    if (States.size() > 0) {
       statesJSON += States[i].convertToJSON(testing);
     }
 
     std::string transitionsJSON = "";
     i = 0;
-    for (; i < Transitions.size() - 1; i++) {
-      transitionsJSON += Transitions[i].convertToJSON(testing) + ",";
-      if (testing) {
-        transitionsJSON += " ";
-      }
-    }
     if (Transitions.size() > 0) {
+      for (; i < Transitions.size() - 1; i++) {
+        transitionsJSON += Transitions[i].convertToJSON(testing) + ",";
+        if (testing) {
+          transitionsJSON += " ";
+        }
+      }
       transitionsJSON += Transitions[i].convertToJSON(testing);
     }
 
@@ -195,6 +194,34 @@ namespace mainCode {
     }
     return result;
   }
+  
+  std::string base64Decode(const std::string &base64data) {
+    // Create BIO object to handle base64 decoding
+    BIO *bio = BIO_new_mem_buf(base64data.c_str(), base64data.length());
+    BIO *b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    bio = BIO_push(b64, bio);
+
+    // Create buffer to store decoded data
+    char buffer[4096];
+    std::string decodedData;
+
+    // Decode base64 data
+    int len = 0;
+    while ((len = BIO_read(bio, buffer, sizeof(buffer))) > 0) {
+      decodedData.append(buffer, len);
+    }
+
+    // Free resources
+    BIO_free_all(bio);
+
+    return decodedData;
+
+    // std::vector<uchar> imageData = std::vector<uchar>(decodedData.begin(), decodedData.end());
+    // cv::Mat image = cv::imdecode(cv::Mat(imageData), 1);
+    
+    // return image;
+  }
 
   // DFA / NFA functions
 
@@ -235,14 +262,53 @@ namespace mainCode {
 
   // Exported
 
-  std::string photoToDFA(std::string path) {
-    cv::Mat img = cv::imread(path, cv::IMREAD_COLOR);
-    if (!img.data) {
-      throw std::runtime_error("Could not open file");
+  std::string photoToNFA(cv::Mat img, std::string path, bool imgPreMade) {
+    std::string result;
+    if (!imgPreMade) {
+      img = cv::imread(path, cv::IMREAD_COLOR);
+      if (!img.data) {
+        result += "could not open file\n";
+        return result;
+        throw std::runtime_error("Could not open file");
+      }
     }
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    return "Yay";
+    cv::GaussianBlur(gray, gray, cv::Size(15, 15), 2);
+    std::vector<cv::Vec3f> circles;
+    cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 2, gray.rows / 4, 200, 100);
+
+    result += "Width: " + std::to_string(img.cols) + "\n";
+    result += "Height: " + std::to_string(img.rows) + "\n";
+
+    std::vector<State> states;
+    for (int id = 0; id < circles.size(); id++) {
+      cv::Vec3f circle = circles[id];
+      result += "X: " + std::to_string(circle[0]) + "\n";
+      result += "Y: " + std::to_string(circle[1]) + "\n";
+      result += "Radius: " + std::to_string(circle[2]) + "\n\n";
+      int locX = circle[0] - img.cols / 2; // Still need to scale
+      int locY = circle[1] - img.rows / 2;
+      states.push_back(State(id, "q" + std::to_string(id), false, false, locX, locY));
+    }
+    std::vector<Transition> transitions;
+    result += NFA(false, states, transitions).convertToJSON(false);
+
+    for(size_t i = 0; i < circles.size(); i++) {
+      cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+      int radius = cvRound(circles[i][2]);
+      // draw the circle center
+      circle(img, center, 3, cv::Scalar(0, 255, 0), cv::FILLED);
+      // draw the circle outline
+      circle(img, center, radius, cv::Scalar(0, 0, 255), 3);
+    }
+    cv::namedWindow("gray", cv::WINDOW_AUTOSIZE);
+    cv::imshow("gray", gray);
+    cv::namedWindow("circles", cv::WINDOW_AUTOSIZE);
+    cv::imshow("circles", img);
+    cv::waitKey(0);
+
+    return result;
   }
 
   NFA simplifyDFA(NFA oldDfa) {

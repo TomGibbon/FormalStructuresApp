@@ -68,5 +68,8 @@ yarn-error.log
 # vscode
 /.vscode
 
+# test output
+/ios/tester
+
 # too large
 /ios/opencv2.framework/

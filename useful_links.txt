@@ -1,6 +1,6 @@
 Location of OpenCV:
 
-/opt/homebrew/Cellar/opencv/4.8.1_5/include/opencv4/opencv2/opencv.hpp
+/opt/homebrew/Cellar/opencv/4.9.0_2/include/opencv4/opencv2/opencv.hpp
 
 #include "..." search starts here:
 #include <...> search starts here:
@@ -15,3 +15,23 @@ To replace XCode build paths:
  - Go to FormalStructuresApp.xcodeproj (or maybe .xcworkspace) -> Build Settings -> Search Paths -> System Header Search paths
  - Add a thing in Debug and Release
  - Add string "$opencv2" (no speech marks)
+
+
+Output should be:
+
+{
+        "structure":
+        {
+                "isDfa":false,
+                "states":
+                [
+                        { "id":0, "name":"q0", "isStart":false, "isFinal":false, "locX":-177, "locY":-615 }, 
+                        { "id":1, "name":"q1", "isStart":false, "isFinal":false, "locX":869, "locY":-559 }, 
+                        { "id":2, "name":"q2", "isStart":false, "isFinal":false, "locX":-103, "locY":465 }
+                ],
+                "transitions":
+                [
+                ]
+        },
+        "type":"nfa"
+}

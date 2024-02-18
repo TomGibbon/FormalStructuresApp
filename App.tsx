@@ -15,6 +15,7 @@ import MainPage from './src/pages/MainPage';
 import CameraPage from './src/pages/CameraPage';
 import Structure from './src/types/Structure';
 import { getDefaultStructureLocation } from './src/components/StructureDrawing';
+import CameraRollPage from './src/pages/CameraRollPage';
 
 const defaultStructures = [
   {
@@ -148,8 +149,39 @@ const defaultStructures = [
   },
 ];
 
+type PageProps = {
+  pageNumber: number;
+  setPageNumber: (newPageNumber: number) => void;
+  structure: Structure;
+  setStructure: (newStructure: Structure) => void;
+};
+
+const Page = (props: PageProps) => {
+  switch (props.pageNumber) {
+    case 0:
+      return (
+        <MainPage
+          setPageNumber={props.setPageNumber}
+          structure={props.structure}
+          setStructure={props.setStructure}
+        />
+      );
+    case 1:
+      return (
+        <CameraPage
+          setPageNumber={props.setPageNumber}
+          setStructure={props.setStructure}
+        />
+      );
+    case 2:
+      return <CameraRollPage setPageNumber={props.setPageNumber} />;
+    default:
+      return <></>;
+  }
+};
+
 function App(): JSX.Element {
-  const [pageNumber, setPageNumber] = useState<Number>(0);
+  const [pageNumber, setPageNumber] = useState(0);
   const [structure, setStructure] = useState<Structure>(defaultStructures[0]);
 
   console.log('rerendering');
@@ -162,15 +194,12 @@ function App(): JSX.Element {
   return (
     <SafeAreaView style={appStyles.container}>
       <StatusBar barStyle={'dark-content'} />
-      {pageNumber === 0 ? (
-        <MainPage
-          setPageNumber={setPageNumber}
-          structure={structure}
-          setStructure={setStructure}
-        />
-      ) : (
-        <CameraPage setPageNumber={setPageNumber} setStructure={setStructure} />
-      )}
+      <Page
+        pageNumber={pageNumber}
+        setPageNumber={setPageNumber}
+        structure={structure}
+        setStructure={setStructure}
+      />
     </SafeAreaView>
   );
 }

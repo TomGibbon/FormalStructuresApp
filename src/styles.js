@@ -127,3 +127,19 @@ export const componentStyles = StyleSheet.create({
     width: '80%',
   },
 });
+
+export const CameraRollPageStyles = StyleSheet.create({
+  photosContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  photo: {
+    height: 120,
+    width: 120,
+  },
+  mainPhoto: {
+    zIndex: -1,
+  },
+});

@@ -1,1 +1,1 @@
-(cd ios && g++ -std=c++11 mainCode.cpp tester.cpp -o tester && ./tester)
+(cd ios && g++ -std=c++11 -stdlib=libc++ -I/opt/homebrew/Cellar/opencv/4.9.0_2/include/opencv4/ -L/opt/homebrew/Cellar/opencv/4.9.0_2/lib -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio -I/opt/homebrew/Cellar/openssl@3/3.2.1/include/ -L/opt/homebrew/Cellar/openssl@3/3.2.1/lib -lssl -lcrypto mainCode.cpp tester.cpp -o tester && ./tester)

@@ -44,25 +44,29 @@ RCT_EXPORT_MODULE();
   return mainCode::NFA(isDfa, states, transitions);
 }
 
-// RCT_EXPORT_METHOD(multiply:(nonnull NSNumber*)a
-//                   withB:(nonnull NSNumber*)b
-//                   resolver:(RCTPromiseResolveBlock)resolve
-//                   rejecter:(RCTPromiseRejectBlock)reject)
-// {
-//   int result = mainCode::multiply([a intValue], [b intValue]);
-//   resolve(@{
-//     @"result": @(result)
-//   });
-// }
+- (cv::Mat)decodeBase64ToMat:(NSString *)strEncodeData {
+  NSData *data = [[NSData alloc]initWithBase64EncodedString:strEncodeData options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  UIImage* image = [UIImage imageWithData:data];
+  CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
+  CGFloat cols = image.size.width;
+  CGFloat rows = image.size.height;
+  
+  cv::Mat cvMat(rows, cols, CV_8UC4); // 8 bits per component, 4 channels (color channels + alpha)
 
-// RCT_EXPORT_METHOD(photoToDfa:(NSString *)path
-//                   resolver:(RCTPromiseResolveBlock)resolve
-//                   rejecter:(RCTPromiseRejectBlock)reject)
-// {
-//   std::string cppPath = [path UTF8String];
-//   std::string result = mainCode::photoToDfa(cppPath, false);
-//   resolve(@(result.c_str()));
-// }
+  CGContextRef contextRef = CGBitmapContextCreate(cvMat.data,                 // Pointer to  data
+                                                  cols,                       // Width of bitmap
+                                                  rows,                       // Height of bitmap
+                                                  8,                          // Bits per component
+                                                  cvMat.step[0],              // Bytes per row
+                                                  colorSpace,                 // Colorspace
+                                                  kCGImageAlphaNoneSkipLast |
+                                                  kCGBitmapByteOrderDefault); // Bitmap info flags
+  
+  CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
+  CGContextRelease(contextRef);
+  
+  return cvMat;
+}
 
 RCT_EXPORT_METHOD(simplifyDFA:(NSDictionary *)dfaDict
                   resolver:(RCTPromiseResolveBlock)resolve
@@ -111,12 +115,25 @@ RCT_EXPORT_METHOD(runNFAorDFA:(NSDictionary *)nfaDict
   }
 }
 
-RCT_EXPORT_METHOD(photoToDFA:(NSString *)path
+RCT_EXPORT_METHOD(photoToNFABase64:(NSString *)input
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   @try {
-    std::string result = mainCode::photoToDFA([path UTF8String]);
+    cv::Mat img = [self decodeBase64ToMat:input];
+    std::string result = mainCode::photoToNFA(img, "", true);
+    resolve(@(result.c_str()));
+  } @catch (NSException *exception) {
+    reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
+  }
+}
+
+RCT_EXPORT_METHOD(photoToNFA:(NSString *)path
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  @try {
+    std::string result = mainCode::photoToNFA(cv::Mat(), [path UTF8String], false);
     resolve(@(result.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);

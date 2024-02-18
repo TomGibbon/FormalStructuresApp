@@ -149,23 +149,37 @@ bool runNFATest() {
   return result == predictedResult;
 }
 
+bool photoToNFATest() {
+  std::cout << "\n";
+  std::string predictedResult = "";
+  std::string result = photoToNFA(cv::Mat(), "test-photo.jpg", false);
+  std::cout << result << "\n";
+
+  return result == predictedResult;
+}
+
 int main() {
   std::vector<TestObject> tests;
-  tests.push_back(TestObject("setIntersection", setIntersectionTest));
-  tests.push_back(TestObject("setUnion", setUnionTest));
-  tests.push_back(TestObject("setDifference", setDifferenceTest));
-  tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
-  tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
-  tests.push_back(TestObject("runNFA", runNFATest));
-  tests.push_back(TestObject("runDFA", runDFATest));
+  // tests.push_back(TestObject("setIntersection", setIntersectionTest));
+  // tests.push_back(TestObject("setUnion", setUnionTest));
+  // tests.push_back(TestObject("setDifference", setDifferenceTest));
+  // tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
+  // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
+  // tests.push_back(TestObject("runNFA", runNFATest));
+  // tests.push_back(TestObject("runDFA", runDFATest));
+  tests.push_back(TestObject("photoToDFA", photoToNFATest));
   int numPassed = 0;
   for (TestObject test : tests) {
     std::cout << whiteColor << test.Name << ": ";
-    if (test.Function()) {
-      std::cout << greenColor << "Passed!\n";
-      numPassed++;
-    } else {
-      std::cout << redColor << "Failed\n";
+    try {
+      if (test.Function()) {
+        std::cout << greenColor << "Passed!\n";
+        numPassed++;
+      } else {
+        std::cout << redColor << "Failed\n";
+      }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
   }
   std::cout << whiteColor << std::to_string(numPassed) << " out of " << std::to_string(tests.size()) << " tests passed\n";

@@ -7,6 +7,9 @@
 #include <map>
 
 #include <opencv2/opencv.hpp>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/evp.h>
 
 namespace mainCode {
 
@@ -79,6 +82,7 @@ namespace mainCode {
   std::set<T> setUnion(std::set<T> set1, std::set<T> set2);
   template <typename T>
   std::set<T> setDifference(std::set<T> set1, std::set<T> set2);
+  std::string base64Decode(const std::string &base64data);
 
   // DFA / NFA functions
   std::set<int> getStates(std::vector<State> states);
@@ -91,7 +95,7 @@ namespace mainCode {
   NFA convertNFAtoDFA(NFA oldNfa);
   bool runDFA(NFA oldDfa, std::string word);
   bool runNFA(NFA oldNfa, std::string word);
-  std::string photoToDFA(std::string path);
+  std::string photoToNFA(cv::Mat img, std::string path, bool isBase64);
 }
 
 #endif

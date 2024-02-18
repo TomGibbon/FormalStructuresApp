@@ -197,7 +197,7 @@ const MainPage = (props: MainPageProps) => {
       <View style={mainPageStyles.mainButtonList}>
         <BasicButton>View Previous Structures</BasicButton>
         <IconButton icon={SaveIcon} />
-        <IconButton icon={PhotosIcon} />
+        <IconButton icon={PhotosIcon} onPress={() => props.setPageNumber(2)} />
         <IconButton icon={CameraIcon} onPress={() => props.setPageNumber(1)} />
       </View>
       <View

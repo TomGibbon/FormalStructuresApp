@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-// import RNFS from 'react-native-fs';
 import BasicButton from '../components/BasicButton';
 import {
   Camera,
@@ -75,7 +74,7 @@ const CameraPage = (props: CameraPageProps) => {
     }
     try {
       console.log(photo.path);
-      console.log(await CPPCode.photoToDFA(photo.path));
+      console.log(await CPPCode.photoToNFA(photo.path));
     } catch (error) {
       console.error('Error occured: ' + error);
     }
