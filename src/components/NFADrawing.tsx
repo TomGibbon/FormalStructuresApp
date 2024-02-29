@@ -91,6 +91,14 @@ const NFADrawing = (
           "': ",
         [
           {
+            text: 'Cancel',
+            onPress: () => {
+              setSelectedState(undefined);
+              setSelectingNewTransitionToState(false);
+            },
+            style: 'cancel',
+          },
+          {
             text: 'Add',
             onPress: text => {
               if (text && text.length === 1) {
@@ -207,6 +215,7 @@ const NFADrawing = (
                   {
                     text: 'Cancel',
                     onPress: () => setSelectedState(undefined),
+                    style: 'cancel',
                   },
                   {
                     text: 'Update',
@@ -307,6 +316,7 @@ const NFADrawing = (
                 {
                   text: 'Cancel',
                   onPress: () => setSelectedTransitionArrow(undefined),
+                  style: 'cancel',
                 },
                 {
                   text: 'Add',
@@ -366,6 +376,7 @@ const NFADrawing = (
                   {
                     text: 'Cancel',
                     onPress: () => setSelectedTransitionArrow(undefined),
+                    style: 'cancel',
                   },
                   {
                     text: 'Delete',
