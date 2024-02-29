@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Circle, Line, Path, Text } from 'react-native-svg';
-import NFA, { Transition } from '../types/NFA';
+import NFA from '../types/NFA';
 import { ActionSheetIOS, Alert } from 'react-native';
 import Structure, { copyStructure } from '../types/Structure';
 
@@ -57,7 +57,11 @@ const NFADrawing = (
     number[] | undefined
   >(undefined);
   const [movingState, setMovingState] = useState<number | undefined>(undefined);
-  const [selectingTransitionToState, setSelectingTransitionToState] =
+  const [selectingNewTransitionToState, setSelectingNewTransitionToState] =
+    useState(false);
+  const [selectingTransitionNewToState, setSelectingTransitionNewToState] =
+    useState(false);
+  const [selectingTransitionNewFromState, setSelectingTransitionNewFromState] =
     useState(false);
 
   // Reset if editing is turned off
@@ -66,12 +70,20 @@ const NFADrawing = (
       setSelectedState(undefined);
       setSelectedTransitionArrow(undefined);
       setMovingState(undefined);
+      setSelectingNewTransitionToState(false);
+      setSelectingTransitionNewToState(false);
+      setSelectingTransitionNewFromState(false);
     }
   }, [editable]);
 
   const statePress = (id: number) => {
-    // Check if user is selecting a transition from a pre selected state
-    if (selectingTransitionToState) {
+    // Check if user is selecting a state for a new transition
+    if (selectingNewTransitionToState) {
+      const newStructure = copyStructure({
+        structure: nfa,
+        type: 'nfa',
+      });
+      const newNfa = newStructure.structure as NFA;
       Alert.prompt(
         'Enter Text',
         "Enter the token for the new transition to '" +
@@ -82,12 +94,6 @@ const NFADrawing = (
             text: 'Add',
             onPress: text => {
               if (text && text.length === 1) {
-                const token = text;
-                const newStructure = copyStructure({
-                  structure: nfa,
-                  type: 'nfa',
-                });
-                const newNfa = newStructure.structure as NFA;
                 let newId = 0;
                 while (
                   newNfa.transitions.find(transition => transition.id === newId)
@@ -99,20 +105,62 @@ const NFADrawing = (
                   id: newId,
                   from: from,
                   to: id,
-                  token: token,
+                  token: text,
                 });
                 setCurrentStructure({ structure: newNfa, type: 'nfa' });
               }
               setSelectedState(undefined);
-              setSelectingTransitionToState(false);
+              setSelectingNewTransitionToState(false);
+            },
+          },
+          {
+            text: 'ε',
+            onPress: () => {
+              let newId = 0;
+              while (
+                newNfa.transitions.find(transition => transition.id === newId)
+              ) {
+                newId++;
+              }
+              const from = selectedState!;
+              newNfa.transitions.push({
+                id: newId,
+                from: from,
+                to: id,
+                token: 'ε',
+              });
+              setCurrentStructure({ structure: newNfa, type: 'nfa' });
+              setSelectedState(undefined);
+              setSelectingNewTransitionToState(false);
             },
           },
         ],
         'plain-text'
       );
+
+      // Selecting new To state for selected transitions
+    } else if (selectingTransitionNewToState) {
+      const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
+      const newNfa = newStructure.structure as NFA;
+      const transitions = newNfa.transitions.filter(transition =>
+        selectedTransitionArrow?.find(tId => tId === transition.id)
+      );
+      transitions.forEach(transition => (transition.to = id));
+      setSelectedTransitionArrow(undefined);
+      setSelectingTransitionNewToState(false);
+      setCurrentStructure(newStructure);
+    } else if (selectingTransitionNewFromState) {
+      const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
+      const newNfa = newStructure.structure as NFA;
+      const transitions = newNfa.transitions.filter(transition =>
+        selectedTransitionArrow?.find(tId => tId === transition.id)
+      );
+      transitions.forEach(transition => (transition.from = id));
+      setSelectedTransitionArrow(undefined);
+      setSelectingTransitionNewFromState(false);
+      setCurrentStructure(newStructure);
     } else if (movingState !== id) {
-      setMovingState(undefined); // Stop any other moving state
-      // setSelectedTransitionArrow(undefined); // Reset transitionArrow if it is already selected
+      setMovingState(undefined); // Stop any other moving state (needed in scenario hasn't yet moved state)
       setSelectedState(id);
       const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
       const newNfa = newStructure.structure as NFA;
@@ -177,7 +225,7 @@ const NFADrawing = (
               break;
             case 3:
               // Add transition from
-              setSelectingTransitionToState(true);
+              setSelectingNewTransitionToState(true);
               break;
             case 4:
               // Make start
@@ -206,76 +254,13 @@ const NFADrawing = (
     }
   };
 
-  const transitionPressChangeState = (
-    selectedTransition: Transition,
-    newStructure: Structure,
-    fromOrTo: boolean
-  ) => {
-    Alert.prompt(
-      'Enter Text',
-      'Enter the name of the new ' + fromOrTo
-        ? 'From'
-        : 'To' +
-            " state for transition with token '" +
-            selectedTransition.token +
-            "':",
-      [
-        {
-          text: 'Cancel',
-          onPress: () => setSelectedTransitionArrow(undefined),
-        },
-        {
-          text: 'Update',
-          onPress: text => {
-            if (text) {
-              const newState = nfa.states.find(state => state.name === text);
-              if (newState) {
-                fromOrTo
-                  ? (selectedTransition.from = newState.id)
-                  : (selectedTransition.to = newState.id);
-                console.log(newState);
-                setCurrentStructure(newStructure);
-              }
-            }
-            setSelectedTransitionArrow(undefined);
-          },
-        },
-      ],
-      'plain-text'
-    );
-  };
-
-  const transitionPressChangeToken = (
-    selectedTransition: Transition,
-    newStructure: Structure
-  ) => {
-    Alert.prompt(
-      'Enter Text',
-      'Enter the new token:',
-      [
-        {
-          text: 'Cancel',
-          onPress: () => setSelectedTransitionArrow(undefined),
-        },
-        {
-          text: 'Update',
-          onPress: text => {
-            if (text && text.length === 1) {
-              selectedTransition.token = text;
-              console.log(text);
-              setCurrentStructure(newStructure);
-            }
-            setSelectedTransitionArrow(undefined);
-          },
-        },
-      ],
-      'plain-text'
-    );
-  };
-
   const transitionPress = (ids: number[]) => {
-    // Do nothing if user is selecting a transition from a pre-selected state
-    if (selectingTransitionToState) {
+    // Do nothing if user is selecting a state for transition purposes
+    if (
+      selectingNewTransitionToState ||
+      selectingTransitionNewToState ||
+      selectingTransitionNewFromState
+    ) {
       return;
     }
     setSelectedState(undefined); // If user selected to move a state but has not yet move it, it will still be highlighted
@@ -285,14 +270,16 @@ const NFADrawing = (
     const transitions = newNfa.transitions.filter(transition =>
       ids.find(id => id === transition.id)
     );
+    const from = transitions[0].from;
+    const to = transitions[0].to;
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options: [
           'Cancel',
           'Change From',
           'Chage To',
-          'Change Token',
-          'Delete',
+          'Add Token',
+          'Remove Token',
         ],
         cancelButtonIndex: 0,
         destructiveButtonIndex: 4,
@@ -305,124 +292,73 @@ const NFADrawing = (
             break;
           case 1:
             // Change From
-            if (transitions.length > 0) {
-              Alert.prompt(
-                'More than one transition exists here',
-                'Enter the token of the transition of which you would like to change:',
-                [
-                  {
-                    text: 'Cancel',
-                    onPress: () => setSelectedTransitionArrow(undefined),
-                  },
-                  {
-                    text: 'Change',
-                    onPress: text => {
-                      if (text) {
-                        const transitionDetected = transitions.find(
-                          transition => transition.token === text
-                        );
-                        if (transitionDetected) {
-                          console.log('TransitionDetected');
-                          transitionPressChangeState(
-                            transitionDetected,
-                            newStructure,
-                            true
-                          );
-                        } else {
-                          setSelectedTransitionArrow(undefined);
-                        }
-                      } else {
-                        setSelectedTransitionArrow(undefined);
-                      }
-                    },
-                  },
-                ],
-                'plain-text'
-              );
-            } else {
-              transitionPressChangeState(transitions[0], newStructure, true);
-            }
+            setSelectingTransitionNewFromState(true);
             break;
           case 2:
             // Change to
-            if (transitions.length > 0) {
-              Alert.prompt(
-                'More than one transition exists here',
-                'Enter the token of the transition of which you would like to change:',
-                [
-                  {
-                    text: 'Cancel',
-                    onPress: () => setSelectedTransitionArrow(undefined),
-                  },
-                  {
-                    text: 'Change',
-                    onPress: text => {
-                      if (text) {
-                        const transitionDetected = transitions.find(
-                          transition => transition.token === text
-                        );
-                        if (transitionDetected) {
-                          transitionPressChangeState(
-                            transitionDetected,
-                            newStructure,
-                            false
-                          );
-                        } else {
-                          setSelectedTransitionArrow(undefined);
-                        }
-                      } else {
-                        setSelectedTransitionArrow(undefined);
-                      }
-                    },
-                  },
-                ],
-                'plain-text'
-              );
-            } else {
-              transitionPressChangeState(transitions[0], newStructure, false);
-            }
+            setSelectingTransitionNewToState(true);
             break;
           case 3:
-            // Change token
-            if (transitions.length > 0) {
-              Alert.prompt(
-                'More than one transition exists here',
-                'Enter the token of the transition of which you would like to change:',
-                [
-                  {
-                    text: 'Cancel',
-                    onPress: () => setSelectedTransitionArrow(undefined),
-                  },
-                  {
-                    text: 'Change',
-                    onPress: text => {
-                      if (text) {
-                        const transitionDetected = transitions.find(
-                          transition => transition.token === text
-                        );
-                        if (transitionDetected) {
-                          transitionPressChangeToken(
-                            transitionDetected,
-                            newStructure
-                          );
-                        } else {
-                          setSelectedTransitionArrow(undefined);
-                        }
-                      } else {
-                        setSelectedTransitionArrow(undefined);
+            // Add token
+            Alert.prompt(
+              'Enter Text',
+              'Enter the new token:',
+              [
+                {
+                  text: 'Cancel',
+                  onPress: () => setSelectedTransitionArrow(undefined),
+                },
+                {
+                  text: 'Add',
+                  onPress: text => {
+                    if (text && text.length === 1) {
+                      let newId = 0;
+                      while (
+                        newNfa.transitions.find(
+                          transition => transition.id === newId
+                        )
+                      ) {
+                        newId++;
                       }
-                    },
+                      newNfa.transitions.push({
+                        id: newId,
+                        from: from,
+                        to: to,
+                        token: text,
+                      });
+                      setCurrentStructure(newStructure);
+                    }
+                    setSelectedTransitionArrow(undefined);
                   },
-                ],
-                'plain-text'
-              );
-            } else {
-              transitionPressChangeToken(transitions[0], newStructure);
-            }
+                },
+                {
+                  text: 'ε',
+                  onPress: () => {
+                    let newId = 0;
+                    while (
+                      newNfa.transitions.find(
+                        transition => transition.id === newId
+                      )
+                    ) {
+                      newId++;
+                    }
+                    newNfa.transitions.push({
+                      id: newId,
+                      from: from,
+                      to: to,
+                      token: 'ε',
+                    });
+                    setCurrentStructure(newStructure);
+                    setSelectedTransitionArrow(undefined);
+                  },
+                },
+              ],
+              'plain-text'
+            );
             break;
           case 4:
-            // Delete
-            if (transitions.length > 0) {
+            // Delete token
+            if (transitions.length > 1) {
               Alert.prompt(
                 'Enter Text',
                 'Enter the token of the transition of which you would like to delete:',
@@ -439,7 +375,7 @@ const NFADrawing = (
                           transition => transition.token === text
                         );
                         if (transitionDetected) {
-                          newNfa.transitions = transitions.filter(
+                          newNfa.transitions = newNfa.transitions.filter(
                             transition =>
                               transition.id !== transitionDetected.id
                           );
@@ -449,11 +385,26 @@ const NFADrawing = (
                       setSelectedTransitionArrow(undefined);
                     },
                   },
+                  {
+                    text: 'ε',
+                    onPress: () => {
+                      const transitionDetected = transitions.find(
+                        transition => transition.token === 'ε'
+                      );
+                      if (transitionDetected) {
+                        newNfa.transitions = newNfa.transitions.filter(
+                          transition => transition.id !== transitionDetected.id
+                        );
+                        setCurrentStructure(newStructure);
+                      }
+                      setSelectedTransitionArrow(undefined);
+                    },
+                  },
                 ],
                 'plain-text'
               );
             } else {
-              newNfa.transitions = transitions.filter(
+              newNfa.transitions = newNfa.transitions.filter(
                 transition => transition.id !== transitions[0].id
               );
               setCurrentStructure(newStructure);

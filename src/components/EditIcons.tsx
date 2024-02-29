@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 
-import Structure from '../types/Structure';
+import Structure, { copyStructure } from '../types/Structure';
 import {
   Circle,
   Defs,
@@ -14,6 +14,7 @@ import { Text, View } from 'react-native';
 import { stateRadius } from './NFADrawing';
 import { editIconStyles } from '../styles';
 import BasicButton from './BasicButton';
+import NFA from '../types/NFA';
 
 const symbolWidth = 130;
 const symbolHeight = 80;
@@ -118,27 +119,74 @@ const EditIcon = (props: EditIconProps) => {
   );
 };
 
-const EditIcons = (structure: Structure) => {
+const EditIcons = (
+  structure: Structure,
+  setCurrentStructure: (newStructure: Structure) => void
+) => {
+  const newStructure = copyStructure(structure);
   switch (structure.type) {
     case 'nfa':
+      const newNfa = newStructure.structure as NFA;
       return [
         <EditIcon
           key={1}
           svg={rejectingState}
           title={'Rejecting State'}
-          onPress={() => {}}
+          onPress={() => {
+            let newId = 0;
+            while (newNfa.states.find(state => state.id === newId)) {
+              newId++;
+            }
+            newNfa.states.push({
+              id: newId,
+              name: 'q' + newId,
+              isStart: false,
+              isFinal: false,
+              locX: 0,
+              locY: 0,
+            });
+            setCurrentStructure(newStructure);
+          }}
         />,
         <EditIcon
           key={2}
           svg={acceptingState}
           title={'Accepting State'}
-          onPress={() => {}}
+          onPress={() => {
+            let newId = 0;
+            while (newNfa.states.find(state => state.id === newId)) {
+              newId++;
+            }
+            newNfa.states.push({
+              id: newId,
+              name: 'q' + newId,
+              isStart: false,
+              isFinal: true,
+              locX: 0,
+              locY: 0,
+            });
+            setCurrentStructure(newStructure);
+          }}
         />,
         <EditIcon
           key={3}
           svg={startState}
           title={'Start State'}
-          onPress={() => {}}
+          onPress={() => {
+            let newId = 0;
+            while (newNfa.states.find(state => state.id === newId)) {
+              newId++;
+            }
+            newNfa.states.push({
+              id: newId,
+              name: 'q' + newId,
+              isStart: true,
+              isFinal: false,
+              locX: 0,
+              locY: 0,
+            });
+            setCurrentStructure(newStructure);
+          }}
         />,
       ];
     default:

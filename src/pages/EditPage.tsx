@@ -119,7 +119,7 @@ const EditPage = (props: EditPageProps) => {
       </View>
       <View style={editPageStyles.line} />
       <ScrollView style={editPageStyles.scrollView}>
-        {EditIcons(props.structure)}
+        {EditIcons(currentStructure, setCurrentStructure)}
       </ScrollView>
     </>
   );
