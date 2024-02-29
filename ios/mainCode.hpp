@@ -11,6 +11,12 @@
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
 
+// #include <tesseract/baseapi.h>
+// #include <leptonica/allheaders.h>
+
+using namespace std;
+using namespace cv;
+
 namespace mainCode {
 
   // Classes
@@ -18,84 +24,99 @@ namespace mainCode {
   class State {
     public:
       int Id;
-      std::string Name;
+      string Name;
       bool IsStart;
       bool IsFinal;
       int LocX;
       int LocY;
 
-      State(int id, std::string name, bool isStart, bool isFinal, int locX, int locY);
-      std::string convertToJSON(bool testing);
+      State(int id, string name, bool isStart, bool isFinal, int locX, int locY);
+      string convertToJSON(bool testing);
   };
 
   class Transition {
     public:
+      int Id;
       int From;
       int To;
-      std::string Token;
+      string Token;
 
-      Transition(int from, int to, std::string token);
-      std::string convertToJSON(bool testing);
+      Transition(int id, int from, int to, string token);
+      string convertToJSON(bool testing);
   };
 
   class NFA {
     public:
       bool IsDfa;
-      std::vector<State> States;
-      std::vector<Transition> Transitions;
+      vector<State> States;
+      vector<Transition> Transitions;
 
-      NFA(bool isDfa, std::vector<State> states, std::vector<Transition> transitions);
-      std::string convertToJSON(bool testing);
+      NFA(bool isDfa, vector<State> states, vector<Transition> transitions);
+      string convertToJSON(bool testing);
   };
 
   class MathmaticalDFA {
     public:
-      std::set<int> States;
-      std::set<std::string> Alphabet;
-      std::map<int, std::map<std::string, int>> TransitionTable;
+      set<int> States;
+      set<string> Alphabet;
+      map<int, map<string, int>> TransitionTable;
       int StartState;
-      std::set<int> FinalStates;
+      set<int> FinalStates;
 
-      MathmaticalDFA(std::set<int> states, std::set<std::string> alphabet, std::map<int, std::map<std::string, int>> transitionTable, int startState, std::set<int> finalStates);
+      MathmaticalDFA(set<int> states, set<string> alphabet, map<int, map<string, int>> transitionTable, int startState, set<int> finalStates);
       MathmaticalDFA(NFA dfa);
   };
 
   class MathmaticalNFA {
     public:
-      std::set<int> States;
-      std::set<std::string> Alphabet;
-      std::map<int, std::map<std::string, std::set<int>>> TransitionTable;
+      set<int> States;
+      set<string> Alphabet;
+      map<int, map<string, set<int>>> TransitionTable;
       int StartState;
-      std::set<int> FinalStates;
+      set<int> FinalStates;
 
-      MathmaticalNFA(std::set<int> states, std::set<std::string> alphabet, std::map<int, std::map<std::string, std::set<int>>> transitionTable, int startState, std::set<int> finalStates);
+      MathmaticalNFA(set<int> states, set<string> alphabet, map<int, map<string, set<int>>> transitionTable, int startState, set<int> finalStates);
       MathmaticalNFA(NFA nfa);
   };
 
+  class Circle {
+    public:
+      cv::Point Center;
+      float Radius;
+
+      Circle(cv::Point center, float radius);
+  };
+
   // Helpers
-  void printVector(std::string name, std::vector<int> list);
-  void printSet(std::string name, std::set<int> set);
-  std::string boolToString(bool x);
+  void printVector(string name, vector<int> list);
+  void printSet(string name, set<int> set);
+  string boolToString(bool x);
   template <typename T>
-  std::set<T> setIntersection(std::set<T> set1, std::set<T> set2);
+  set<T> setIntersection(set<T> set1, set<T> set2);
   template <typename T>
-  std::set<T> setUnion(std::set<T> set1, std::set<T> set2);
+  set<T> setUnion(set<T> set1, set<T> set2);
   template <typename T>
-  std::set<T> setDifference(std::set<T> set1, std::set<T> set2);
-  std::string base64Decode(const std::string &base64data);
+  set<T> setDifference(set<T> set1, set<T> set2);
+  string base64Decode(const string &base64data);
 
   // DFA / NFA functions
-  std::set<int> getStates(std::vector<State> states);
-  std::set<std::string> getAlphabet(std::vector<Transition> transitions);
-  int getStartState(std::vector<State> states);
-  std::set<int> getFinalStates(std::vector<State> states);
+  set<int> getStates(vector<State> states);
+  set<string> getAlphabet(vector<Transition> transitions);
+  int getStartState(vector<State> states);
+  set<int> getFinalStates(vector<State> states);
 
   // Exported
   NFA simplifyDFA(NFA oldDfa);
   NFA convertNFAtoDFA(NFA oldNfa);
-  bool runDFA(NFA oldDfa, std::string word);
-  bool runNFA(NFA oldNfa, std::string word);
-  std::string photoToNFA(cv::Mat img, std::string path, bool isBase64, bool testing);
+  bool runDFA(NFA oldDfa, string word);
+  bool runNFA(NFA oldNfa, string word);
+  int validateNFA(NFA nfa);
+  bool checkIfDFA(NFA oldNfa);
+  string photoToNFA(Mat img, string path, bool isBase64, bool testing);
+  // string tesseractTest(string path);
+  string textRecognition(string imPath);
+  string textDetection(string imPath);
+  int fullOpenCVTextRecognition(string imPath);
 }
 
 #endif

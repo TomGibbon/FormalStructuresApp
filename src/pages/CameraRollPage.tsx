@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Image,
-  NativeModules,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -14,15 +13,12 @@ import {
 
 import BasicButton from '../components/BasicButton';
 import { convertHEICtoJPG, postPhoto } from '../helperFunctions';
-import { CameraRollPageStyles } from '../styles';
-
-const { CPPCode } = NativeModules;
-if (!CPPCode) {
-  throw new Error('CPPCode is null');
-}
+import { cameraRollPageStyles } from '../styles';
+import CPPCode from '../nativeModules';
 
 type CameraRollPageProps = {
   setPageNumber: (newPageNumber: number) => void;
+  setIsLoading: (newIsLoading: boolean) => void;
 };
 
 const CameraRollPage = (props: CameraRollPageProps) => {
@@ -44,8 +40,11 @@ const CameraRollPage = (props: CameraRollPageProps) => {
 
   const usePhoto = async () => {
     try {
+      props.setIsLoading(true);
       const result = await CPPCode.photoToNFA(currentPhotoPath);
       console.log(result);
+      props.setIsLoading(false);
+      props.setPageNumber(0);
     } catch (error) {
       console.error(error);
     }
@@ -61,6 +60,31 @@ const CameraRollPage = (props: CameraRollPageProps) => {
     }
   };
 
+  const postPhotoHere = async () => {
+    if (!currentPhotoPath) {
+      console.error('No photo path');
+      return;
+    }
+    try {
+      props.setIsLoading(true);
+      await postPhoto(currentPhotoPath);
+      props.setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const tesseractTest = async () => {
+    try {
+      props.setIsLoading(true);
+      const result = await CPPCode.tesseractTest(currentPhotoPath);
+      console.log(result);
+      props.setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <BasicButton onPress={() => props.setPageNumber(0)}>Back</BasicButton>
@@ -68,25 +92,23 @@ const CameraRollPage = (props: CameraRollPageProps) => {
         <>
           <Image
             source={{ uri: currentPhotoPath }}
-            style={[CameraRollPageStyles.mainPhoto, StyleSheet.absoluteFill]}
+            style={[cameraRollPageStyles.mainPhoto, StyleSheet.absoluteFill]}
           />
           <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
-          <BasicButton onPress={() => postPhoto(currentPhotoPath)}>
-            Post Photo
-          </BasicButton>
+          <BasicButton onPress={postPhotoHere}>Post Photo</BasicButton>
+          <BasicButton onPress={tesseractTest}>Tesseract Test</BasicButton>
         </>
       ) : (
         <ScrollView>
-          <View style={CameraRollPageStyles.photosContainer}>
+          <View style={cameraRollPageStyles.photosContainer}>
             {photos.map((photo, index) => {
               return (
                 <TouchableOpacity
-                  // eslint-disable-next-line react-hooks/rules-of-hooks -- Due to usePhoto being falsely detected as a react hook
                   onPress={async () => await selectPhoto(photo.node.image.uri)}
                   key={index}
                 >
                   <Image
-                    style={CameraRollPageStyles.photo}
+                    style={cameraRollPageStyles.photo}
                     source={{ uri: photo.node.image.uri }}
                   />
                 </TouchableOpacity>

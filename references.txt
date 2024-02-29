@@ -10,5 +10,14 @@ https://creazilla-store.fra1.digitaloceanspaces.com/icons/3233252/camera-icon-md
 Edit icon:
 https://cdn-icons-png.flaticon.com/512/7398/7398464.png
 
+Close icon:
+https://static-00.iconduck.com/assets.00/close-circle-icon-256x255-7gelhh31.png
+
 Simplification of DFA is hopcrofts algorithm shown here:
 https://en.wikipedia.org/wiki/DFA_minimization
+
+downloadAndInsertOpenCV script:
+https://github.com/brainhubeu/react-native-opencv-tutorial/blob/master/downloadAndInsertOpenCV.sh
+
+Thinning algorithm:
+https://stackoverflow.com/questions/31974843/detecting-lines-and-shapes-in-opencv-using-python/32077775#32077775

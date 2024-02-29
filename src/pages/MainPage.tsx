@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import {
-  NativeModules,
-  PanResponder,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { PanResponder, Text, TextInput, View } from 'react-native';
 
 import BasicButton from '../components/BasicButton';
 import IconButton from '../components/IconButton';
@@ -21,11 +15,7 @@ import PhotosIcon from '../../res/photos_icon.png';
 import CameraIcon from '../../res/camera_icon.png';
 import EditIcon from '../../res/edit_icon.png';
 import NFA from '../types/NFA';
-
-const { CPPCode } = NativeModules;
-if (!CPPCode) {
-  throw new Error('CPPCode is null');
-}
+import CPPCode from '../nativeModules';
 
 const initialPosition = {
   zoom: 1.3,
@@ -118,11 +108,9 @@ const MainPage = (props: MainPageProps) => {
       case undefined:
         return <></>;
       case true:
-        // eslint-disable-next-line react-native/no-inline-styles
-        return <Text style={{ color: 'green' }}>Allowed!</Text>;
+        return <Text style={mainPageStyles.resultTextAllowed}>Allowed!</Text>;
       case false:
-        // eslint-disable-next-line react-native/no-inline-styles
-        return <Text style={{ color: 'red' }}>Rejected!</Text>;
+        return <Text style={mainPageStyles.resultTextRejected}>Rejected!</Text>;
     }
   };
 
@@ -208,7 +196,11 @@ const MainPage = (props: MainPageProps) => {
         }}
       >
         <View style={mainPageStyles.editingButtonList}>
-          <IconButton icon={EditIcon} small />
+          <IconButton
+            icon={EditIcon}
+            small
+            onPress={() => props.setPageNumber(3)}
+          />
           <BasicButton small>Revert To Original Structure</BasicButton>
           <BasicButton onPress={simplifyStructure} small>
             Simplify

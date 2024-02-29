@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import { StyleProp, Text, TouchableOpacity, ViewStyle } from 'react-native';
-import { componentStyles } from '../styles.js';
+import { basicButtonStyles } from '../styles.js';
 
 type BasicButtonProps = PropsWithChildren<{
   onPress?: () => void;
@@ -10,8 +10,8 @@ type BasicButtonProps = PropsWithChildren<{
 
 const BasicButton = (props: BasicButtonProps) => {
   const buttonStyles = props.small
-    ? componentStyles.smallBasicButton
-    : componentStyles.basicButton;
+    ? basicButtonStyles.smallBasicButton
+    : basicButtonStyles.basicButton;
 
   const combinedStyles = props.style
     ? {

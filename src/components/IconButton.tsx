@@ -3,7 +3,7 @@ import React from 'react';
 import { ImageSourcePropType, View, Image } from 'react-native';
 
 import BasicButton from './BasicButton';
-import { componentStyles } from '../styles.js';
+import { iconStyles } from '../styles.js';
 
 type IconProps = {
   onPress?: () => void;
@@ -16,19 +16,17 @@ const IconButton = (props: IconProps) => {
     <BasicButton
       onPress={props.onPress}
       style={
-        props.small
-          ? componentStyles.smallIconImageContainer
-          : componentStyles.iconImageContainer
+        props.small ? iconStyles.smallImageContainer : iconStyles.imageContainer
       }
     >
       <View
         style={
           props.small
-            ? componentStyles.smallIconImageContainer
-            : componentStyles.iconImageContainer
+            ? iconStyles.smallImageContainer
+            : iconStyles.imageContainer
         }
       >
-        <Image source={props.icon} style={componentStyles.iconImage} />
+        <Image source={props.icon} style={iconStyles.image} />
       </View>
     </BasicButton>
   );

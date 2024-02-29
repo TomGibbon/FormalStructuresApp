@@ -16,6 +16,8 @@ import CameraPage from './src/pages/CameraPage';
 import Structure from './src/types/Structure';
 import { getDefaultStructureLocation } from './src/components/StructureDrawing';
 import CameraRollPage from './src/pages/CameraRollPage';
+import Loading from './src/components/Loading';
+import EditPage from './src/pages/EditPage';
 
 const defaultStructures = [
   {
@@ -27,42 +29,42 @@ const defaultStructures = [
           name: 'a',
           isStart: true,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 1,
           name: 'b',
           isStart: false,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 2,
           name: 'c',
           isStart: false,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 3,
           name: 'd',
           isStart: false,
           isFinal: true,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
       ],
       transitions: [
-        { from: 0, to: 1, token: '1' },
-        { from: 0, to: 2, token: 'ε' },
-        { from: 0, to: 3, token: '1' },
-        { from: 1, to: 3, token: '0' },
-        { from: 1, to: 3, token: '1' },
-        { from: 2, to: 3, token: 'ε' },
-        { from: 3, to: 3, token: '0' },
+        { id: 0, from: 0, to: 1, token: '1' },
+        { id: 1, from: 0, to: 2, token: 'ε' },
+        { id: 2, from: 0, to: 3, token: '1' },
+        { id: 3, from: 1, to: 3, token: '0' },
+        { id: 4, from: 1, to: 3, token: '1' },
+        { id: 5, from: 2, to: 3, token: 'ε' },
+        { id: 6, from: 3, to: 3, token: '0' },
       ],
     },
     type: 'nfa',
@@ -76,73 +78,73 @@ const defaultStructures = [
           name: 'q0',
           isStart: true,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 1,
           name: 'q1',
           isStart: false,
           isFinal: true,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 2,
           name: 'q2',
           isStart: false,
           isFinal: true,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 3,
           name: 'q3',
           isStart: false,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 4,
           name: 'q4',
           isStart: false,
           isFinal: true,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 5,
           name: 'q5',
           isStart: false,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
         {
           id: 6,
           name: 'q6',
           isStart: false,
           isFinal: false,
-          locX: -1,
-          locY: -1,
+          locX: 0,
+          locY: 0,
         },
       ],
       transitions: [
-        { from: 0, to: 3, token: '0' },
-        { from: 0, to: 1, token: '1' },
-        { from: 1, to: 2, token: '0' },
-        { from: 1, to: 5, token: '1' },
-        { from: 2, to: 2, token: '0' },
-        { from: 2, to: 5, token: '1' },
-        { from: 3, to: 0, token: '0' },
-        { from: 3, to: 4, token: '1' },
-        { from: 4, to: 2, token: '0' },
-        { from: 4, to: 5, token: '1' },
-        { from: 5, to: 5, token: '0' },
-        { from: 5, to: 5, token: '1' },
-        { from: 6, to: 6, token: '0' },
-        { from: 6, to: 6, token: '1' },
+        { id: 0, from: 0, to: 3, token: '0' },
+        { id: 1, from: 0, to: 1, token: '1' },
+        { id: 2, from: 1, to: 2, token: '0' },
+        { id: 3, from: 1, to: 5, token: '1' },
+        { id: 4, from: 2, to: 2, token: '0' },
+        { id: 5, from: 2, to: 5, token: '1' },
+        { id: 6, from: 3, to: 0, token: '0' },
+        { id: 7, from: 3, to: 4, token: '1' },
+        { id: 8, from: 4, to: 2, token: '0' },
+        { id: 9, from: 4, to: 5, token: '1' },
+        { id: 10, from: 5, to: 5, token: '0' },
+        { id: 11, from: 5, to: 5, token: '1' },
+        { id: 12, from: 6, to: 6, token: '0' },
+        { id: 13, from: 6, to: 6, token: '1' },
       ],
     },
     type: 'nfa',
@@ -154,6 +156,7 @@ type PageProps = {
   setPageNumber: (newPageNumber: number) => void;
   structure: Structure;
   setStructure: (newStructure: Structure) => void;
+  setIsLoading: (newIsLoading: boolean) => void;
 };
 
 const Page = (props: PageProps) => {
@@ -174,7 +177,20 @@ const Page = (props: PageProps) => {
         />
       );
     case 2:
-      return <CameraRollPage setPageNumber={props.setPageNumber} />;
+      return (
+        <CameraRollPage
+          setPageNumber={props.setPageNumber}
+          setIsLoading={props.setIsLoading}
+        />
+      );
+    case 3:
+      return (
+        <EditPage
+          setPageNumber={props.setPageNumber}
+          structure={props.structure}
+          setStructure={props.setStructure}
+        />
+      );
     default:
       return <></>;
   }
@@ -183,6 +199,7 @@ const Page = (props: PageProps) => {
 function App(): JSX.Element {
   const [pageNumber, setPageNumber] = useState(0);
   const [structure, setStructure] = useState<Structure>(defaultStructures[0]);
+  const [isLoading, setIsLoading] = useState(false);
 
   console.log('rerendering');
 
@@ -192,15 +209,19 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <SafeAreaView style={appStyles.container}>
-      <StatusBar barStyle={'dark-content'} />
-      <Page
-        pageNumber={pageNumber}
-        setPageNumber={setPageNumber}
-        structure={structure}
-        setStructure={setStructure}
-      />
-    </SafeAreaView>
+    <>
+      <SafeAreaView style={appStyles.container}>
+        <StatusBar barStyle={'dark-content'} />
+        <Page
+          pageNumber={pageNumber}
+          setPageNumber={setPageNumber}
+          structure={structure}
+          setStructure={setStructure}
+          setIsLoading={setIsLoading}
+        />
+      </SafeAreaView>
+      {isLoading ? <Loading /> : <></>}
+    </>
   );
 }
 

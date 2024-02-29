@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Circle, Line, Path, Text } from 'react-native-svg';
-import NFA from '../types/NFA';
+import NFA, { Transition } from '../types/NFA';
+import { ActionSheetIOS, Alert } from 'react-native';
+import Structure, { copyStructure } from '../types/Structure';
 
-const stateRadius = 30;
+export const stateRadius = 30;
 const mainRadiusMultiplier = 2.6;
 const duplicateTransitionSplit = Math.PI / 16;
 const selfTransitionAngle = Math.PI / 8;
 const curveRadius1 = stateRadius / 1.2;
 const curveRadius2 = stateRadius / 2;
 
-type TransitionObj = {
+type TransitionArrow = {
+  transitionIds: number[];
   from: number;
   to: number;
   tokenObj: TokenObj;
@@ -22,65 +25,6 @@ type TokenObj = {
   angle: number;
   token: string;
   key: string;
-};
-
-const getTokenLine = (
-  x: number,
-  y: number,
-  angle: number,
-  token: string,
-  key: string
-) => {
-  const xAlongArrow = x - 30 * Math.cos(angle);
-  const yAlongArrow = y - 30 * Math.sin(angle);
-
-  const leftAngle = angle - Math.PI / 2;
-  const finalX = xAlongArrow + 10 * Math.cos(leftAngle);
-  const finalY = yAlongArrow + 10 * Math.sin(leftAngle);
-
-  // If text angle is wanted limits are -90 and 90
-
-  return (
-    <Text
-      key={key}
-      x={finalX}
-      y={finalY}
-      textAnchor={'middle'}
-      alignmentBaseline={'middle'}
-    >
-      {token}
-    </Text>
-  );
-};
-
-const getTokenCurve = (
-  stateX: number,
-  stateY: number,
-  angle: number,
-  token: string,
-  key: string
-) => {
-  const ellipseCenterX =
-    stateX + (stateRadius + curveRadius1 - 9) * Math.cos(angle); // -9 is not exact
-  const ellipseCenterY =
-    stateY + (stateRadius + curveRadius1 - 9) * Math.sin(angle);
-
-  const rightAngle = angle + Math.PI / 2;
-
-  const finalX = ellipseCenterX + (curveRadius2 + 10) * Math.cos(rightAngle);
-  const finalY = ellipseCenterY + (curveRadius2 + 10) * Math.sin(rightAngle);
-
-  return (
-    <Text
-      key={key}
-      x={finalX}
-      y={finalY}
-      textAnchor={'middle'}
-      alignmentBaseline={'middle'}
-    >
-      {token}
-    </Text>
-  );
 };
 
 export const getDefaultNFALocation = (nfa: NFA) => {
@@ -99,9 +43,490 @@ export const getDefaultNFALocation = (nfa: NFA) => {
   return newNfa;
 };
 
-const NFADrawing = (nfa: NFA) => {
+const NFADrawing = (
+  nfa: NFA,
+  editable: boolean,
+  setCurrentStructure: (newStructure: Structure) => void
+) => {
   let elements = [];
-  let transitions: TransitionObj[] = [];
+  let transitionArrows: TransitionArrow[] = [];
+  const [selectedState, setSelectedState] = useState<number | undefined>(
+    undefined
+  );
+  const [selectedTransitionArrow, setSelectedTransitionArrow] = useState<
+    number[] | undefined
+  >(undefined);
+  const [movingState, setMovingState] = useState<number | undefined>(undefined);
+  const [selectingTransitionToState, setSelectingTransitionToState] =
+    useState(false);
+
+  // Reset if editing is turned off
+  useEffect(() => {
+    if (!editable) {
+      setSelectedState(undefined);
+      setSelectedTransitionArrow(undefined);
+      setMovingState(undefined);
+    }
+  }, [editable]);
+
+  const statePress = (id: number) => {
+    // Check if user is selecting a transition from a pre selected state
+    if (selectingTransitionToState) {
+      Alert.prompt(
+        'Enter Text',
+        "Enter the token for the new transition to '" +
+          nfa.states.find(state => state.id === id)?.name +
+          "': ",
+        [
+          {
+            text: 'Add',
+            onPress: text => {
+              if (text && text.length === 1) {
+                const token = text;
+                const newStructure = copyStructure({
+                  structure: nfa,
+                  type: 'nfa',
+                });
+                const newNfa = newStructure.structure as NFA;
+                let newId = 0;
+                while (
+                  newNfa.transitions.find(transition => transition.id === newId)
+                ) {
+                  newId++;
+                }
+                const from = selectedState!;
+                newNfa.transitions.push({
+                  id: newId,
+                  from: from,
+                  to: id,
+                  token: token,
+                });
+                setCurrentStructure({ structure: newNfa, type: 'nfa' });
+              }
+              setSelectedState(undefined);
+              setSelectingTransitionToState(false);
+            },
+          },
+        ],
+        'plain-text'
+      );
+    } else if (movingState !== id) {
+      setMovingState(undefined); // Stop any other moving state
+      // setSelectedTransitionArrow(undefined); // Reset transitionArrow if it is already selected
+      setSelectedState(id);
+      const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
+      const newNfa = newStructure.structure as NFA;
+      const state = newNfa.states.filter(s => s.id === id)[0];
+      const options = [
+        'Cancel',
+        'Move',
+        'Rename',
+        "Add Transition From '" + state.name + "'",
+      ];
+      if (state.isStart) {
+        options.push('Remove Start');
+      } else {
+        options.push('Make Start');
+      }
+      if (state.isFinal) {
+        options.push('Remove Final');
+      } else {
+        options.push('Make Final');
+      }
+      options.push('Delete State');
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: options,
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 6,
+        },
+        buttonIndex => {
+          switch (buttonIndex) {
+            case 0:
+              // Cancel
+              setSelectedState(undefined);
+              break;
+            case 1:
+              // Move
+              setMovingState(id);
+              break;
+            case 2:
+              // Rename
+              Alert.prompt(
+                'Enter Text',
+                'Enter the new name for the state:',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => setSelectedState(undefined),
+                  },
+                  {
+                    text: 'Update',
+                    onPress: text => {
+                      if (text) {
+                        state.name = text;
+                        setCurrentStructure(newStructure);
+                      }
+                      setSelectedState(undefined);
+                    },
+                  },
+                ],
+                'plain-text',
+                state.name
+              );
+              break;
+            case 3:
+              // Add transition from
+              setSelectingTransitionToState(true);
+              break;
+            case 4:
+              // Make start
+              state.isStart = !state.isStart;
+              setCurrentStructure(newStructure);
+              setSelectedState(undefined);
+              break;
+            case 5:
+              // Make final
+              state.isFinal = !state.isFinal;
+              setCurrentStructure(newStructure);
+              setSelectedState(undefined);
+              break;
+            case 6:
+              // Delete
+              newNfa.states = newNfa.states.filter(s => s.id !== state.id);
+              newNfa.transitions = newNfa.transitions.filter(
+                t => t.from !== state.id && t.to !== state.id
+              );
+              setCurrentStructure(newStructure);
+              setSelectedState(undefined);
+              break;
+          }
+        }
+      );
+    }
+  };
+
+  const transitionPressChangeState = (
+    selectedTransition: Transition,
+    newStructure: Structure,
+    fromOrTo: boolean
+  ) => {
+    Alert.prompt(
+      'Enter Text',
+      'Enter the name of the new ' + fromOrTo
+        ? 'From'
+        : 'To' +
+            " state for transition with token '" +
+            selectedTransition.token +
+            "':",
+      [
+        {
+          text: 'Cancel',
+          onPress: () => setSelectedTransitionArrow(undefined),
+        },
+        {
+          text: 'Update',
+          onPress: text => {
+            if (text) {
+              const newState = nfa.states.find(state => state.name === text);
+              if (newState) {
+                fromOrTo
+                  ? (selectedTransition.from = newState.id)
+                  : (selectedTransition.to = newState.id);
+                console.log(newState);
+                setCurrentStructure(newStructure);
+              }
+            }
+            setSelectedTransitionArrow(undefined);
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const transitionPressChangeToken = (
+    selectedTransition: Transition,
+    newStructure: Structure
+  ) => {
+    Alert.prompt(
+      'Enter Text',
+      'Enter the new token:',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => setSelectedTransitionArrow(undefined),
+        },
+        {
+          text: 'Update',
+          onPress: text => {
+            if (text && text.length === 1) {
+              selectedTransition.token = text;
+              console.log(text);
+              setCurrentStructure(newStructure);
+            }
+            setSelectedTransitionArrow(undefined);
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const transitionPress = (ids: number[]) => {
+    // Do nothing if user is selecting a transition from a pre-selected state
+    if (selectingTransitionToState) {
+      return;
+    }
+    setSelectedState(undefined); // If user selected to move a state but has not yet move it, it will still be highlighted
+    setSelectedTransitionArrow(ids);
+    const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
+    const newNfa = newStructure.structure as NFA;
+    const transitions = newNfa.transitions.filter(transition =>
+      ids.find(id => id === transition.id)
+    );
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: [
+          'Cancel',
+          'Change From',
+          'Chage To',
+          'Change Token',
+          'Delete',
+        ],
+        cancelButtonIndex: 0,
+        destructiveButtonIndex: 4,
+      },
+      buttonIndex => {
+        switch (buttonIndex) {
+          case 0:
+            // Cancel
+            setSelectedTransitionArrow(undefined);
+            break;
+          case 1:
+            // Change From
+            if (transitions.length > 0) {
+              Alert.prompt(
+                'More than one transition exists here',
+                'Enter the token of the transition of which you would like to change:',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => setSelectedTransitionArrow(undefined),
+                  },
+                  {
+                    text: 'Change',
+                    onPress: text => {
+                      if (text) {
+                        const transitionDetected = transitions.find(
+                          transition => transition.token === text
+                        );
+                        if (transitionDetected) {
+                          console.log('TransitionDetected');
+                          transitionPressChangeState(
+                            transitionDetected,
+                            newStructure,
+                            true
+                          );
+                        } else {
+                          setSelectedTransitionArrow(undefined);
+                        }
+                      } else {
+                        setSelectedTransitionArrow(undefined);
+                      }
+                    },
+                  },
+                ],
+                'plain-text'
+              );
+            } else {
+              transitionPressChangeState(transitions[0], newStructure, true);
+            }
+            break;
+          case 2:
+            // Change to
+            if (transitions.length > 0) {
+              Alert.prompt(
+                'More than one transition exists here',
+                'Enter the token of the transition of which you would like to change:',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => setSelectedTransitionArrow(undefined),
+                  },
+                  {
+                    text: 'Change',
+                    onPress: text => {
+                      if (text) {
+                        const transitionDetected = transitions.find(
+                          transition => transition.token === text
+                        );
+                        if (transitionDetected) {
+                          transitionPressChangeState(
+                            transitionDetected,
+                            newStructure,
+                            false
+                          );
+                        } else {
+                          setSelectedTransitionArrow(undefined);
+                        }
+                      } else {
+                        setSelectedTransitionArrow(undefined);
+                      }
+                    },
+                  },
+                ],
+                'plain-text'
+              );
+            } else {
+              transitionPressChangeState(transitions[0], newStructure, false);
+            }
+            break;
+          case 3:
+            // Change token
+            if (transitions.length > 0) {
+              Alert.prompt(
+                'More than one transition exists here',
+                'Enter the token of the transition of which you would like to change:',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => setSelectedTransitionArrow(undefined),
+                  },
+                  {
+                    text: 'Change',
+                    onPress: text => {
+                      if (text) {
+                        const transitionDetected = transitions.find(
+                          transition => transition.token === text
+                        );
+                        if (transitionDetected) {
+                          transitionPressChangeToken(
+                            transitionDetected,
+                            newStructure
+                          );
+                        } else {
+                          setSelectedTransitionArrow(undefined);
+                        }
+                      } else {
+                        setSelectedTransitionArrow(undefined);
+                      }
+                    },
+                  },
+                ],
+                'plain-text'
+              );
+            } else {
+              transitionPressChangeToken(transitions[0], newStructure);
+            }
+            break;
+          case 4:
+            // Delete
+            if (transitions.length > 0) {
+              Alert.prompt(
+                'Enter Text',
+                'Enter the token of the transition of which you would like to delete:',
+                [
+                  {
+                    text: 'Cancel',
+                    onPress: () => setSelectedTransitionArrow(undefined),
+                  },
+                  {
+                    text: 'Delete',
+                    onPress: text => {
+                      if (text) {
+                        const transitionDetected = transitions.find(
+                          transition => transition.token === text
+                        );
+                        if (transitionDetected) {
+                          newNfa.transitions = transitions.filter(
+                            transition =>
+                              transition.id !== transitionDetected.id
+                          );
+                          setCurrentStructure(newStructure);
+                        }
+                      }
+                      setSelectedTransitionArrow(undefined);
+                    },
+                  },
+                ],
+                'plain-text'
+              );
+            } else {
+              newNfa.transitions = transitions.filter(
+                transition => transition.id !== transitions[0].id
+              );
+              setCurrentStructure(newStructure);
+              setSelectedTransitionArrow(undefined);
+            }
+            break;
+        }
+      }
+    );
+  };
+
+  const getTokenLine = (
+    transitionIds: number[],
+    x: number,
+    y: number,
+    angle: number,
+    token: string,
+    key: string
+  ) => {
+    const xAlongArrow = x - 30 * Math.cos(angle);
+    const yAlongArrow = y - 30 * Math.sin(angle);
+
+    const leftAngle = angle - Math.PI / 2;
+    const finalX = xAlongArrow + 10 * Math.cos(leftAngle);
+    const finalY = yAlongArrow + 10 * Math.sin(leftAngle);
+
+    // If text angle is wanted limits are -90 and 90
+
+    return (
+      <Text
+        key={key}
+        x={finalX}
+        y={finalY}
+        textAnchor={'middle'}
+        alignmentBaseline={'middle'}
+        onPress={editable ? () => transitionPress(transitionIds) : undefined}
+      >
+        {token}
+      </Text>
+    );
+  };
+
+  const getTokenCurve = (
+    transitionIds: number[],
+    stateX: number,
+    stateY: number,
+    angle: number,
+    token: string,
+    key: string
+  ) => {
+    const ellipseCenterX =
+      stateX + (stateRadius + curveRadius1 - 9) * Math.cos(angle); // -9 is not exact
+    const ellipseCenterY =
+      stateY + (stateRadius + curveRadius1 - 9) * Math.sin(angle);
+
+    const rightAngle = angle + Math.PI / 2;
+
+    const finalX = ellipseCenterX + (curveRadius2 + 10) * Math.cos(rightAngle);
+    const finalY = ellipseCenterY + (curveRadius2 + 10) * Math.sin(rightAngle);
+
+    return (
+      <Text
+        key={key}
+        x={finalX}
+        y={finalY}
+        textAnchor={'middle'}
+        alignmentBaseline={'middle'}
+        onPress={editable ? () => transitionPress(transitionIds) : undefined}
+      >
+        {token}
+      </Text>
+    );
+  };
 
   // Draw states
   for (let i = 0; i < nfa.states.length; i++) {
@@ -113,8 +538,9 @@ const NFADrawing = (nfa: NFA) => {
         cy={nfa.states[i].locY}
         r={stateRadius}
         fill={'white'}
-        stroke={'black'}
+        stroke={selectedState === nfa.states[i].id ? 'blue' : 'black'}
         strokeWidth={1}
+        onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
       />
     );
 
@@ -126,6 +552,7 @@ const NFADrawing = (nfa: NFA) => {
         y={nfa.states[i].locY}
         textAnchor={'middle'}
         alignmentBaseline={'middle'}
+        onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
       >
         {nfa.states[i].name}
       </Text>
@@ -140,8 +567,9 @@ const NFADrawing = (nfa: NFA) => {
           cy={nfa.states[i].locY}
           r={0.85 * stateRadius}
           fill={'transparent'}
-          stroke={'black'}
+          stroke={selectedState === nfa.states[i].id ? 'blue' : 'black'}
           strokeWidth={1}
+          onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
         />
       );
     }
@@ -164,14 +592,14 @@ const NFADrawing = (nfa: NFA) => {
       const y2 = nfa.states[i].locY + stateRadius * Math.sin(angle);
       elements.push(
         <Line
-          key={'entry'}
+          key={i + 'entry'}
           x1={x1}
           y1={y1}
           x2={x2}
           y2={y2}
           stroke={'black'}
           strokeWidth={1}
-          markerEnd={'url(#arrow)'}
+          markerEnd={'url(#blackArrow)'}
         />
       );
     }
@@ -179,23 +607,25 @@ const NFADrawing = (nfa: NFA) => {
 
   // Draw transitions
   for (let i = 0; i < nfa.transitions.length; i++) {
+    // Check if token needs to be added onto existing transition arrow
     let duplicateTransition = false;
-    transitions.forEach(transition => {
+    transitionArrows.forEach(transitionArrow => {
       if (
-        transition.from === nfa.transitions[i].from &&
-        transition.to === nfa.transitions[i].to
+        transitionArrow.from === nfa.transitions[i].from &&
+        transitionArrow.to === nfa.transitions[i].to
       ) {
         duplicateTransition = true;
-        let tokenObj = transition.tokenObj;
+        let tokenObj = transitionArrow.tokenObj;
         tokenObj.token += ',' + nfa.transitions[i].token;
-        transition.tokenObj = tokenObj;
+        transitionArrow.tokenObj = tokenObj;
+        transitionArrow.transitionIds.push(nfa.transitions[i].id);
       }
     });
-
     if (duplicateTransition) {
       continue;
     }
 
+    // Add non-duplicate transitions
     const from = nfa.states.filter(
       state => state.id === nfa.transitions[i].from
     )[0];
@@ -218,14 +648,45 @@ const NFADrawing = (nfa: NFA) => {
         <Path
           key={i + 'transition'}
           d={`M ${x1} ${y1} A ${curveRadius1} ${curveRadius2} ${angleDeg} 1 1 ${x2} ${y2}`}
-          stroke={'black'}
+          stroke={
+            selectedTransitionArrow?.find(
+              tArr => tArr === nfa.transitions[i].id
+            )
+              ? 'blue'
+              : 'black'
+          }
           strokeWidth={1}
-          markerEnd={'url(#arrow)'}
+          markerEnd={
+            selectedTransitionArrow?.find(
+              tArr => tArr === nfa.transitions[i].id
+            )
+              ? 'url(#blueArrow)'
+              : 'url(#blackArrow)'
+          }
           fill={'transparent'}
+          onPress={
+            editable
+              ? () => {
+                  const transitionIds = transitionArrows
+                    .map(tArr => tArr.transitionIds)
+                    .find(
+                      ids =>
+                        ids.find(id => id === nfa.transitions[i].id) !==
+                        undefined
+                    );
+                  if (transitionIds) {
+                    transitionPress(transitionIds);
+                  } else {
+                    console.error('No transition was detected');
+                  }
+                }
+              : undefined
+          }
         />
       );
 
-      transitions.push({
+      transitionArrows.push({
+        transitionIds: [nfa.transitions[i].id],
         from: nfa.transitions[i].from,
         to: nfa.transitions[i].to,
         tokenObj: {
@@ -279,13 +740,44 @@ const NFADrawing = (nfa: NFA) => {
           y1={y1}
           x2={x2}
           y2={y2}
-          stroke={'black'}
+          stroke={
+            selectedTransitionArrow?.find(
+              tArr => tArr === nfa.transitions[i].id
+            )
+              ? 'blue'
+              : 'black'
+          }
           strokeWidth={1}
-          markerEnd={'url(#arrow)'}
+          markerEnd={
+            selectedTransitionArrow?.find(
+              tArr => tArr === nfa.transitions[i].id
+            )
+              ? 'url(#blueArrow)'
+              : 'url(#blackArrow)'
+          }
+          onPress={
+            editable
+              ? () => {
+                  const transitionIds = transitionArrows
+                    .map(tArr => tArr.transitionIds)
+                    .find(
+                      ids =>
+                        ids.find(id => id === nfa.transitions[i].id) !==
+                        undefined
+                    );
+                  if (transitionIds) {
+                    transitionPress(transitionIds);
+                  } else {
+                    console.error('No transition was detected');
+                  }
+                }
+              : undefined
+          }
         />
       );
 
-      transitions.push({
+      transitionArrows.push({
+        transitionIds: [nfa.transitions[i].id],
         from: nfa.transitions[i].from,
         to: nfa.transitions[i].to,
         tokenObj: {
@@ -300,25 +792,28 @@ const NFADrawing = (nfa: NFA) => {
     }
   }
 
-  transitions.forEach(transition => {
-    if (transition.tokenObj.isCurve) {
+  // Add text from transitionArrows
+  transitionArrows.forEach(transitionArrow => {
+    if (transitionArrow.tokenObj.isCurve) {
       elements.push(
         getTokenCurve(
-          transition.tokenObj.x,
-          transition.tokenObj.y,
-          transition.tokenObj.angle,
-          transition.tokenObj.token,
-          transition.tokenObj.key
+          transitionArrow.transitionIds,
+          transitionArrow.tokenObj.x,
+          transitionArrow.tokenObj.y,
+          transitionArrow.tokenObj.angle,
+          transitionArrow.tokenObj.token,
+          transitionArrow.tokenObj.key
         )
       );
     } else {
       elements.push(
         getTokenLine(
-          transition.tokenObj.x,
-          transition.tokenObj.y,
-          transition.tokenObj.angle,
-          transition.tokenObj.token,
-          transition.tokenObj.key
+          transitionArrow.transitionIds,
+          transitionArrow.tokenObj.x,
+          transitionArrow.tokenObj.y,
+          transitionArrow.tokenObj.angle,
+          transitionArrow.tokenObj.token,
+          transitionArrow.tokenObj.key
         )
       );
     }

@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 const basicMargin = 10;
 const largeHeight = 50;
 const smallHeight = 40;
+const gray = '#DDDDDD';
 
 export const appStyles = StyleSheet.create({
   container: {
@@ -13,14 +14,12 @@ export const appStyles = StyleSheet.create({
 
 export const mainPageStyles = StyleSheet.create({
   mainButtonList: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   svgContainer: {
     marginVertical: basicMargin,
     height: '60%',
-
     borderRadius: 30,
     borderWidth: 1,
   },
@@ -29,7 +28,6 @@ export const mainPageStyles = StyleSheet.create({
     zIndex: 1,
     left: 0,
     right: 0,
-    display: 'flex',
     margin: basicMargin,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -46,7 +44,6 @@ export const mainPageStyles = StyleSheet.create({
     marginHorizontal: basicMargin,
   },
   runList: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
@@ -74,6 +71,36 @@ export const mainPageStyles = StyleSheet.create({
   runText: {
     alignItems: 'center',
   },
+  resultTextAllowed: {
+    color: 'green',
+  },
+  resultTextRejected: {
+    color: 'red',
+  },
+});
+
+export const editPageStyles = StyleSheet.create({
+  buttonListContainer: {
+    zIndex: 1,
+  },
+  buttonList: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  svgContainer: {
+    flex: 1,
+  },
+  line: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#000000',
+  },
+  scrollView: {
+    maxHeight: 200,
+  },
 });
 
 export const cameraPageStyles = StyleSheet.create({
@@ -91,9 +118,9 @@ export const cameraPageStyles = StyleSheet.create({
   },
 });
 
-export const componentStyles = StyleSheet.create({
+export const basicButtonStyles = StyleSheet.create({
   basicButton: {
-    backgroundColor: '#DDDDDD',
+    backgroundColor: gray,
     borderRadius: 10,
     borderWidth: 1,
     height: largeHeight,
@@ -104,7 +131,7 @@ export const componentStyles = StyleSheet.create({
     alignItems: 'center',
   },
   smallBasicButton: {
-    backgroundColor: '#DDDDDD',
+    backgroundColor: gray,
     borderRadius: 10,
     borderWidth: 1,
     height: smallHeight,
@@ -114,21 +141,45 @@ export const componentStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  iconImageContainer: {
+});
+
+export const iconStyles = StyleSheet.create({
+  imageContainer: {
     width: largeHeight,
     height: largeHeight,
   },
-  smallIconImageContainer: {
+  smallImageContainer: {
     width: smallHeight,
     height: smallHeight,
   },
-  iconImage: {
+  image: {
     height: '80%',
     width: '80%',
   },
 });
 
-export const CameraRollPageStyles = StyleSheet.create({
+export const loadingStyles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  box: {
+    height: 100,
+    width: 200,
+    backgroundColor: gray,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  largeText: {
+    fontSize: 20,
+  },
+});
+
+export const cameraRollPageStyles = StyleSheet.create({
   photosContainer: {
     display: 'flex',
     flexDirection: 'row',
@@ -141,5 +192,14 @@ export const CameraRollPageStyles = StyleSheet.create({
   },
   mainPhoto: {
     zIndex: -1,
+  },
+});
+
+export const editIconStyles = StyleSheet.create({
+  editIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flex: 1,
   },
 });

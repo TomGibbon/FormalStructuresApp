@@ -13,15 +13,10 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
-  NativeModules,
 } from 'react-native';
 import { cameraPageStyles } from '../styles.js';
 import Structure from '../types/Structure';
-
-const { CPPCode } = NativeModules;
-if (!CPPCode) {
-  throw new Error('CPPCode is null');
-}
+import CPPCode from '../nativeModules';
 
 type CameraPageProps = {
   setPageNumber: (newPage: number) => void;
@@ -74,7 +69,8 @@ const CameraPage = (props: CameraPageProps) => {
     }
     try {
       console.log(photo.path);
-      console.log(await CPPCode.photoToNFA(photo.path));
+      // console.log(await CPPCode.photoToNFA(photo.path));
+      props.setPageNumber(0);
     } catch (error) {
       console.error('Error occured: ' + error);
     }

@@ -13,21 +13,35 @@ type StructureDrawingProps = {
   scale: number;
   translateX: number;
   translateY: number;
+  editable?: boolean;
+  setCurrentStructure?: (newStructure: Structure) => void;
 };
 
 export const getDefaultStructureLocation = (structure: Structure) => {
-  if (structure.type === 'nfa') {
-    return getDefaultNFALocation(structure.structure as NFA);
-  } else {
-    return structure;
+  switch (structure.type) {
+    case 'nfa':
+      return getDefaultNFALocation(structure.structure as NFA);
+    default:
+      return structure;
   }
 };
 
 const StructureDrawing = (props: StructureDrawingProps) => {
+  props.editable = props.editable ?? false;
+  const defaultSetCurrentStructure = () => {};
+  props.setCurrentStructure =
+    props.setCurrentStructure ?? defaultSetCurrentStructure;
+
   let elements: JSX.Element[] = [];
 
-  if (props.structure.type === 'nfa') {
-    elements = NFADrawing(props.structure.structure as NFA);
+  switch (props.structure.type) {
+    case 'nfa':
+      elements = NFADrawing(
+        props.structure.structure as NFA,
+        props.editable,
+        props.setCurrentStructure
+      );
+      break;
   }
 
   return (
@@ -41,7 +55,7 @@ const StructureDrawing = (props: StructureDrawingProps) => {
     >
       <Defs>
         <Marker
-          id="arrow"
+          id="blackArrow"
           markerWidth={10}
           markerHeight={10}
           orient={'auto'}
@@ -49,6 +63,16 @@ const StructureDrawing = (props: StructureDrawingProps) => {
           refY={5}
         >
           <Path d="M0,0 L10,5 L0,10" fill="black" />
+        </Marker>
+        <Marker
+          id="blueArrow"
+          markerWidth={10}
+          markerHeight={10}
+          orient={'auto'}
+          refX={10}
+          refY={5}
+        >
+          <Path d="M0,0 L10,5 L0,10" fill="blue" />
         </Marker>
       </Defs>
       {elements}

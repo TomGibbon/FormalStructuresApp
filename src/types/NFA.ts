@@ -7,7 +7,8 @@ type State = {
   locY: number;
 };
 
-type Transition = {
+export type Transition = {
+  id: number;
   from: number;
   to: number;
   token: string;
