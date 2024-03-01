@@ -305,40 +305,40 @@ bool photoToNFATest() {
   return result == predictedResult;
 }
 
-bool tesseractTestTest() {
-  cout << "\n";
-  string predictedResult = "";
-  string result = tesseractTest("testing_resources/custom_images/test-photo_6.jpg");
-  cout << result << "\n";
+// bool tesseractTestTest() {
+//   cout << "\n";
+//   string predictedResult = "";
+//   string result = tesseractTest("testing_resources/custom_images/test-photo_6.jpg");
+//   cout << result << "\n";
 
-  return result == predictedResult;
-}
+//   return result == predictedResult;
+// }
 
-bool textDetectionTest() {
-  cout << "\n";
-  string predictedResult = "";
-  // string result = textRecognition("testing_resources/detection_test_images/IC15/test_images/img_2.jpg");
-  string result = textDetection("testing_resources/custom_images/test-photo_2.jpg");
-  cout << result << "\n";
+// bool textDetectionTest() {
+//   cout << "\n";
+//   string predictedResult = "";
+//   // string result = textRecognition("testing_resources/detection_test_images/IC15/test_images/img_2.jpg");
+//   string result = textDetection("testing_resources/custom_images/test-photo_2.jpg");
+//   cout << result << "\n";
 
-  return result == predictedResult;
-}
+//   return result == predictedResult;
+// }
 
-bool textRecognitionTest() {
-  cout << "\n";
-  string predictedResult = "Coca Cola";
-  string result = textRecognition("testing_resources/recognition_test_images/test/5065_7.png");
-  cout << result << "\n";
+// bool textRecognitionTest() {
+//   cout << "\n";
+//   string predictedResult = "Coca Cola";
+//   string result = textRecognition("testing_resources/recognition_test_images/test/5065_7.png");
+//   cout << result << "\n";
 
-  return result == predictedResult;
-}
+//   return result == predictedResult;
+// }
 
-bool fullOpenCVTextRecognitionTest() {
-  cout << "\n";
-  // fullOpenCVTextRecognition("testing_resources/detection_test_images/IC15/test_images/img_2.jpg");
-  fullOpenCVTextRecognition("testing_resources/custom_images/test-photo_6.jpg");
-  return true;
-}
+// bool fullOpenCVTextRecognitionTest() {
+//   cout << "\n";
+//   // fullOpenCVTextRecognition("testing_resources/detection_test_images/IC15/test_images/img_2.jpg");
+//   fullOpenCVTextRecognition("testing_resources/custom_images/test-photo_6.jpg");
+//   return true;
+// }
 
 int main() {
   vector<TestObject> tests;

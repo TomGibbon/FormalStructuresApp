@@ -114,9 +114,9 @@ namespace mainCode {
   bool checkIfDFA(NFA oldNfa);
   string photoToNFA(Mat img, string path, bool isBase64, bool testing);
   // string tesseractTest(string path);
-  string textRecognition(string imPath);
-  string textDetection(string imPath);
-  int fullOpenCVTextRecognition(string imPath);
+  // string textRecognition(string imPath);
+  // string textDetection(string imPath);
+  // int fullOpenCVTextRecognition(string imPath);
 }
 
 #endif
