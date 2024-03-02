@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <opencv2/dnn.hpp>
+#include <cmath>
 
 using namespace std;
 using namespace cv;
@@ -155,6 +156,14 @@ namespace mainCode {
   Circle::Circle(Point center, float radius):
     Center(center), Radius(radius) {}
 
+  StateCircle::StateCircle(State correspondingState, Circle correspondingCircle):
+    CorrespondingState(correspondingState), CorrespondingCircle(correspondingCircle) {}
+
+  StateCircle::StateCircle():
+    CorrespondingState(State(0, "", false, false, 0, 0)), CorrespondingCircle(Circle(Point(), 0)) {}
+
+  Arrow::Arrow(Point tip, Point tail):
+    Tip(tip), Tail(tail) {}
   // Helpers
 
   void printVector(string name, vector<int> list) {
@@ -205,6 +214,17 @@ namespace mainCode {
     return result;
   }
   
+  template <typename T>
+  vector<T> setDifference(vector<T> vec1, vector<T> vec2) {
+    vector<T> result;
+    for (T item : vec1) {
+      if (find(vec2.begin(), vec2.end(), item) == vec2.end()) {
+        result.push_back(item);
+      }
+    }
+    return result;
+  }
+
   string base64Decode(const string &base64data) {
     // Create BIO object to handle base64 decoding
     BIO *bio = BIO_new_mem_buf(base64data.c_str(), base64data.length());
@@ -362,198 +382,275 @@ namespace mainCode {
     dst *= 255;
   }
 
-  void fourPointsTransform(const Mat& frame, const Point2f vertices[], Mat& result) {
-    const Size outputSize = Size(100, 32);
-
-    Point2f targetVertices[4] = {
-      Point(0, outputSize.height - 1),
-      Point(0, 0), Point(outputSize.width - 1, 0),
-      Point(outputSize.width - 1, outputSize.height - 1)
-    };
-    Mat rotationMatrix = getPerspectiveTransform(vertices, targetVertices);
-
-    warpPerspective(frame, result, rotationMatrix, outputSize);
-  }
-
   // Exported
 
   string photoToNFA(Mat img, string path, bool imgPreMade, bool testing) {
-    string result;
-    Mat3b src;
+    Mat src;
     if (!imgPreMade) {
       src = imread(path, IMREAD_COLOR);
       if (!src.data) {
-        result += "could not open file\n";
-        return result;
-        throw runtime_error("Could not open file");
+        return "Could not open file";
       }
     } else {
       src = img;
     }
     RNG rng;
-    Mat1b gray;
+    Mat gray;
     cvtColor(src, gray, COLOR_BGR2GRAY);
     GaussianBlur(gray, gray, Size(9, 9), 3);
-    Mat1b bin;
-    threshold(gray, bin, 95, 255, THRESH_BINARY_INV);
-    // imshow("gray", gray);
-    // imshow("bin", bin);
-    // waitKey(0);
-    // thinning(bin, bin);
-    Mat3b res = src.clone();
-    Mat3b contourRes = src.clone();
+    Mat bin;
+    threshold(gray, bin, 60, 255, THRESH_BINARY_INV);
+    imshow("bin", bin);
+    waitKey(0);
+    thinning(bin, bin);
+    Mat res = src.clone();
+    Mat contourRes = src.clone();
     vector<vector<Point>> contours;
     findContours(bin.clone(), contours, RETR_LIST, CHAIN_APPROX_NONE);
-    cout << contours.size() << "\n";
+    for (int i = 0; i < contours.size(); i++) {
+      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+      drawContours(contourRes, contours, i, color, 5);
+    }
+    int minArrowArea = 25000;
+    int minCircleArea = 10000;
 
     // Detect Circles
     vector<Circle> detectedCircles;
-    bool first = true;
-    for (vector<Point>& contour : contours) {
+    vector<vector<Point>> remainingContours;
+    for (vector<Point> contour : contours) {
       // Compute convex hull
       vector<Point> hull;
       convexHull(contour, hull);
-      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-      for (Point p : contour) {
-        circle(contourRes, p, 5, color);
-      }
 
       // Compute circularity, used for shape classification
       double area = contourArea(hull);
       double perimeter = arcLength(hull, true);
       double circularity = (4 * CV_PI * area) / (perimeter * perimeter);
-
-      // Shape classification
-      if (circularity > 0.9) {
-        // ellipse
-        // RotatedRect rect = fitEllipse(contour);
-        // ellipse(res, rect, color, 5);
+      if (circularity > 0.9 && area > minCircleArea) {
 
         // min enclosing circle
         Point2f center;
         float radius;
         minEnclosingCircle(contour, center, radius);
-        detectedCircles.push_back(Circle(center, radius));
-        circle(res, center, radius, color, 5);
 
-        // Remove circle from bin
-        for (Point p : contour) {
-          circle(bin, p, 1, Scalar(0, 0, 0), FILLED);
+        // Check for duplicate circle detection
+        bool duplicate = false;
+        for (Circle circle : detectedCircles) {
+          if (abs(center.x - circle.Center.x) <= 10 && abs(center.y - circle.Center.y) <= 10 && abs(radius - circle.Radius) <= 10) {
+            duplicate = true;
+          }
         }
+
+        if (!duplicate) {
+          detectedCircles.push_back(Circle(center, radius));
+
+          // Remove from bin
+          // drawContours(bin, vector<vector<Point>>{ contour }, 0, Scalar(0));
+        }
+      } else {
+        remainingContours.push_back(contour);
       }
     }
 
+    // Detect Arrows
+    vector<Arrow> detectedArrows;
+    for (vector<Point> contour : remainingContours) {
+      // Filter contours too small to be an arrow
+      Rect boundingBox = boundingRect(contour);
+      if (boundingBox.area() < minArrowArea) {
+        continue;
+      }
+
+      // Work on only one contour at a time
+      Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
+      drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
+
+      // Extract end points
+      int kernelData[3][3] = {
+        {1, 1, 1},
+        {1, 10, 1},
+        {1, 1, 1}
+      };
+      Mat kernel(3, 3, CV_32SC1, kernelData);
+      Mat endPointImg;
+      filter2D(newBinary, endPointImg, -1, kernel);
+      for (int y = 0; y < endPointImg.rows; y++) {
+        for (int x = 0; x < endPointImg.cols; x++) {
+          if (endPointImg.at<uchar>(y, x) == 110) {
+            endPointImg.at<uchar>(y, x) = 255;
+          } else {
+            endPointImg.at<uchar>(y, x) = 0;
+          }
+        }
+      }
+
+      // Find clusters
+      vector<Point> nonZeroPoints;
+      findNonZero(endPointImg, nonZeroPoints);
+      if (nonZeroPoints.size() == 3 || nonZeroPoints.size() == 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
+        Mat points(nonZeroPoints.size(), 2, CV_32SC1);
+        for (int i = 0; i < nonZeroPoints.size(); i++) {
+          points.at<int>(i, 0) = nonZeroPoints[i].x;
+          points.at<int>(i, 1) = nonZeroPoints[i].y;
+        }
+        Mat floatPoints;
+        points.convertTo(floatPoints, CV_32FC1);
+        TermCriteria criteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0);
+        Mat labels, centers;
+        kmeans(floatPoints, 2, labels, criteria, 10, KMEANS_RANDOM_CENTERS, centers);
+
+        // Identify tip and tail
+        int cluster0Count = 0;
+        int cluster1Count = 0;
+        for (int i = 0; i < labels.rows; i++) {
+          if (labels.at<int>(i, 0) == 0) {
+            cluster0Count++;
+          } else {
+            cluster1Count++;
+          }
+        }
+        Point tip;
+        Point tail;
+        if (cluster0Count > cluster1Count) {
+          tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+          tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+        } else {
+          tail = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+          tip = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+        }
+
+        // Draw onto res
+        Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+        circle(res, tip, 10, color, FILLED);
+        string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
+        putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 2, color, 5);
+
+        detectedArrows.push_back(Arrow(tip, tail));
+      }
+    }
+
+    // Generate NFA
+    vector<StateCircle> stateCircles;
+    vector<Circle> circlesToSkip;
+    int stateId = 0;
+    for (Circle circle : detectedCircles) {
+      cout << "circlesToSkip: {";
+      for (Circle c : circlesToSkip) {
+        cout << "(" << c.Center << ", " << c.Radius << ")  ";
+      }
+      cout << "}\nCircle: {" << circle.Center << ", " << circle.Radius << "}\n";
+      // Check if current circle is a final inner ring
+      bool found = false;
+      for (Circle innerCircle : circlesToSkip) {
+        if (innerCircle.Center.x == circle.Center.x && innerCircle.Center.y == circle.Center.y && innerCircle.Radius == circle.Radius) {
+          found = true;
+          cout << "Inner circle already visitied\n";
+          break;
+        }
+      }
+      if (!found) {
+        // Check for final state circle
+        bool isFinal = false;
+        for (Circle secondCircle : detectedCircles) {
+          bool circleWithinSecond = (secondCircle.Radius < circle.Radius < 1 && secondCircle.Radius > circle.Radius / 2);
+          bool secondWithinCircle = (circle.Radius < secondCircle.Radius < 1 && circle.Radius > secondCircle.Radius / 2);
+          bool circlesWithinEachOther = sqrt(std::pow(circle.Center.x - secondCircle.Center.x, 2) + std::pow(circle.Center.y - secondCircle.Center.y, 2)) < abs(circle.Radius - secondCircle.Radius);
+          if ((circleWithinSecond || secondWithinCircle) && circlesWithinEachOther) {
+            cout << "Inner circle detected!!\n";
+            isFinal = true;
+            if (circle.Radius > secondCircle.Radius) {
+              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true, 0, 0), circle));
+              circlesToSkip.push_back(secondCircle); // May check in seperate loop
+            } else {
+              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true, 0, 0), secondCircle));
+              circlesToSkip.push_back(secondCircle); // May check in seperate loop
+            }
+          }
+        }
+        if (!isFinal) {
+          stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, false, 0, 0), circle));
+        }
+        stateId++;
+      }
+    }
+    cout << "size: " << stateCircles.size() << "\n";
+    for (StateCircle c : stateCircles) {
+      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+      circle(res, c.CorrespondingCircle.Center, c.CorrespondingCircle.Radius, color, 5);
+    }
+
+    vector<Transition> transitions;
+    int startId = -1;
+    int transitionId = 0;
+    for (Arrow arrow : detectedArrows) {
+      cout << "\n\nArrow: {" << arrow.Tip << ", " << arrow.Tail << "}\n";
+      float minTipDistance = INFINITY;
+      float minTailDistance = INFINITY;
+      StateCircle tipStateCircle;
+      StateCircle tailStateCircle;
+      for (StateCircle stateCircle : stateCircles) {
+        cout << "Checking Circle: {" << stateCircle.CorrespondingCircle.Center << ", " << stateCircle.CorrespondingCircle.Radius << "}\n";
+        float tipDistance = sqrt(std::pow(arrow.Tip.x - stateCircle.CorrespondingCircle.Center.x, 2) + std::pow(arrow.Tip.y - stateCircle.CorrespondingCircle.Center.y, 2));
+        float tailDistance = sqrt(std::pow(arrow.Tail.x - stateCircle.CorrespondingCircle.Center.x, 2) + std::pow(arrow.Tail.y - stateCircle.CorrespondingCircle.Center.y, 2));
+        cout << "tipDistance: " << tipDistance << "\n";
+        cout << "tailDistance: " << tailDistance << "\n";
+        if (tipDistance < minTipDistance) {
+          cout << "Tip smaller\n";
+          minTipDistance = tipDistance;
+          tipStateCircle = stateCircle;
+        }
+        if (tailDistance < minTailDistance) {
+          cout << "Tail smaller\n";
+          minTailDistance = tailDistance;
+          tailStateCircle = stateCircle;
+        }
+      }
+      // Check if starting arrow
+      cout << "\nminTipDistance: " << minTipDistance << "\n";
+      cout << "minTailDistance: " << minTailDistance << "\n";
+      cout << "tipStateRadius: " << tipStateCircle.CorrespondingCircle.Radius << "\n";
+      cout << "tailStateRadius: " << tailStateCircle.CorrespondingCircle.Radius << "\n";
+      if (minTipDistance < tipStateCircle.CorrespondingCircle.Radius * 2) { // Arrow too far away
+        if (minTailDistance > 1.5 * tailStateCircle.CorrespondingCircle.Radius) {
+          if (startId == -1) {
+            startId = tipStateCircle.CorrespondingState.Id;
+            cout << "Start arrow\n";
+          } else {
+            return "More than 1 start state";
+          }
+        } else {
+          transitions.push_back(Transition(transitionId, tailStateCircle.CorrespondingState.Id, tipStateCircle.CorrespondingState.Id, "0"));
+          transitionId++;
+        }
+      }
+    }
+    if (startId == -1) {
+      return "No start state";
+    }
+    vector<State> states;
+    for (StateCircle stateCircle : stateCircles) {
+      State state = stateCircle.CorrespondingState;
+      if (state.Id == startId) {
+        state.IsStart = true;
+      }
+      states.push_back(state);
+      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+      circle(res, stateCircle.CorrespondingCircle.Center, stateCircle.CorrespondingCircle.Radius, color, 5);
+    }
+
+    NFA nfa(false, states, transitions);
+    cout << "NFA:\n" << nfa.convertToJSON(true) << "\n";
+    bool isDFA = checkIfDFA(nfa);
+    nfa.IsDfa = isDFA;
+    cout << "isDfa: " << boolToString(isDFA) << "\n";
+
     if (testing) {
-      // int finalColumns = 9;
-      // int x = src.cols * finalColumns;
-      // int yD = (contours.size() / finalColumns) + 1;
-      // int y = src.rows * yD;
-      // Mat collage(Size(x, y), CV_8UC3, Scalar(255, 255, 255));
-      // int i = 0;
-      // int j = 0;
-      // Scalar color = Scalar(0, 255, 0);
-      // for (vector<Point>& contour : contours) {
-      //   Mat3b img = src.clone();
-      //   for (Point p : contour) {
-      //     circle(img, p, 5, color);
-      //   }
-      //   img.copyTo(collage(Rect(i * img.cols, j * img.rows, img.cols, img.rows)));
-      //   if (i == finalColumns - 1) {
-      //     j++;
-      //     i = 0;
-      //   } else {
-      //     i++;
-      //   }
-      // }
-      // namedWindow("a", WINDOW_AUTOSIZE);
-      // imshow("a", collage);
-      namedWindow("blurred", WINDOW_AUTOSIZE);
-      imshow("blurred", gray);
-      namedWindow("bin", WINDOW_NORMAL);
-      imshow("bin", bin);
-      namedWindow("contours", WINDOW_AUTOSIZE);
-      imshow("contours", contourRes);
-      namedWindow("result", WINDOW_AUTOSIZE);
       imshow("result", res);
+      imshow("contours", contourRes);
       waitKey(0);
     }
 
-    result += "[\n";
-    for (Circle c : detectedCircles) {
-      result += "\t{center:{x:" + to_string(c.Center.x) + ",y:" + to_string(c.Center.y) + "},radius:" + to_string(c.Radius) + "}\n";
-    }
-    result += "]\n";
-
-
-
-
-    // BLOB ATTEMPT
-
-    // Mat blurredImg;
-    // GaussianBlur(img, blurredImg, Size(15, 15), 9);
-
-    // SimpleBlobDetector::Params params;
-    // params.minThreshold = 10;
-    // params.maxThreshold = 200;
-    // params.filterByArea = false;
-    // // params.minArea = 1000;
-    // params.filterByCircularity = false;
-    // params.filterByConvexity = false;
-    // params.filterByInertia = false;
-
-    // Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
-    // vector<KeyPoint> keypoints;
-    // detector->detect(blurredImg, keypoints);
-    // Mat newImg;
-    // drawKeypoints(img, keypoints, newImg, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-
-    // namedWindow("blurred", WINDOW_AUTOSIZE);
-    // imshow("blurred", blurredImg);
-    // namedWindow("keypoints", WINDOW_AUTOSIZE);
-    // imshow("keypoints", newImg);
-    // waitKey(0);
-
-    //  HOUGH_CIRCLES ATTEMT 
-
-    // Mat gray;
-    // cvtColor(img, gray, COLOR_BGR2GRAY);
-    // GaussianBlur(gray, gray, Size(9, 9), 2);
-    // vector<Vec3f> circles;
-    // // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 200, 200, 100, 150, 300);
-    // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 70, 200, 150);
-
-    // result += "Width: " + to_string(img.cols) + "\n";
-    // result += "Height: " + to_string(img.rows) + "\n";
-
-    // vector<State> states;
-    // for (int id = 0; id < circles.size(); id++) {
-    //   Vec3f circle = circles[id];
-    //   result += "X: " + to_string(circle[0]) + "\n";
-    //   result += "Y: " + to_string(circle[1]) + "\n";
-    //   result += "Radius: " + to_string(circle[2]) + "\n\n";
-    //   int locX = circle[0] - img.cols / 2; // Still need to scale
-    //   int locY = circle[1] - img.rows / 2;
-    //   states.push_back(State(id, "q" + to_string(id), false, false, locX, locY));
-    // }
-    // vector<Transition> transitions;
-    // result += NFA(false, states, transitions).convertToJSON(false);
-    // if (testing) {
-    //   for(size_t i = 0; i < circles.size(); i++) {
-    //     Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-    //     int radius = cvRound(circles[i][2]);
-    //     // draw the circle center
-    //     circle(img, center, 3, Scalar(0, 255, 0), FILLED);
-    //     // draw the circle outline
-    //     circle(img, center, radius, Scalar(0, 0, 255), 3);
-    //   }
-    //   namedWindow("gray", WINDOW_AUTOSIZE);
-    //   imshow("gray", gray);
-    //   namedWindow("circles", WINDOW_AUTOSIZE);
-    //   imshow("circles", img);
-    //   waitKey(0);
-    // }
-
-    return result;
+    return nfa.convertToJSON(false);
   }
 
   NFA simplifyDFA(NFA oldDfa) {
@@ -803,20 +900,108 @@ namespace mainCode {
     return true;
   }
 
+}
+
+// void fourPointsTransform(const Mat& frame, const Point2f vertices[], Mat& result) {
+  //   const Size outputSize = Size(100, 32);
+
+  //   Point2f targetVertices[4] = {
+  //     Point(0, outputSize.height - 1),
+  //     Point(0, 0), Point(outputSize.width - 1, 0),
+  //     Point(outputSize.width - 1, outputSize.height - 1)
+  //   };
+  //   Mat rotationMatrix = getPerspectiveTransform(vertices, targetVertices);
+
+  //   warpPerspective(frame, result, rotationMatrix, outputSize);
+  // }
+
+  // Mat arrowPreProcess(Mat img) {
+  //   Mat img_gray, img_blur, img_canny, img_dilate, img_erode;
+  //   cvtColor(img, img_gray, COLOR_BGR2GRAY);
+  //   GaussianBlur(img_gray, img_blur, Size(5, 5), 1);
+  //   imshow("blur", img_blur);
+  //   waitKey(0);
+  //   Canny(img_blur, img_canny, 40, 60);
+  //   Mat kernel = Mat::ones(3, 3, CV_64F);
+  //   dilate(img_canny, img_dilate, kernel, Point(-1, -1), 2);
+  //   erode(img_dilate, img_erode, kernel);
+  //   return img_erode;
+  // }
+
+  // Point arrowFindTip(vector<Point> points, vector<int> convex_hull) {
+  //   cout << "points: {";
+  //   for (Point p : points) {
+  //     cout << "[" << p.x << ", " << p.y << "] ";
+  //   }
+  //   cout << "}\n";
+  //   printVector("convex hull", convex_hull);
+  //   size_t length = points.size();
+  //   vector<int> range;
+  //   for (int i = 0; i < length; i++) {
+  //     range.push_back(i);
+  //   }
+  //   vector<int> indices = setDifference(range, convex_hull);
+  //   printVector("indices", indices);
+  //   for (int i = 0; i < 2; i++) {
+  //     int j = indices[i] + 2;
+  //     if (j > length - 1) {
+  //       j = length - j;
+  //     }
+  //     if (points[j] == points[indices[i] - 2]) {
+  //       return points[j];
+  //     }
+  //   }
+  //   return Point(-1, -1); // Return invalid point if not found
+  // }
+
+  // void arrowDetection(string path) {
+  //   Mat img = imread(path);
+
+  //   vector<vector<Point>> contours;
+  //   vector<Vec4i> hierarchy;
+  //   Mat preProcessedImg = arrowPreProcess(img);
+  //   imshow("pre-processed", preProcessedImg);
+  //   waitKey(0);
+  //   findContours(preProcessedImg, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+  //   cout << "\nFound contours\n";
+  //   for (size_t i = 0; i < contours.size(); i++) {
+  //     cout << "Looking at contour\n";
+  //     double peri = arcLength(contours[i], true);
+  //     vector<Point> approx;
+  //     approxPolyDP(contours[i], approx, 0.025 * peri, true);
+  //     vector<int> hull;
+  //     convexHull(approx, hull);
+  //     size_t sides = hull.size();
+  //     if (6 > sides && sides > 3 && sides + 2 == approx.size()) {
+  //       drawContours(img, contours, static_cast<int>(i), Scalar(0, 255, 0), 3);
+  //       cout << "Finding tip\n";
+  //       Point arrow_tip = arrowFindTip(approx, hull);
+  //       cout << "Found tip\n";
+  //       if (arrow_tip.x != -1 && arrow_tip.y != -1) {
+  //         drawContours(img, contours, static_cast<int>(i), Scalar(0, 255, 0), 3);
+  //         circle(img, arrow_tip, 3, Scalar(0, 0, 255), FILLED);
+  //       }
+  //     }
+  //   }
+
+  //   imshow("Image", img);
+  //   waitKey(0);
+  // }
+
   // string tesseractTest(string path) {
   //   string result;
-
+  //
   //   string outText;
-
+  //
   //   tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
   //   // Initialize tesseract-ocr with English, without specifying tessdata path
   //   if (api->Init(NULL, "eng") == -1) {
   //     result += "Could not initialize tesseract.\n";
   //     return result;
   //   }
-
+  //
   //   Mat im = imread(path, IMREAD_COLOR);
-
+  //
   //   // Open input image with leptonica library
   //   // Pix* image = pixRead(path.c_str());
   //   api->SetPageSegMode(tesseract::PSM_AUTO);
@@ -824,13 +1009,13 @@ namespace mainCode {
   //   // Get OCR result
   //   outText = string(api->GetUTF8Text());
   //   result += "OCR output:\n" + outText;
-
+  //
   //   // Destroy used object and release memory
   //   api->End();
   //   delete api;
   //   // pixDestroy(&image);
 
-//   //   return result;
+  //   //   return result;
 //   // }
 
 //   int fullOpenCVTextRecognition(string imPath) {
@@ -954,4 +1139,70 @@ namespace mainCode {
 //     // cout << "'" << recognitionResult << "'" << endl;
 //     return recognitionResult;
 //   }
-}
+
+
+// BLOB ATTEMPT
+
+    // Mat blurredImg;
+    // GaussianBlur(img, blurredImg, Size(15, 15), 9);
+
+    // SimpleBlobDetector::Params params;
+    // params.minThreshold = 10;
+    // params.maxThreshold = 200;
+    // params.filterByArea = false;
+    // // params.minArea = 1000;
+    // params.filterByCircularity = false;
+    // params.filterByConvexity = false;
+    // params.filterByInertia = false;
+
+    // Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
+    // vector<KeyPoint> keypoints;
+    // detector->detect(blurredImg, keypoints);
+    // Mat newImg;
+    // drawKeypoints(img, keypoints, newImg, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+    // namedWindow("blurred", WINDOW_AUTOSIZE);
+    // imshow("blurred", blurredImg);
+    // namedWindow("keypoints", WINDOW_AUTOSIZE);
+    // imshow("keypoints", newImg);
+    // waitKey(0);
+
+    //  HOUGH_CIRCLES ATTEMT 
+
+    // Mat gray;
+    // cvtColor(img, gray, COLOR_BGR2GRAY);
+    // GaussianBlur(gray, gray, Size(9, 9), 2);
+    // vector<Vec3f> circles;
+    // // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 200, 200, 100, 150, 300);
+    // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 70, 200, 150);
+
+    // result += "Width: " + to_string(img.cols) + "\n";
+    // result += "Height: " + to_string(img.rows) + "\n";
+
+    // vector<State> states;
+    // for (int id = 0; id < circles.size(); id++) {
+    //   Vec3f circle = circles[id];
+    //   result += "X: " + to_string(circle[0]) + "\n";
+    //   result += "Y: " + to_string(circle[1]) + "\n";
+    //   result += "Radius: " + to_string(circle[2]) + "\n\n";
+    //   int locX = circle[0] - img.cols / 2; // Still need to scale
+    //   int locY = circle[1] - img.rows / 2;
+    //   states.push_back(State(id, "q" + to_string(id), false, false, locX, locY));
+    // }
+    // vector<Transition> transitions;
+    // result += NFA(false, states, transitions).convertToJSON(false);
+    // if (testing) {
+    //   for(size_t i = 0; i < circles.size(); i++) {
+    //     Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+    //     int radius = cvRound(circles[i][2]);
+    //     // draw the circle center
+    //     circle(img, center, 3, Scalar(0, 255, 0), FILLED);
+    //     // draw the circle outline
+    //     circle(img, center, radius, Scalar(0, 0, 255), 3);
+    //   }
+    //   namedWindow("gray", WINDOW_AUTOSIZE);
+    //   imshow("gray", gray);
+    //   namedWindow("circles", WINDOW_AUTOSIZE);
+    //   imshow("circles", img);
+    //   waitKey(0);
+    // }

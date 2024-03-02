@@ -43,11 +43,27 @@ bool setUnionTest() {
 }
 
 bool setDifferenceTest() {
+  bool overallPass = true;
+
+  cout << "\n- Set: ";
   set<int> set1 = { 0, 4, 2, 1, 1, 5 };
   set<int> set2 = { 1, 3, 7, 6, 5, 2 };
-  set<int> predictedResult = { 0, 4 };
-  set<int> result = setDifference(set1, set2);
-  return result == predictedResult;
+  set<int> predictedResult1 = { 0, 4 };
+  set<int> result1 = setDifference(set1, set2);
+  bool passed = result1 == predictedResult1;
+  overallPass = overallPass && passed;
+  printOutcome(passed);
+
+  cout << "- Vector: ";
+  vector<int> vector1 = { 0, 4, 2, 1, 1, 5 };
+  vector<int> vector2 = { 1, 3, 7, 6, 5, 2 };
+  vector<int> predictedResult2 = { 0, 4 };
+  vector<int> result2 = setDifference(vector1, vector2);
+  passed = result2 == predictedResult2;
+  overallPass = overallPass && passed;
+  printOutcome(passed);
+
+  return overallPass;
 }
 
 bool simplifyDFATest() {
@@ -299,7 +315,7 @@ bool checkIfDFATest() {
 bool photoToNFATest() {
   cout << "\n";
   string predictedResult = "";
-  string result = photoToNFA(Mat(), "testing_resources/custom_images/test-photo_7.jpg", false, true);
+  string result = photoToNFA(Mat(), "test_photo_7.jpg", false, true);
   cout << result << "\n";
 
   return result == predictedResult;
@@ -310,7 +326,7 @@ bool photoToNFATest() {
 //   string predictedResult = "";
 //   string result = tesseractTest("testing_resources/custom_images/test-photo_6.jpg");
 //   cout << result << "\n";
-
+//
 //   return result == predictedResult;
 // }
 
@@ -320,7 +336,7 @@ bool photoToNFATest() {
 //   // string result = textRecognition("testing_resources/detection_test_images/IC15/test_images/img_2.jpg");
 //   string result = textDetection("testing_resources/custom_images/test-photo_2.jpg");
 //   cout << result << "\n";
-
+//
 //   return result == predictedResult;
 // }
 
@@ -329,7 +345,7 @@ bool photoToNFATest() {
 //   string predictedResult = "Coca Cola";
 //   string result = textRecognition("testing_resources/recognition_test_images/test/5065_7.png");
 //   cout << result << "\n";
-
+//
 //   return result == predictedResult;
 // }
 
@@ -348,10 +364,10 @@ int main() {
   // tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
   // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
   // tests.push_back(TestObject("runNFA", runNFATest));
-  tests.push_back(TestObject("runDFA", runDFATest));
+  // tests.push_back(TestObject("runDFA", runDFATest));
   // tests.push_back(TestObject("validateNFA", validateNFATest));
   // tests.push_back(TestObject("checkIfDFA", checkIfDFATest));
-  // tests.push_back(TestObject("photoToDFA", photoToNFATest));
+  tests.push_back(TestObject("photoToDFA", photoToNFATest));
   // tests.push_back(TestObject("tesseractTest", tesseractTestTest));
   // tests.push_back(TestObject("textRecognition", textRecognitionTest));
   // tests.push_back(TestObject("textDetection", textDetectionTest));

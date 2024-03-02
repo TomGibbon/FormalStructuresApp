@@ -87,6 +87,24 @@ namespace mainCode {
       Circle(cv::Point center, float radius);
   };
 
+  // Intermediate stage for NFA generation
+  class StateCircle {
+    public:
+      State CorrespondingState;
+      Circle CorrespondingCircle;
+
+      StateCircle(State state, Circle circle);
+      StateCircle();
+  };
+
+  class Arrow {
+    public:
+      cv::Point Tip;
+      cv::Point Tail;
+
+      Arrow(cv::Point tip, cv::Point tail);
+  };
+
   // Helpers
   void printVector(string name, vector<int> list);
   void printSet(string name, set<int> set);
@@ -97,6 +115,8 @@ namespace mainCode {
   set<T> setUnion(set<T> set1, set<T> set2);
   template <typename T>
   set<T> setDifference(set<T> set1, set<T> set2);
+  template <typename T>
+  vector<T> setDifference(vector<T> vec1, vector<T> vec2);
   string base64Decode(const string &base64data);
 
   // DFA / NFA functions
@@ -117,6 +137,7 @@ namespace mainCode {
   // string textRecognition(string imPath);
   // string textDetection(string imPath);
   // int fullOpenCVTextRecognition(string imPath);
+  // void arrowDetection(string path);
 }
 
 #endif

@@ -1,1 +1,17 @@
-When adding states in the edit page, the circle is behind the transitions
+ 
+
+ # Optimise photo to DFA
+ - Detect text
+
+ # Further improvements
+ - Provide functinoality for grammars
+ - Provide functionality for regex
+
+ ? Allow arrows to be connected (potentially using triangle detection)
+ - Allow it to work on more types of photos
+
+ # Bugs
+ - When adding states in the edit page, the circle is behind the transitions
+ - Sometimes line doesn't go blue when selecting
+ - Cannot move states when editing
+ - Cannot pan / zoom page in editing
