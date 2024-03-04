@@ -157,6 +157,8 @@ type PageProps = {
   structure: Structure;
   setStructure: (newStructure: Structure) => void;
   setIsLoading: (newIsLoading: boolean) => void;
+  originalStructure: Structure;
+  setOriginalStructure: (newStructure: Structure) => void;
 };
 
 const Page = (props: PageProps) => {
@@ -167,6 +169,8 @@ const Page = (props: PageProps) => {
           setPageNumber={props.setPageNumber}
           structure={props.structure}
           setStructure={props.setStructure}
+          originalStructure={props.originalStructure}
+          setOriginalStructure={props.setOriginalStructure}
         />
       );
     case 1:
@@ -174,6 +178,7 @@ const Page = (props: PageProps) => {
         <CameraPage
           setPageNumber={props.setPageNumber}
           setStructure={props.setStructure}
+          setIsLoading={props.setIsLoading}
         />
       );
     case 2:
@@ -181,6 +186,7 @@ const Page = (props: PageProps) => {
         <CameraRollPage
           setPageNumber={props.setPageNumber}
           setIsLoading={props.setIsLoading}
+          setStructure={props.setStructure}
         />
       );
     case 3:
@@ -200,6 +206,9 @@ function App(): JSX.Element {
   const [pageNumber, setPageNumber] = useState(0);
   const [structure, setStructure] = useState<Structure>(defaultStructures[0]);
   const [isLoading, setIsLoading] = useState(false);
+  const [originalStructure, setOriginalStructure] = useState<Structure>(
+    defaultStructures[0]
+  );
 
   console.log('rerendering');
 
@@ -218,6 +227,8 @@ function App(): JSX.Element {
           structure={structure}
           setStructure={setStructure}
           setIsLoading={setIsLoading}
+          originalStructure={originalStructure}
+          setOriginalStructure={setOriginalStructure}
         />
       </SafeAreaView>
       {isLoading ? <Loading /> : <></>}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -15,10 +16,13 @@ import BasicButton from '../components/BasicButton';
 import { convertHEICtoJPG, postPhoto } from '../helperFunctions';
 import { cameraRollPageStyles } from '../styles';
 import CPPCode from '../nativeModules';
+import Structure from '../types/Structure';
+import { getDefaultStructureLocation } from '../components/StructureDrawing';
 
 type CameraRollPageProps = {
   setPageNumber: (newPageNumber: number) => void;
   setIsLoading: (newIsLoading: boolean) => void;
+  setStructure: (newStructure: Structure) => void;
 };
 
 const CameraRollPage = (props: CameraRollPageProps) => {
@@ -42,12 +46,24 @@ const CameraRollPage = (props: CameraRollPageProps) => {
     try {
       props.setIsLoading(true);
       const result = await CPPCode.photoToNFA(currentPhotoPath);
-      console.log(result);
-      props.setIsLoading(false);
-      props.setPageNumber(0);
+      try {
+        const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        props.setStructure(processedResult);
+        props.setPageNumber(0);
+      } catch (error) {
+        switch (result) {
+          case 'No start state':
+          case 'More than 1 start state':
+            Alert.alert('Problem with structure', result, [{ text: 'OK' }]);
+            break;
+          default:
+            throw error;
+        }
+      }
     } catch (error) {
       console.error(error);
     }
+    props.setIsLoading(false);
   };
 
   const selectPhoto = async (path: string) => {
@@ -67,7 +83,7 @@ const CameraRollPage = (props: CameraRollPageProps) => {
     }
     try {
       props.setIsLoading(true);
-      await postPhoto(currentPhotoPath);
+      await postPhoto(currentPhotoPath, props.setIsLoading);
       props.setIsLoading(false);
     } catch (error) {
       console.error(error);

@@ -17,6 +17,15 @@ export const mainPageStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  titleContainer: {
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   svgContainer: {
     marginVertical: basicMargin,
     height: '60%',
@@ -76,6 +85,9 @@ export const mainPageStyles = StyleSheet.create({
   },
   resultTextRejected: {
     color: 'red',
+  },
+  runStep: {
+    marginRight: basicMargin,
   },
 });
 

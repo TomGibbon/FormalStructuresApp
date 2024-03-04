@@ -45,43 +45,6 @@ RCT_EXPORT_MODULE();
   return mainCode::NFA(isDfa, states, transitions);
 }
 
-// - (cv::Mat)decodeBase64ToMat:(NSString *)strEncodeData {
-//   NSData *data = [[NSData alloc]initWithBase64EncodedString:strEncodeData options:NSDataBase64DecodingIgnoreUnknownCharacters];
-//   UIImage* image = [UIImage imageWithData:data];
-//   CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
-//   CGFloat cols = image.size.width;
-//   CGFloat rows = image.size.height;
-  
-//   cv::Mat cvMat(rows, cols, CV_8UC4); // 8 bits per component, 4 channels (color channels + alpha)
-
-//   CGContextRef contextRef = CGBitmapContextCreate(cvMat.data,                 // Pointer to  data
-//                                                   cols,                       // Width of bitmap
-//                                                   rows,                       // Height of bitmap
-//                                                   8,                          // Bits per component
-//                                                   cvMat.step[0],              // Bytes per row
-//                                                   colorSpace,                 // Colorspace
-//                                                   kCGImageAlphaNoneSkipLast |
-//                                                   kCGBitmapByteOrderDefault); // Bitmap info flags
-  
-//   CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
-//   CGContextRelease(contextRef);
-  
-//   return cvMat;
-// }
-
-// RCT_EXPORT_METHOD(photoToNFABase64:(NSString *)input
-//                   resolver:(RCTPromiseResolveBlock)resolve
-//                   rejecter:(RCTPromiseRejectBlock)reject)
-// {
-//   @try {
-//     cv::Mat img = [self decodeBase64ToMat:input];
-//     std::string result = mainCode::photoToNFA(img, "", true, false);
-//     resolve(@(result.c_str()));
-//   } @catch (NSException *exception) {
-//     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
-//   }
-// }
-
 RCT_EXPORT_METHOD(simplifyDFA:(NSDictionary *)dfaDict
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -117,11 +80,19 @@ RCT_EXPORT_METHOD(runNFAorDFA:(NSDictionary *)nfaDict
 {
   @try {
     mainCode::NFA nfa = [self createNFAFromJSON:nfaDict];
-    bool result;
+    std::set<int> resultingStates;
     if (nfa.IsDfa) {
-      result = mainCode::runDFA(nfa, [word UTF8String]);
+      resultingStates = mainCode::runDFA(nfa, [word UTF8String]);
     } else {
-      result = mainCode::runNFA(nfa, [word UTF8String]);
+      resultingStates = mainCode::runNFA(nfa, [word UTF8String]);
+    }
+    bool result = false;
+    for (int resultingState : resultingStates) {
+      for (mainCode::State state : nfa.States) {
+        if (state.Id == resultingState && state.IsFinal) {
+          result = true;
+        }
+      }
     }
     resolve(@(result));
   } @catch (NSException *exception) {
@@ -134,7 +105,7 @@ RCT_EXPORT_METHOD(photoToNFA:(NSString *)path
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   @try {
-    std::string result = mainCode::photoToNFA(cv::Mat(), [path UTF8String], false, false);
+    std::string result = mainCode::photoToNFA([path UTF8String], false);
     resolve(@(result.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
@@ -162,6 +133,40 @@ RCT_EXPORT_METHOD(checkIfDFA:(NSDictionary *)nfaDict
     mainCode::NFA nfa = [self createNFAFromJSON:nfaDict];
     bool result = mainCode::checkIfDFA(nfa);
     resolve(@(result));
+  } @catch (NSException *exception) {
+    reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
+  }
+}
+
+RCT_EXPORT_METHOD(runStepNFA:(NSDictionary *)nfaDict
+                  withWord:(NSString *)word
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  @try {
+    mainCode::NFA nfa = [self createNFAFromJSON:nfaDict];
+    std::set<int> result;
+    if (nfa.IsDfa) {
+      result = mainCode::runDFA(nfa, [word UTF8String]);
+    } else {
+      result = mainCode::runNFA(nfa, [word UTF8String]);
+    }
+
+    NSMutableArray *resultArray = [NSMutableArray arrayWithCapacity:result.size()];
+    for (int i : result) {
+      [resultArray addObject:@(i)];
+    }
+    resolve(resultArray);
+    // std::string resultingString = "[";
+    // for (int i : result) {
+    //   resultingString += std::to_string(i) + ",";
+    // }
+    // if (result.size() > 0) {
+    //   resultingString.back() = ']';
+    // } else {
+    //   resultingString = "[]";
+    // }
+    // resolve(@(resultingString.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
   }

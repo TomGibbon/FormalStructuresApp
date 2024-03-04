@@ -46,7 +46,8 @@ export const getDefaultNFALocation = (nfa: NFA) => {
 const NFADrawing = (
   nfa: NFA,
   editable: boolean,
-  setCurrentStructure: (newStructure: Structure) => void
+  setCurrentStructure: (newStructure: Structure) => void,
+  activeIds: number[] | undefined
 ) => {
   let elements = [];
   let transitionArrows: TransitionArrow[] = [];
@@ -150,8 +151,10 @@ const NFADrawing = (
     } else if (selectingTransitionNewToState) {
       const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
       const newNfa = newStructure.structure as NFA;
-      const transitions = newNfa.transitions.filter(transition =>
-        selectedTransitionArrow?.find(tId => tId === transition.id)
+      const transitions = newNfa.transitions.filter(
+        transition =>
+          selectedTransitionArrow?.find(tId => tId === transition.id) !==
+          undefined
       );
       transitions.forEach(transition => (transition.to = id));
       setSelectedTransitionArrow(undefined);
@@ -160,8 +163,10 @@ const NFADrawing = (
     } else if (selectingTransitionNewFromState) {
       const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
       const newNfa = newStructure.structure as NFA;
-      const transitions = newNfa.transitions.filter(transition =>
-        selectedTransitionArrow?.find(tId => tId === transition.id)
+      const transitions = newNfa.transitions.filter(
+        transition =>
+          selectedTransitionArrow?.find(tId => tId === transition.id) !==
+          undefined
       );
       transitions.forEach(transition => (transition.from = id));
       setSelectedTransitionArrow(undefined);
@@ -276,8 +281,8 @@ const NFADrawing = (
     setSelectedTransitionArrow(ids);
     const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
     const newNfa = newStructure.structure as NFA;
-    const transitions = newNfa.transitions.filter(transition =>
-      ids.find(id => id === transition.id)
+    const transitions = newNfa.transitions.filter(
+      transition => ids.find(id => id === transition.id) !== undefined
     );
     const from = transitions[0].from;
     const to = transitions[0].to;
@@ -395,6 +400,7 @@ const NFADrawing = (
                       }
                       setSelectedTransitionArrow(undefined);
                     },
+                    style: 'destructive',
                   },
                   {
                     text: 'ε',
@@ -500,7 +506,13 @@ const NFADrawing = (
         cy={nfa.states[i].locY}
         r={stateRadius}
         fill={'white'}
-        stroke={selectedState === nfa.states[i].id ? 'blue' : 'black'}
+        stroke={
+          selectedState === nfa.states[i].id
+            ? 'blue'
+            : activeIds?.find(id => id === nfa.states[i].id) !== undefined
+            ? 'red'
+            : 'black'
+        }
         strokeWidth={1}
         onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
       />
@@ -529,7 +541,13 @@ const NFADrawing = (
           cy={nfa.states[i].locY}
           r={0.85 * stateRadius}
           fill={'transparent'}
-          stroke={selectedState === nfa.states[i].id ? 'blue' : 'black'}
+          stroke={
+            selectedState === nfa.states[i].id
+              ? 'blue'
+              : activeIds?.find(id => id === nfa.states[i].id) !== undefined
+              ? 'red'
+              : 'black'
+          }
           strokeWidth={1}
           onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
         />
@@ -613,7 +631,7 @@ const NFADrawing = (
           stroke={
             selectedTransitionArrow?.find(
               tArr => tArr === nfa.transitions[i].id
-            )
+            ) !== undefined
               ? 'blue'
               : 'black'
           }
@@ -621,7 +639,7 @@ const NFADrawing = (
           markerEnd={
             selectedTransitionArrow?.find(
               tArr => tArr === nfa.transitions[i].id
-            )
+            ) !== undefined
               ? 'url(#blueArrow)'
               : 'url(#blackArrow)'
           }
@@ -705,7 +723,7 @@ const NFADrawing = (
           stroke={
             selectedTransitionArrow?.find(
               tArr => tArr === nfa.transitions[i].id
-            )
+            ) !== undefined
               ? 'blue'
               : 'black'
           }
@@ -713,7 +731,7 @@ const NFADrawing = (
           markerEnd={
             selectedTransitionArrow?.find(
               tArr => tArr === nfa.transitions[i].id
-            )
+            ) !== undefined
               ? 'url(#blueArrow)'
               : 'url(#blackArrow)'
           }

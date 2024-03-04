@@ -47,9 +47,8 @@ const EditPage = (props: EditPageProps) => {
           const newStructure = copyStructure(currentStructure);
           const newNfa = newStructure.structure as NFA;
           newNfa.isDfa = isDfa;
-          setCurrentStructure(newStructure);
+          props.setStructure(newStructure);
         }
-        props.setStructure(currentStructure);
         props.setPageNumber(0);
       } else {
         let errorMessage = '';

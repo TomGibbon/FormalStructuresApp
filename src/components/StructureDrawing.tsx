@@ -15,6 +15,7 @@ type StructureDrawingProps = {
   translateY: number;
   editable?: boolean;
   setCurrentStructure?: (newStructure: Structure) => void;
+  activeIds?: number[];
 };
 
 export const getDefaultStructureLocation = (structure: Structure) => {
@@ -39,7 +40,8 @@ const StructureDrawing = (props: StructureDrawingProps) => {
       elements = NFADrawing(
         props.structure.structure as NFA,
         props.editable,
-        props.setCurrentStructure
+        props.setCurrentStructure,
+        props.activeIds
       );
       break;
   }

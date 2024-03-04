@@ -54,70 +54,87 @@ bool setDifferenceTest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- Vector: ";
-  vector<int> vector1 = { 0, 4, 2, 1, 1, 5 };
-  vector<int> vector2 = { 1, 3, 7, 6, 5, 2 };
-  vector<int> predictedResult2 = { 0, 4 };
-  vector<int> result2 = setDifference(vector1, vector2);
-  passed = result2 == predictedResult2;
-  overallPass = overallPass && passed;
-  printOutcome(passed);
+  // cout << "- Vector: ";
+  // vector<int> vector1 = { 0, 4, 2, 1, 1, 5 };
+  // vector<int> vector2 = { 1, 3, 7, 6, 5, 2 };
+  // vector<int> predictedResult2 = { 0, 4 };
+  // vector<int> result2 = vectorDifference(vector1, vector2);
+  // passed = result2 == predictedResult2;
+  // overallPass = overallPass && passed;
+  // printOutcome(passed);
 
   return overallPass;
 }
 
 bool simplifyDFATest() {
-  vector<State> states;
-  states.push_back(State(0, "q0", true, false, 0, 0));
-  states.push_back(State(1, "q1", false, true, 0, 0));
-  states.push_back(State(2, "q2", false, true, 0, 0));
-  states.push_back(State(3, "q3", false, false, 0, 0));
-  states.push_back(State(4, "q4", false, true, 0, 0));
-  states.push_back(State(5, "q5", false, false, 0, 0));
-  states.push_back(State(6, "q6", false, false, 0, 0));
-  vector<Transition> transitions;
-  transitions.push_back(Transition(0, 0, 3, "0"));
-  transitions.push_back(Transition(1, 0, 1, "1"));
-  transitions.push_back(Transition(2, 1, 2, "0"));
-  transitions.push_back(Transition(3, 1, 5, "1"));
-  transitions.push_back(Transition(4, 2, 2, "0"));
-  transitions.push_back(Transition(5, 2, 5, "1"));
-  transitions.push_back(Transition(6, 3, 0, "0"));
-  transitions.push_back(Transition(7, 3, 4, "1"));
-  transitions.push_back(Transition(8, 4, 2, "0"));
-  transitions.push_back(Transition(9, 4, 5, "1"));
-  transitions.push_back(Transition(10, 5, 5, "0"));
-  transitions.push_back(Transition(11, 5, 5, "1"));
-  transitions.push_back(Transition(12, 6, 6, "0"));
-  transitions.push_back(Transition(13, 6, 6, "1"));
+  State s0(0, "q0", true, false, 0, 0);
+  State s1(1, "q1", false, true, 0, 0);
+  State s2(2, "q2", false, true, 0, 0);
+  State s3(3, "q3", false, false, 0, 0);
+  State s4(4, "q4", false, true, 0, 0);
+  State s5(5, "q5", false, false, 0, 0);
+  State s6(6, "q6", false, false, 0, 0);
+  vector<State> states = { s0, s1, s2, s3, s4, s5, s6 };
+  Transition t0(0, 0, 3, "0");
+  Transition t1(1, 0, 1, "1");
+  Transition t2(2, 1, 2, "0");
+  Transition t3(3, 1, 5, "1");
+  Transition t4(4, 2, 2, "0");
+  Transition t5(5, 2, 5, "1");
+  Transition t6(6, 3, 0, "0");
+  Transition t7(7, 3, 4, "1");
+  Transition t8(8, 4, 2, "0");
+  Transition t9(9, 4, 5, "1");
+  Transition t10(10, 5, 5, "0");
+  Transition t11(11, 5, 5, "1");
+  Transition t12(12, 6, 6, "0");
+  Transition t13(13, 6, 6, "1");
+  vector<Transition> transitions = { t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13 };
   NFA dfa(true, states, transitions);
 
-  string predictedResult = "{\"structure\":{\"isDfa\":true,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":true,\"isFinal\":false,\"locX\":-1,\"locY\":-1},{\"id\":1,\"name\":\"q1\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":false,\"locX\":-1,\"locY\":-1}],\"transitions\":[{\"from\":0,\"to\":0,\"token\":\"0\"},{\"from\":0,\"to\":1,\"token\":\"1\"},{\"from\":1,\"to\":1,\"token\":\"0\"},{\"from\":1,\"to\":2,\"token\":\"1\"},{\"from\":2,\"to\":2,\"token\":\"0\"},{\"from\":2,\"to\":2,\"token\":\"1\"}]},\"type\":\"nfa\"}";
+  string predictedResult = "{\"structure\":{\"isDfa\":true,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":true,\"isFinal\":false,\"locX\":-1,\"locY\":-1},{\"id\":1,\"name\":\"q1\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":false,\"locX\":-1,\"locY\":-1}],\"transitions\":[{\"id\":0,\"from\":0,\"to\":0,\"token\":\"0\"},{\"id\":1,\"from\":0,\"to\":1,\"token\":\"1\"},{\"id\":2,\"from\":1,\"to\":1,\"token\":\"0\"},{\"id\":3,\"from\":1,\"to\":2,\"token\":\"1\"},{\"id\":4,\"from\":2,\"to\":2,\"token\":\"0\"},{\"id\":5,\"from\":2,\"to\":2,\"token\":\"1\"}]},\"type\":\"nfa\"}";
   string result = simplifyDFA(dfa).convertToJSON(false);
 
   return result == predictedResult;
 }
 
 bool convertNFAtoDFATest() {
-  vector<State> states;
-  states.push_back(State(0, "a", true, false, 0, 0));
-  states.push_back(State(1, "b", false, false, 0, 0));
-  states.push_back(State(2, "c", false, false, 0, 0));
-  states.push_back(State(3, "d", false, true, 0, 0));
-  vector<Transition> transitions;
-  transitions.push_back(Transition(0, 0, 1, "1"));
-  transitions.push_back(Transition(1, 0, 2, "ε"));
-  transitions.push_back(Transition(2, 0, 3, "1"));
-  transitions.push_back(Transition(3, 1, 3, "0"));
-  transitions.push_back(Transition(4, 1, 3, "1"));
-  transitions.push_back(Transition(5, 2, 3, "ε"));
-  transitions.push_back(Transition(6, 3, 3, "0"));
+  bool overallResult = true;
+
+  cout << "\n- NFA 1: ";
+  State s0(0, "a", true, false, 0, 0);
+  State s1(1, "b", false, false, 0, 0);
+  State s2(2, "c", false, false, 0, 0);
+  State s3(3, "d", false, true, 0, 0);
+  vector<State> states = { s0, s1, s2, s3 };
+  Transition t0(0, 0, 1, "1");
+  Transition t1(1, 0, 2, "ε");
+  Transition t2(2, 0, 3, "1");
+  Transition t3(3, 1, 3, "0");
+  Transition t4(4, 1, 3, "1");
+  Transition t5(5, 2, 3, "ε");
+  Transition t6(6, 3, 3, "0");
+  vector<Transition> transitions = { t0, t1, t2, t3, t4, t5, t6 };
   NFA nfa(false, states, transitions);
-
-  string predictedResult = "{\"structure\":{\"isDfa\":true,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":false,\"isFinal\":false,\"locX\":-1,\"locY\":-1},{\"id\":1,\"name\":\"q1\",\"isStart\":true,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":3,\"name\":\"q3\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1}],\"transitions\":[{\"from\":0,\"to\":0,\"token\":\"0\"},{\"from\":0,\"to\":0,\"token\":\"1\"},{\"from\":1,\"to\":3,\"token\":\"0\"},{\"from\":1,\"to\":2,\"token\":\"1\"},{\"from\":2,\"to\":3,\"token\":\"0\"},{\"from\":2,\"to\":3,\"token\":\"1\"},{\"from\":3,\"to\":3,\"token\":\"0\"},{\"from\":3,\"to\":0,\"token\":\"1\"}]},\"type\":\"nfa\"}";
+  string predictedResult = "{\"structure\":{\"isDfa\":true,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":false,\"isFinal\":false,\"locX\":-1,\"locY\":-1},{\"id\":1,\"name\":\"q1\",\"isStart\":true,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1},{\"id\":3,\"name\":\"q3\",\"isStart\":false,\"isFinal\":true,\"locX\":-1,\"locY\":-1}],\"transitions\":[{\"id\":0,\"from\":0,\"to\":0,\"token\":\"0\"},{\"id\":1,\"from\":0,\"to\":0,\"token\":\"1\"},{\"id\":2,\"from\":1,\"to\":3,\"token\":\"0\"},{\"id\":3,\"from\":1,\"to\":2,\"token\":\"1\"},{\"id\":4,\"from\":2,\"to\":3,\"token\":\"0\"},{\"id\":5,\"from\":2,\"to\":3,\"token\":\"1\"},{\"id\":6,\"from\":3,\"to\":3,\"token\":\"0\"},{\"id\":7,\"from\":3,\"to\":0,\"token\":\"1\"}]},\"type\":\"nfa\"}";
   string result = convertNFAtoDFA(nfa).convertToJSON(false);
+  bool passed = result == predictedResult;
+  overallResult = overallResult && passed;
+  printOutcome(passed);
 
-  return result == predictedResult;
+  cout << "- NFA 2: ";
+  State s4(4, "q4", false, false, 0, 0);
+  states = { s0, s1, s2, s3, s4 };
+  nfa.States = states;
+  Transition t7(7, 4, 1, "1");
+  transitions = { t0, t1, t2, t3, t4, t5, t6, t7 };
+  nfa.Transitions = transitions;
+  result = convertNFAtoDFA(nfa).convertToJSON(false);
+  passed = result == predictedResult;
+  overallResult = overallResult && passed;
+  printOutcome(passed);
+
+  return overallResult;
 }
 
 bool runDFATest() {
@@ -147,8 +164,8 @@ bool runDFATest() {
   NFA dfa(true, states, transitions);
   string word = "000010011";
 
-  bool predictedResult = false;
-  bool result = runDFA(dfa, word);
+  set<int> predictedResult = { 5 };
+  set<int> result = runDFA(dfa, word);
 
   return result == predictedResult;
 }
@@ -167,15 +184,13 @@ bool runNFATest() {
   transitions.push_back(Transition(4, 1, 3, "1"));
   transitions.push_back(Transition(5, 2, 3, "ε"));
   transitions.push_back(Transition(6, 3, 3, "0"));
-
   transitions.push_back(Transition(7, 1, 2, "2"));
   transitions.push_back(Transition(8, 1, 2, "1"));
   NFA nfa(false, states, transitions);
-  // string word = "1100";
-  string word = "12";
+  string word = "1100";
 
-  bool predictedResult = true;
-  bool result = runNFA(nfa, word);
+  set<int> predictedResult = { 3 };
+  set<int> result = runNFA(nfa, word);
 
   return result == predictedResult;
 }
@@ -313,11 +328,8 @@ bool checkIfDFATest() {
 }
 
 bool photoToNFATest() {
-  cout << "\n";
-  string predictedResult = "";
-  string result = photoToNFA(Mat(), "test_photo_7.jpg", false, true);
-  cout << result << "\n";
-
+  string predictedResult = "{\"structure\":{\"isDfa\":false,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":false,\"isFinal\":true,\"locX\":0,\"locY\":0},{\"id\":1,\"name\":\"q1\",\"isStart\":false,\"isFinal\":false,\"locX\":0,\"locY\":0},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":true,\"locX\":0,\"locY\":0},{\"id\":3,\"name\":\"q3\",\"isStart\":true,\"isFinal\":false,\"locX\":0,\"locY\":0}],\"transitions\":[{\"id\":0,\"from\":0,\"to\":1,\"token\":\"0\"},{\"id\":1,\"from\":2,\"to\":0,\"token\":\"0\"},{\"id\":2,\"from\":2,\"to\":2,\"token\":\"0\"},{\"id\":3,\"from\":3,\"to\":1,\"token\":\"0\"},{\"id\":4,\"from\":3,\"to\":2,\"token\":\"0\"}]},\"type\":\"nfa\"}";
+  string result = photoToNFA("test_photo_digits.jpg", true);
   return result == predictedResult;
 }
 
@@ -356,6 +368,11 @@ bool photoToNFATest() {
 //   return true;
 // }
 
+bool textTrainTest() {
+  textTrain();
+  return true;
+}
+
 int main() {
   vector<TestObject> tests;
   // tests.push_back(TestObject("setIntersection", setIntersectionTest));
@@ -363,15 +380,16 @@ int main() {
   // tests.push_back(TestObject("setDifference", setDifferenceTest));
   // tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
   // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
-  // tests.push_back(TestObject("runNFA", runNFATest));
-  // tests.push_back(TestObject("runDFA", runDFATest));
+  tests.push_back(TestObject("runNFA", runNFATest));
+  tests.push_back(TestObject("runDFA", runDFATest));
   // tests.push_back(TestObject("validateNFA", validateNFATest));
   // tests.push_back(TestObject("checkIfDFA", checkIfDFATest));
-  tests.push_back(TestObject("photoToDFA", photoToNFATest));
+  // tests.push_back(TestObject("photoToDFA", photoToNFATest));
   // tests.push_back(TestObject("tesseractTest", tesseractTestTest));
   // tests.push_back(TestObject("textRecognition", textRecognitionTest));
   // tests.push_back(TestObject("textDetection", textDetectionTest));
   // tests.push_back(TestObject("fullOpenCVTextRecognition", fullOpenCVTextRecognitionTest));
+  // tests.push_back(TestObject("textTrain", textTrainTest));
   int numPassed = 0;
   for (TestObject test : tests) {
     cout << whiteColor << test.Name << ": ";

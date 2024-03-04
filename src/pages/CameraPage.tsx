@@ -13,14 +13,18 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  Alert,
 } from 'react-native';
 import { cameraPageStyles } from '../styles.js';
 import Structure from '../types/Structure';
 import CPPCode from '../nativeModules';
+import { getDefaultStructureLocation } from '../components/StructureDrawing';
+import { postPhoto } from '../helperFunctions';
 
 type CameraPageProps = {
   setPageNumber: (newPage: number) => void;
   setStructure: (newStructure: Structure) => void;
+  setIsLoading: (newLoading: boolean) => void;
 };
 
 const CameraPage = (props: CameraPageProps) => {
@@ -69,8 +73,22 @@ const CameraPage = (props: CameraPageProps) => {
     }
     try {
       console.log(photo.path);
-      // console.log(await CPPCode.photoToNFA(photo.path));
-      props.setPageNumber(0);
+      const result = await CPPCode.photoToNFA(photo.path);
+      console.log(result);
+      try {
+        const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        props.setStructure(processedResult);
+        props.setPageNumber(0);
+      } catch (error) {
+        switch (result) {
+          case 'No start state':
+          case 'More than 1 start state':
+            Alert.alert('Problem with structure', result, [{ text: 'OK' }]);
+            break;
+          default:
+            throw error;
+        }
+      }
     } catch (error) {
       console.error('Error occured: ' + error);
     }
@@ -84,6 +102,11 @@ const CameraPage = (props: CameraPageProps) => {
           <BasicButton onPress={usePhoto}>Use this photo</BasicButton>
           <BasicButton onPress={() => setPhoto(undefined)}>
             Take another photo
+          </BasicButton>
+          <BasicButton
+            onPress={() => postPhoto(photo.path, props.setIsLoading)}
+          >
+            Post photo
           </BasicButton>
         </>
       ) : (

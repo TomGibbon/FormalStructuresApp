@@ -1,5 +1,3 @@
- 
-
  # Optimise photo to DFA
  - Detect text
 
@@ -12,6 +10,5 @@
 
  # Bugs
  - When adding states in the edit page, the circle is behind the transitions
- - Sometimes line doesn't go blue when selecting
  - Cannot move states when editing
  - Cannot pan / zoom page in editing

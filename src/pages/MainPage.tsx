@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { PanResponder, Text, TextInput, View } from 'react-native';
+import { Alert, PanResponder, Text, TextInput, View } from 'react-native';
 
 import BasicButton from '../components/BasicButton';
 import IconButton from '../components/IconButton';
@@ -27,6 +27,8 @@ type MainPageProps = {
   setPageNumber: (newPage: number) => void;
   structure: Structure;
   setStructure: (newStructure: Structure) => void;
+  originalStructure: Structure;
+  setOriginalStructure: (newStructure: Structure) => void;
 };
 
 const MainPage = (props: MainPageProps) => {
@@ -34,6 +36,8 @@ const MainPage = (props: MainPageProps) => {
   const [svgHeight, setSvgHeight] = useState(0);
   const [textToRun, setTextToRun] = useState('');
   const [runResult, setRunResult] = useState<boolean | undefined>(undefined);
+  const [runStepText, setRunStepText] = useState('');
+  const [activeIds, setActiveIds] = useState([]);
 
   const [scale, setScale] = useState(initialPosition.zoom);
   const [translateX, setTranslateX] = useState(initialPosition.x);
@@ -94,6 +98,33 @@ const MainPage = (props: MainPageProps) => {
     })
   ).current;
 
+  const save = () => {
+    props.setOriginalStructure(props.structure);
+    Alert.alert('Structure saved!', undefined, [{ text: 'OK' }]);
+  };
+
+  const simplifyStructure = async () => {
+    switch (props.structure.type) {
+      case 'nfa':
+        const nfa = props.structure.structure as NFA;
+        if (nfa.isDfa) {
+          try {
+            const result = getDefaultStructureLocation(
+              JSON.parse(await CPPCode.simplifyDFA(nfa))
+            );
+            props.setStructure(result);
+            setRunStepText('');
+            setActiveIds([]);
+          } catch (error) {
+            console.error(
+              'Error occured while simplifying structure: ' + error
+            );
+          }
+        }
+        break;
+    }
+  };
+
   const structureType = () => {
     switch (props.structure.type) {
       case 'nfa':
@@ -114,23 +145,22 @@ const MainPage = (props: MainPageProps) => {
     }
   };
 
-  const simplifyStructure = async () => {
-    switch (props.structure.type) {
-      case 'nfa':
-        const nfa = props.structure.structure as NFA;
-        if (nfa.isDfa) {
-          try {
-            const result = getDefaultStructureLocation(
-              JSON.parse(await CPPCode.simplifyDFA(nfa))
-            );
-            props.setStructure(result);
-          } catch (error) {
-            console.error(
-              'Error occured while simplifying structure: ' + error
-            );
-          }
+  const runStep = async () => {
+    if (runStepText === textToRun) {
+      await runStructure();
+    } else {
+      try {
+        const newText = runStepText + textToRun[runStepText.length];
+        switch (props.structure.type) {
+          case 'nfa':
+            const nfa = props.structure.structure as NFA;
+            const result = await CPPCode.runStepNFA(nfa, newText);
+            setActiveIds(result);
         }
-        break;
+        setRunStepText(newText);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -141,6 +171,8 @@ const MainPage = (props: MainPageProps) => {
         try {
           const result = await CPPCode.runNFAorDFA(nfa, textToRun);
           setRunResult(result);
+          setRunStepText('');
+          setActiveIds([]);
         } catch (error) {
           console.error('Error occured while simplifying structure: ' + error);
         }
@@ -156,6 +188,8 @@ const MainPage = (props: MainPageProps) => {
         )
       );
       props.setStructure(result);
+      setRunStepText('');
+      setActiveIds([]);
     } catch (error) {
       console.error('Error occured while converting NFA to DFA: ' + error);
     }
@@ -183,8 +217,11 @@ const MainPage = (props: MainPageProps) => {
   return (
     <>
       <View style={mainPageStyles.mainButtonList}>
-        <BasicButton>View Previous Structures</BasicButton>
-        <IconButton icon={SaveIcon} />
+        <View style={mainPageStyles.titleContainer}>
+          <Text style={mainPageStyles.title}>Formal Structures</Text>
+          <Text style={mainPageStyles.title}>App</Text>
+        </View>
+        <IconButton icon={SaveIcon} onPress={save} />
         <IconButton icon={PhotosIcon} onPress={() => props.setPageNumber(2)} />
         <IconButton icon={CameraIcon} onPress={() => props.setPageNumber(1)} />
       </View>
@@ -201,7 +238,12 @@ const MainPage = (props: MainPageProps) => {
             small
             onPress={() => props.setPageNumber(3)}
           />
-          <BasicButton small>Revert To Original Structure</BasicButton>
+          <BasicButton
+            small
+            onPress={() => props.setStructure(props.originalStructure)}
+          >
+            Revert To Original Structure
+          </BasicButton>
           <BasicButton onPress={simplifyStructure} small>
             Simplify
           </BasicButton>
@@ -218,6 +260,7 @@ const MainPage = (props: MainPageProps) => {
               scale={scale}
               translateX={translateX}
               translateY={translateY}
+              activeIds={activeIds}
             />
           </View>
         ) : (
@@ -234,19 +277,35 @@ const MainPage = (props: MainPageProps) => {
           onChangeText={event => {
             setTextToRun(event);
             setRunResult(undefined);
+            setRunStepText('');
+            setActiveIds([]);
           }}
           value={textToRun}
         />
+        <BasicButton small style={mainPageStyles.runStep} onPress={runStep}>
+          Run Step
+        </BasicButton>
         <BasicButton small onPress={runStructure}>
           Run!
         </BasicButton>
       </View>
-      <View style={mainPageStyles.convertBox}>
+      {/* <View style={mainPageStyles.convertBox}>
         <Text>Convert to:</Text>
         <View style={mainPageStyles.convertButtonsList}>
           {convertButtons()}
         </View>
-      </View>
+      </View> */}
+      {props.structure.type === 'nfa' &&
+      props.structure.structure?.isDfa === false ? (
+        <View style={mainPageStyles.convertBox}>
+          <Text>Convert to:</Text>
+          <View style={mainPageStyles.convertButtonsList}>
+            {convertButtons()}
+          </View>
+        </View>
+      ) : (
+        <></>
+      )}
     </>
   );
 };

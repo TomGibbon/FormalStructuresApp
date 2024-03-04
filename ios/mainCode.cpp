@@ -177,6 +177,108 @@ namespace mainCode {
   void printSet(string name, set<int> set) {
     cout << name << ": {";
     for (int i : set) {
+      // switch (i) {
+      //   case 0:
+      //     cout << "[]";
+      //     break;
+      //   case 1:
+      //     cout << "[a ]";
+      //     break;
+      //   case 2:
+      //     cout << "[a b ]";
+      //     break;
+      //   case 3:
+      //     cout << "[a b c ]";
+      //     break;
+      //   case 4:
+      //     cout << "[a b c d ]";
+      //     break;
+      //   case 5:
+      //     cout << "[a b c d e ]";
+      //     break;
+      //   case 6:
+      //     cout << "[a b c e ]";
+      //     break;
+      //   case 7:
+      //     cout << "[a b d ]";
+      //     break;
+      //   case 8:
+      //     cout << "[a b d e ]";
+      //     break;
+      //   case 9:
+      //     cout << "[a b e ]";
+      //     break;
+      //   case 10:
+      //     cout << "[a c ]";
+      //     break;
+      //   case 11:
+      //     cout << "[a c d ]";
+      //     break;
+      //   case 12:
+      //     cout << "[a c d e ]";
+      //     break;
+      //   case 13:
+      //     cout << "[a c e ]";
+      //     break;
+      //   case 14:
+      //     cout << "[a d ]";
+      //     break;
+      //   case 15:
+      //     cout << "[a d e ]";
+      //     break;
+      //   case 16:
+      //     cout << "[a e ]";
+      //     break;
+      //   case 17:
+      //     cout << "[b ]";
+      //     break;
+      //   case 18:
+      //     cout << "[b c ]";
+      //     break;
+      //   case 19:
+      //     cout << "[b c d ]";
+      //     break;
+      //   case 20:
+      //     cout << "[b c d e ]";
+      //     break;
+      //   case 21:
+      //     cout << "[b c e ]";
+      //     break;
+      //   case 22:
+      //     cout << "[b d ]";
+      //     break;
+      //   case 23:
+      //     cout << "[b d e ]";
+      //     break;
+      //   case 24:
+      //     cout << "[b e ]";
+      //     break;
+      //   case 25:
+      //     cout << "[c ]";
+      //     break;
+      //   case 26:
+      //     cout << "[c d ]";
+      //     break;
+      //   case 27:
+      //     cout << "[c d e ]";
+      //     break;
+      //   case 28:
+      //     cout << "[c e ]";
+      //     break;
+      //   case 29:
+      //     cout << "[d ]";
+      //     break;
+      //   case 30:
+      //     cout << "[d e ]";
+      //     break;
+      //   case 31:
+      //     cout << "[e ]";
+      //     break;
+      //   default:
+      //     cout << to_string(i);
+      //     break;
+      // }
+      // cout << " ";
       cout << to_string(i) << " ";
     }
     cout << "}\n";
@@ -215,7 +317,7 @@ namespace mainCode {
   }
   
   template <typename T>
-  vector<T> setDifference(vector<T> vec1, vector<T> vec2) {
+  vector<T> vectorDifference(vector<T> vec1, vector<T> vec2) {
     vector<T> result;
     for (T item : vec1) {
       if (find(vec2.begin(), vec2.end(), item) == vec2.end()) {
@@ -223,34 +325,6 @@ namespace mainCode {
       }
     }
     return result;
-  }
-
-  string base64Decode(const string &base64data) {
-    // Create BIO object to handle base64 decoding
-    BIO *bio = BIO_new_mem_buf(base64data.c_str(), base64data.length());
-    BIO *b64 = BIO_new(BIO_f_base64());
-    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    bio = BIO_push(b64, bio);
-
-    // Create buffer to store decoded data
-    char buffer[4096];
-    string decodedData;
-
-    // Decode base64 data
-    int len = 0;
-    while ((len = BIO_read(bio, buffer, sizeof(buffer))) > 0) {
-      decodedData.append(buffer, len);
-    }
-
-    // Free resources
-    BIO_free_all(bio);
-
-    return decodedData;
-
-    // vector<uchar> imageData = vector<uchar>(decodedData.begin(), decodedData.end());
-    // Mat image = imdecode(Mat(imageData), 1);
-    
-    // return image;
   }
 
   // DFA / NFA functions
@@ -289,6 +363,8 @@ namespace mainCode {
     }
     return finalStates;
   }
+
+ // Open CV functions
 
   void thinningIteration(Mat& img, int iter) {
     CV_Assert(img.channels() == 1);
@@ -349,15 +425,16 @@ namespace mainCode {
         se = &(pBelow[x + 1]);
 
         int A = (*no == 0 && *ne == 1) + (*ne == 0 && *ea == 1) +
-          (*ea == 0 && *se == 1) + (*se == 0 && *so == 1) +
-          (*so == 0 && *sw == 1) + (*sw == 0 && *we == 1) +
-          (*we == 0 && *nw == 1) + (*nw == 0 && *no == 1);
+            (*ea == 0 && *se == 1) + (*se == 0 && *so == 1) +
+            (*so == 0 && *sw == 1) + (*sw == 0 && *we == 1) +
+            (*we == 0 && *nw == 1) + (*nw == 0 && *no == 1);
         int B = *no + *ne + *ea + *se + *so + *sw + *we + *nw;
         int m1 = iter == 0 ? (*no * *ea * *so) : (*no * *ea * *we);
         int m2 = iter == 0 ? (*ea * *so * *we) : (*no * *so * *we);
 
-        if (A == 1 && (B >= 2 && B <= 6) && m1 == 0 && m2 == 0)
+        if (A == 1 && (B >= 2 && B <= 6) && m1 == 0 && m2 == 0) {
           pDst[x] = 1;
+        }
       }
     }
 
@@ -382,28 +459,191 @@ namespace mainCode {
     dst *= 255;
   }
 
+  // Arrow getArrowFromContour(vector<Point> contour, int minArrowArea, Mat bin, RNG rng, Mat res) {
+  //   // Filter contours too small to be an arrow
+  //   Rect boundingBox = boundingRect(contour);
+  //   if (boundingBox.area() < minArrowArea) {
+  //     return Arrow(Point(-1, -1), Point(-1, -1));
+  //   }
+  //
+  //   // Work on only one contour at a time
+  //   Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
+  //   drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
+  //
+  //   // Extract end points
+  //   int kernelData[3][3] = {
+  //     {1, 1, 1},
+  //     {1, 10, 1},
+  //     {1, 1, 1}
+  //   };
+  //   Mat kernel(3, 3, CV_32SC1, kernelData);
+  //   Mat endPointImg;
+  //   filter2D(newBinary, endPointImg, -1, kernel);
+  //   for (int y = 0; y < endPointImg.rows; y++) {
+  //     for (int x = 0; x < endPointImg.cols; x++) {
+  //       if (endPointImg.at<uchar>(y, x) == 110) {
+  //         endPointImg.at<uchar>(y, x) = 255;
+  //       } else {
+  //         endPointImg.at<uchar>(y, x) = 0;
+  //       }
+  //     }
+  //   }
+  //
+  //   // Find clusters
+  //   vector<Point> nonZeroPoints;
+  //   findNonZero(endPointImg, nonZeroPoints);
+  //   if (nonZeroPoints.size() == 3 || nonZeroPoints.size() == 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
+  //     Mat points(nonZeroPoints.size(), 2, CV_32SC1);
+  //     for (int i = 0; i < nonZeroPoints.size(); i++) {
+  //       points.at<int>(i, 0) = nonZeroPoints[i].x;
+  //       points.at<int>(i, 1) = nonZeroPoints[i].y;
+  //     }
+  //     Mat floatPoints;
+  //     points.convertTo(floatPoints, CV_32FC1);
+  //     TermCriteria criteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0);
+  //     Mat labels, centers;
+  //     kmeans(floatPoints, 2, labels, criteria, 10, KMEANS_RANDOM_CENTERS, centers);
+  //
+  //     // Identify tip and tail
+  //     int cluster0Count = 0;
+  //     int cluster1Count = 0;
+  //     for (int i = 0; i < labels.rows; i++) {
+  //       if (labels.at<int>(i, 0) == 0) {
+  //         cluster0Count++;
+  //       } else {
+  //         cluster1Count++;
+  //       }
+  //     }
+  //     Point tip;
+  //     Point tail;
+  //     if (cluster0Count > cluster1Count) {
+  //       tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+  //       tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+  //     } else {
+  //       tail = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+  //       tip = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+  //     }
+  //
+  //     // Draw onto res
+  //     Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+  //     circle(res, tip, 5, color, FILLED);
+  //     circle(res, tail, 5, color, FILLED);
+  //     string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
+  //     putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
+  //
+  //     return Arrow(tip, tail);
+  //   }
+  //   return Arrow(Point(-1, -1), Point(-1, -1));
+  // }
+
+  cv::Ptr<ml::KNearest> textTrain() {
+    cout << "\n";
+    Mat src = imread("digits.png", IMREAD_COLOR);
+    if (src.empty()) {
+      cerr << "Could not open file\n";
+      return nullptr;
+    }
+    cout << "Training\n";
+    Mat gray;
+    cvtColor(src, gray, COLOR_BGR2GRAY);
+    Mat bin;
+    threshold(gray, bin, 25, 255, THRESH_BINARY_INV);
+    bitwise_not(bin, bin);
+    thinning(bin, bin);
+
+    vector<vector<Mat>> cells;
+    for (int i = 0; i < 50; i++) {
+      vector<Mat> row;
+      for (int j = 0; j < 100; j++) {
+        row.push_back(bin(Rect(j * 20, i * 20, 20, 20)).clone());
+        // imshow("d", bin(Rect(j * 20, i * 20, 20, 20)).clone());
+        // waitKey(0);
+      }
+      cells.push_back(row);
+    }
+
+    Mat train, test;
+    // Mat x(50 * 100, 20 * 20, CV_32F);
+    for (int i = 0; i < 50; i++) {
+      for (int j = 0; j < 50; j++) {
+        train.push_back(cells[i][j].reshape(1, 1));
+        test.push_back(cells[i][j + 50].reshape(1, 1));
+      }
+    }
+    train.convertTo(train, CV_32F);
+    test.convertTo(test, CV_32F);
+
+    Mat train_labels, test_labels;
+    for (int i = 0; i < 10; i++) {
+      Mat label = Mat::ones(250, 1, CV_32F) * i;
+      train_labels.push_back(label);
+      test_labels.push_back(label);
+    }
+
+    Ptr<ml::KNearest> knn = ml::KNearest::create();
+    knn->train(train, ml::ROW_SAMPLE, train_labels);
+
+    Mat result, dist;
+    knn->findNearest(test, 5, result, noArray(), dist);
+    Mat matches = result == test_labels;
+    int correct = countNonZero(matches);
+    float accuracy = (float) correct * 100 / result.rows;
+
+    cout << "Accuracy: " << accuracy << "%\n";
+
+    return knn;
+
+    // string filename = "knn_data.yml";
+    // FileStorage fs_write(filename, FileStorage::WRITE);
+    // if (!fs_write.isOpened()) {
+    //   cerr << "Failed to open file for writing\n";
+    //   return;
+    // }
+    // fs_write << "train" << train;
+    // fs_write << "train_labels" << train_labels;
+    // fs_write.release();
+
+    // // Now load the data
+    // FileStorage fs_read(filename, FileStorage::READ);
+    // if (!fs_read.isOpened()) {
+    //   cerr << "Failed to open file for reading\n";
+    //   return;
+    // }
+
+    // // Read the data
+    // Mat loaded_train, loaded_train_labels;
+    // fs_read["train"] >> loaded_train;
+    // fs_read["train_labels"] >> loaded_train_labels;
+    // fs_read.release();
+  }
+
   // Exported
 
-  string photoToNFA(Mat img, string path, bool imgPreMade, bool testing) {
-    Mat src;
-    if (!imgPreMade) {
-      src = imread(path, IMREAD_COLOR);
-      if (!src.data) {
-        return "Could not open file";
-      }
-    } else {
-      src = img;
+  string photoToNFA(string path, bool testing) {
+    cout << "\n";
+    Mat src = imread(path, IMREAD_COLOR);
+    if (!src.data) {
+      return "Could not open file";
     }
+    cout << "Cols: " << src.cols << ", Rows: " << src.rows << "\n";
+    int srcSize = src.cols * src.rows;
     RNG rng;
     Mat gray;
     cvtColor(src, gray, COLOR_BGR2GRAY);
-    GaussianBlur(gray, gray, Size(9, 9), 3);
+    Mat blurred;
+    GaussianBlur(gray, blurred, Size(9, 9), 3);
+    double averageIntensity = mean(blurred)[0];
+    double thresh = averageIntensity / 1.9;
+    cout << "mean: " << averageIntensity << "\n";
     Mat bin;
-    threshold(gray, bin, 60, 255, THRESH_BINARY_INV);
-    imshow("bin", bin);
-    waitKey(0);
+    threshold(blurred, bin, thresh, 255, THRESH_BINARY_INV);
+    if (testing) {
+      imshow("binunthinned", bin);
+      waitKey(0);
+    }
     thinning(bin, bin);
     Mat res = src.clone();
+    // Mat circleRes = src.clone();
     Mat contourRes = src.clone();
     vector<vector<Point>> contours;
     findContours(bin.clone(), contours, RETR_LIST, CHAIN_APPROX_NONE);
@@ -411,13 +651,15 @@ namespace mainCode {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
       drawContours(contourRes, contours, i, color, 5);
     }
-    int minArrowArea = 25000;
-    int minCircleArea = 10000;
+    int minArrowArea = ceil(srcSize / 400); // About 25 000 for 3024 x 4032
+    int minCircleArea = ceil(srcSize / 910);
+    int duplicateContourThreshold = ceil(srcSize / 1200000);
 
     // Detect Circles
     vector<Circle> detectedCircles;
     vector<vector<Point>> remainingContours;
-    for (vector<Point> contour : contours) {
+    for (int i = 0; i < contours.size(); i++) {
+      vector<Point> contour = contours[i];
       // Compute convex hull
       vector<Point> hull;
       convexHull(contour, hull);
@@ -442,15 +684,52 @@ namespace mainCode {
         }
 
         if (!duplicate) {
+          // Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+          // circle(circleRes, center, radius, color, 3);
           detectedCircles.push_back(Circle(center, radius));
-
-          // Remove from bin
-          // drawContours(bin, vector<vector<Point>>{ contour }, 0, Scalar(0));
         }
+        remainingContours.push_back(contour);
       } else {
         remainingContours.push_back(contour);
       }
     }
+
+    // Detect text
+    // Ptr<ml::KNearest> knn = textTrain();
+    // vector<vector<Point>> newRemainingContours;
+    // Mat textRes = src.clone();
+    // cout << "averages: \n";
+    // for (vector<Point> contour : contours) {
+    //   Mat emptyBinary(bin.size(), CV_8UC1, Scalar(0));
+    //   drawContours(emptyBinary, vector<vector<Point>>{ contour }, 0, Scalar(255));
+    //   Rect boundingBox = boundingRect(contour);
+    //   Mat cropped = emptyBinary(boundingBox).clone();
+    //   copyMakeBorder(cropped, cropped, 5, 5, 5, 5, BORDER_CONSTANT);
+    //   resize(cropped, cropped, Size(20, 20));
+    //   for (int i = 0; i < cropped.rows; i++) {
+    //     for (int j = 0; j < cropped.cols; j++) {
+    //       if (cropped.at<uchar>(i, j) > 0) {
+    //         cropped.at<uchar>(i, j) = 255;
+    //       }
+    //     }
+    //   } 
+    //   thinning(cropped, cropped);
+    //   Mat test;
+    //   test.push_back(cropped.reshape(1, 1));
+    //   test.convertTo(test, CV_32F);
+    //   Mat result, dist;
+    //   knn->findNearest(test, 5, result, noArray(), dist);
+    //   double minDist;
+    //   minMaxLoc(dist, &minDist);
+    //   cout << "minDist: " << minDist << "\n";
+    //   putText(textRes, to_string(result.at<float>(0, 0)), Point(boundingBox.x, boundingBox.y), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2);
+    //   imshow(to_string(result.at<float>(0, 0)) + " with minDist " + to_string(minDist), cropped);
+    //   waitKey(0);
+    // }
+    // if (testing) {
+    //   imshow("text", textRes);
+    //   waitKey(0);
+    // }
 
     // Detect Arrows
     vector<Arrow> detectedArrows;
@@ -464,6 +743,18 @@ namespace mainCode {
       // Work on only one contour at a time
       Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
       drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
+      
+      // Mat arrow = newBinary(boundingBox).clone();
+      // for (int y = 0; y < arrow.rows; y++) {
+      //   for (int x = 0; x < arrow.cols; x++) {
+      //     if (arrow.at<uchar>(y, x) == 10) {
+      //       arrow.at<uchar>(y, x) = 255;
+      //     } else {
+      //       arrow.at<uchar>(y, x) = 0;
+      //     }
+      //   }
+      // }
+      // copyMakeBorder(arrow, arrow, 5, 5, 5, 5, BORDER_CONSTANT);
 
       // Extract end points
       int kernelData[3][3] = {
@@ -484,49 +775,75 @@ namespace mainCode {
         }
       }
 
+      // Mat arrowEndPointImg = endPointImg(boundingBox).clone();
+      // copyMakeBorder(arrowEndPointImg, arrowEndPointImg, 5, 5, 5, 5, BORDER_CONSTANT);
+
       // Find clusters
       vector<Point> nonZeroPoints;
       findNonZero(endPointImg, nonZeroPoints);
-      if (nonZeroPoints.size() == 3 || nonZeroPoints.size() == 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
-        Mat points(nonZeroPoints.size(), 2, CV_32SC1);
-        for (int i = 0; i < nonZeroPoints.size(); i++) {
-          points.at<int>(i, 0) = nonZeroPoints[i].x;
-          points.at<int>(i, 1) = nonZeroPoints[i].y;
-        }
-        Mat floatPoints;
-        points.convertTo(floatPoints, CV_32FC1);
-        TermCriteria criteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0);
-        Mat labels, centers;
-        kmeans(floatPoints, 2, labels, criteria, 10, KMEANS_RANDOM_CENTERS, centers);
-
-        // Identify tip and tail
-        int cluster0Count = 0;
-        int cluster1Count = 0;
-        for (int i = 0; i < labels.rows; i++) {
-          if (labels.at<int>(i, 0) == 0) {
-            cluster0Count++;
-          } else {
-            cluster1Count++;
-          }
-        }
-        Point tip;
-        Point tail;
-        if (cluster0Count > cluster1Count) {
-          tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
-          tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
-        } else {
-          tail = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
-          tip = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
-        }
-
-        // Draw onto res
-        Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-        circle(res, tip, 10, color, FILLED);
-        string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
-        putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 2, color, 5);
-
-        detectedArrows.push_back(Arrow(tip, tail));
+      if (nonZeroPoints.size() != 3 && nonZeroPoints.size() != 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
+        continue;
       }
+        
+      Mat points(nonZeroPoints.size(), 2, CV_32SC1);
+      for (int i = 0; i < nonZeroPoints.size(); i++) {
+        points.at<int>(i, 0) = nonZeroPoints[i].x;
+        points.at<int>(i, 1) = nonZeroPoints[i].y;
+      }
+      Mat floatPoints;
+      points.convertTo(floatPoints, CV_32FC1);
+      TermCriteria criteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0);
+      Mat labels, centers;
+      kmeans(floatPoints, 2, labels, criteria, 10, KMEANS_RANDOM_CENTERS, centers);
+
+      // Identify tip and tail
+      int cluster0Count = 0;
+      int cluster1Count = 0;
+      for (int i = 0; i < labels.rows; i++) {
+        if (labels.at<int>(i, 0) == 0) {
+          cluster0Count++;
+        } else {
+          cluster1Count++;
+        }
+      }
+
+      if (cluster0Count != 1 && cluster1Count != 1) { // Tail must only have 1 endpoint
+        continue;
+      }
+
+      Mat arrowClusteredUnCropped = endPointImg.clone();
+      cvtColor(arrowClusteredUnCropped, arrowClusteredUnCropped, COLOR_GRAY2BGR);
+
+      Point tip;
+      Point tail;
+      if (cluster0Count > cluster1Count) {
+        tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+        tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+      } else {
+        tail = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
+        tip = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
+      }
+
+      // Draw onto res
+      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+      // circle(res, tip, 5, color, FILLED);
+      // circle(res, tail, 5, color, FILLED);
+      // string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
+      // putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
+
+      detectedArrows.push_back(Arrow(tip, tail));
+
+      // circle(arrowClusteredUnCropped, tip, 5, Scalar(0, 0, 255), FILLED);
+      // circle(arrowClusteredUnCropped, tail, 5, Scalar(255, 0, 0), FILLED);
+      // Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
+      // copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
+
+      // if (testing) {
+      //   imshow("arrow", arrow);
+      //   imshow("end points", arrowEndPointImg);
+      //   imshow("clustered", arrowClustered);
+      //   waitKey(0);
+      // }
     }
 
     // Generate NFA
@@ -573,7 +890,6 @@ namespace mainCode {
         stateId++;
       }
     }
-    cout << "size: " << stateCircles.size() << "\n";
     for (StateCircle c : stateCircles) {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
       circle(res, c.CorrespondingCircle.Center, c.CorrespondingCircle.Radius, color, 5);
@@ -595,12 +911,10 @@ namespace mainCode {
         cout << "tipDistance: " << tipDistance << "\n";
         cout << "tailDistance: " << tailDistance << "\n";
         if (tipDistance < minTipDistance) {
-          cout << "Tip smaller\n";
           minTipDistance = tipDistance;
           tipStateCircle = stateCircle;
         }
         if (tailDistance < minTailDistance) {
-          cout << "Tail smaller\n";
           minTailDistance = tailDistance;
           tailStateCircle = stateCircle;
         }
@@ -614,39 +928,72 @@ namespace mainCode {
         if (minTailDistance > 1.5 * tailStateCircle.CorrespondingCircle.Radius) {
           if (startId == -1) {
             startId = tipStateCircle.CorrespondingState.Id;
+            Scalar color = Scalar(255, 0, 0);
+            circle(res, arrow.Tip, 5, color, FILLED);
+            circle(res, arrow.Tail, 5, color, FILLED);
+            putText(res, "START", arrow.Tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
             cout << "Start arrow\n";
           } else {
+            if (testing) {
+              imshow("contours", contourRes);
+              imshow("result", res);
+              waitKey(0);
+            }
             return "More than 1 start state";
           }
         } else {
           transitions.push_back(Transition(transitionId, tailStateCircle.CorrespondingState.Id, tipStateCircle.CorrespondingState.Id, "0"));
+          Scalar color = Scalar(255, 0, 0);
+          circle(res, arrow.Tip, 5, color, FILLED);
+          circle(res, arrow.Tail, 5, color, FILLED);
           transitionId++;
         }
       }
     }
     if (startId == -1) {
+      if (testing) {
+        imshow("contours", contourRes);
+        imshow("result", res);
+        waitKey(0);
+      }
       return "No start state";
     }
     vector<State> states;
     for (StateCircle stateCircle : stateCircles) {
       State state = stateCircle.CorrespondingState;
+      // Check for states with no transitions (i.e. dead circles)
+      bool noTransitions = true;
+      for (Transition transition : transitions) {
+        if (transition.From == state.Id || transition.To == state.Id) {
+          noTransitions = false;
+        }
+      }
+      if (noTransitions) {
+        continue;
+      }
       if (state.Id == startId) {
         state.IsStart = true;
       }
       states.push_back(state);
-      Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+      Scalar color = Scalar(0, 0, 255);
       circle(res, stateCircle.CorrespondingCircle.Center, stateCircle.CorrespondingCircle.Radius, color, 5);
+      putText(res, state.Name, stateCircle.CorrespondingCircle.Center, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
+      if (state.IsFinal) {
+        circle(res, stateCircle.CorrespondingCircle.Center, 0.8 * stateCircle.CorrespondingCircle.Radius, color, 5);
+      }
     }
 
     NFA nfa(false, states, transitions);
-    cout << "NFA:\n" << nfa.convertToJSON(true) << "\n";
     bool isDFA = checkIfDFA(nfa);
     nfa.IsDfa = isDFA;
-    cout << "isDfa: " << boolToString(isDFA) << "\n";
+
+    cout << nfa.convertToJSON(true);
 
     if (testing) {
-      imshow("result", res);
+      imshow("bin", bin);
+      // imshow("circles", circleRes);
       imshow("contours", contourRes);
+      imshow("result", res);
       waitKey(0);
     }
 
@@ -654,6 +1001,7 @@ namespace mainCode {
   }
 
   NFA simplifyDFA(NFA oldDfa) {
+    // cout << "\n\n";
     MathmaticalDFA dfa(oldDfa);
 
     // Removing unreachable states
@@ -674,13 +1022,16 @@ namespace mainCode {
     
     // Split into final and non-final states
     set<int> nonFinalStates;
+    set<int> finalStates;
     for (int stateId : reachableStates) {
       if (dfa.FinalStates.find(stateId) == dfa.FinalStates.end()) {
         nonFinalStates.insert(stateId);
+      } else {
+        finalStates.insert(stateId);
       }
     }
-    set<set<int>> p = { dfa.FinalStates, nonFinalStates };
-    set<set<int>> w = { dfa.FinalStates, nonFinalStates };
+    set<set<int>> p = { finalStates, nonFinalStates };
+    set<set<int>> w = { finalStates, nonFinalStates };
 
     // Hopcrofts algorithm
     while (!w.empty()) {
@@ -796,6 +1147,8 @@ namespace mainCode {
       bool isFinal = !setIntersection(nfa.FinalStates, subset).empty();
       newStates.push_back(State(newId, "q" + to_string(newId), isStart, isFinal, -1, -1));
 
+      string result0;
+      string result1;
       // Make subsets corresponding transitions
       for (string token : nfa.Alphabet) {
         // Ignore all epsilon transitions
@@ -817,17 +1170,17 @@ namespace mainCode {
     return simplifyDFA(NFA(true, newStates, newTransitions));
   }
 
-  bool runDFA(NFA oldDfa, string word) {
+  set<int> runDFA(NFA oldDfa, string word) {
     MathmaticalDFA dfa(oldDfa);
     int currentState = dfa.StartState;
     for (char character : word) {
       string characterString(1, character);
       currentState = dfa.TransitionTable[currentState][characterString];
     }
-    return dfa.FinalStates.find(currentState) != dfa.FinalStates.end();
+    return set<int> { currentState };
   }
 
-  bool runNFA(NFA oldNfa, string word) {
+  set<int> runNFA(NFA oldNfa, string word) {
     MathmaticalNFA nfa(oldNfa);
 
     set<int> currentStates = { nfa.StartState };
@@ -847,12 +1200,7 @@ namespace mainCode {
     for (int currentState : currentStates) {
       resultingStates = setUnion(resultingStates, nfa.TransitionTable[currentState]["ε"]);
     }
-    for (int resultingState : resultingStates) {
-      if (nfa.FinalStates.find(resultingState) != nfa.FinalStates.end()) {
-        return true;
-      }
-    }
-    return false;
+    return resultingStates;
   }
 
   int validateNFA(NFA nfa) {
@@ -913,79 +1261,6 @@ namespace mainCode {
   //   Mat rotationMatrix = getPerspectiveTransform(vertices, targetVertices);
 
   //   warpPerspective(frame, result, rotationMatrix, outputSize);
-  // }
-
-  // Mat arrowPreProcess(Mat img) {
-  //   Mat img_gray, img_blur, img_canny, img_dilate, img_erode;
-  //   cvtColor(img, img_gray, COLOR_BGR2GRAY);
-  //   GaussianBlur(img_gray, img_blur, Size(5, 5), 1);
-  //   imshow("blur", img_blur);
-  //   waitKey(0);
-  //   Canny(img_blur, img_canny, 40, 60);
-  //   Mat kernel = Mat::ones(3, 3, CV_64F);
-  //   dilate(img_canny, img_dilate, kernel, Point(-1, -1), 2);
-  //   erode(img_dilate, img_erode, kernel);
-  //   return img_erode;
-  // }
-
-  // Point arrowFindTip(vector<Point> points, vector<int> convex_hull) {
-  //   cout << "points: {";
-  //   for (Point p : points) {
-  //     cout << "[" << p.x << ", " << p.y << "] ";
-  //   }
-  //   cout << "}\n";
-  //   printVector("convex hull", convex_hull);
-  //   size_t length = points.size();
-  //   vector<int> range;
-  //   for (int i = 0; i < length; i++) {
-  //     range.push_back(i);
-  //   }
-  //   vector<int> indices = setDifference(range, convex_hull);
-  //   printVector("indices", indices);
-  //   for (int i = 0; i < 2; i++) {
-  //     int j = indices[i] + 2;
-  //     if (j > length - 1) {
-  //       j = length - j;
-  //     }
-  //     if (points[j] == points[indices[i] - 2]) {
-  //       return points[j];
-  //     }
-  //   }
-  //   return Point(-1, -1); // Return invalid point if not found
-  // }
-
-  // void arrowDetection(string path) {
-  //   Mat img = imread(path);
-
-  //   vector<vector<Point>> contours;
-  //   vector<Vec4i> hierarchy;
-  //   Mat preProcessedImg = arrowPreProcess(img);
-  //   imshow("pre-processed", preProcessedImg);
-  //   waitKey(0);
-  //   findContours(preProcessedImg, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
-  //   cout << "\nFound contours\n";
-  //   for (size_t i = 0; i < contours.size(); i++) {
-  //     cout << "Looking at contour\n";
-  //     double peri = arcLength(contours[i], true);
-  //     vector<Point> approx;
-  //     approxPolyDP(contours[i], approx, 0.025 * peri, true);
-  //     vector<int> hull;
-  //     convexHull(approx, hull);
-  //     size_t sides = hull.size();
-  //     if (6 > sides && sides > 3 && sides + 2 == approx.size()) {
-  //       drawContours(img, contours, static_cast<int>(i), Scalar(0, 255, 0), 3);
-  //       cout << "Finding tip\n";
-  //       Point arrow_tip = arrowFindTip(approx, hull);
-  //       cout << "Found tip\n";
-  //       if (arrow_tip.x != -1 && arrow_tip.y != -1) {
-  //         drawContours(img, contours, static_cast<int>(i), Scalar(0, 255, 0), 3);
-  //         circle(img, arrow_tip, 3, Scalar(0, 0, 255), FILLED);
-  //       }
-  //     }
-  //   }
-
-  //   imshow("Image", img);
-  //   waitKey(0);
   // }
 
   // string tesseractTest(string path) {
@@ -1139,70 +1414,3 @@ namespace mainCode {
 //     // cout << "'" << recognitionResult << "'" << endl;
 //     return recognitionResult;
 //   }
-
-
-// BLOB ATTEMPT
-
-    // Mat blurredImg;
-    // GaussianBlur(img, blurredImg, Size(15, 15), 9);
-
-    // SimpleBlobDetector::Params params;
-    // params.minThreshold = 10;
-    // params.maxThreshold = 200;
-    // params.filterByArea = false;
-    // // params.minArea = 1000;
-    // params.filterByCircularity = false;
-    // params.filterByConvexity = false;
-    // params.filterByInertia = false;
-
-    // Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
-    // vector<KeyPoint> keypoints;
-    // detector->detect(blurredImg, keypoints);
-    // Mat newImg;
-    // drawKeypoints(img, keypoints, newImg, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-
-    // namedWindow("blurred", WINDOW_AUTOSIZE);
-    // imshow("blurred", blurredImg);
-    // namedWindow("keypoints", WINDOW_AUTOSIZE);
-    // imshow("keypoints", newImg);
-    // waitKey(0);
-
-    //  HOUGH_CIRCLES ATTEMT 
-
-    // Mat gray;
-    // cvtColor(img, gray, COLOR_BGR2GRAY);
-    // GaussianBlur(gray, gray, Size(9, 9), 2);
-    // vector<Vec3f> circles;
-    // // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 200, 200, 100, 150, 300);
-    // HoughCircles(gray, circles, HOUGH_GRADIENT, 2, 70, 200, 150);
-
-    // result += "Width: " + to_string(img.cols) + "\n";
-    // result += "Height: " + to_string(img.rows) + "\n";
-
-    // vector<State> states;
-    // for (int id = 0; id < circles.size(); id++) {
-    //   Vec3f circle = circles[id];
-    //   result += "X: " + to_string(circle[0]) + "\n";
-    //   result += "Y: " + to_string(circle[1]) + "\n";
-    //   result += "Radius: " + to_string(circle[2]) + "\n\n";
-    //   int locX = circle[0] - img.cols / 2; // Still need to scale
-    //   int locY = circle[1] - img.rows / 2;
-    //   states.push_back(State(id, "q" + to_string(id), false, false, locX, locY));
-    // }
-    // vector<Transition> transitions;
-    // result += NFA(false, states, transitions).convertToJSON(false);
-    // if (testing) {
-    //   for(size_t i = 0; i < circles.size(); i++) {
-    //     Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-    //     int radius = cvRound(circles[i][2]);
-    //     // draw the circle center
-    //     circle(img, center, 3, Scalar(0, 255, 0), FILLED);
-    //     // draw the circle outline
-    //     circle(img, center, radius, Scalar(0, 0, 255), 3);
-    //   }
-    //   namedWindow("gray", WINDOW_AUTOSIZE);
-    //   imshow("gray", gray);
-    //   namedWindow("circles", WINDOW_AUTOSIZE);
-    //   imshow("circles", img);
-    //   waitKey(0);
-    // }

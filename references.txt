@@ -21,3 +21,6 @@ https://github.com/brainhubeu/react-native-opencv-tutorial/blob/master/downloadA
 
 Thinning algorithm:
 https://stackoverflow.com/questions/31974843/detecting-lines-and-shapes-in-opencv-using-python/32077775#32077775
+
+Arrow detection algorithm:
+https://stackoverflow.com/questions/66718462/how-to-detect-different-types-of-arrows-in-image

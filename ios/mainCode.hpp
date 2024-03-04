@@ -87,7 +87,8 @@ namespace mainCode {
       Circle(cv::Point center, float radius);
   };
 
-  // Intermediate stage for NFA generation
+  // Intermediate stages for NFA generation
+
   class StateCircle {
     public:
       State CorrespondingState;
@@ -116,8 +117,7 @@ namespace mainCode {
   template <typename T>
   set<T> setDifference(set<T> set1, set<T> set2);
   template <typename T>
-  vector<T> setDifference(vector<T> vec1, vector<T> vec2);
-  string base64Decode(const string &base64data);
+  vector<T> vectorDifference(vector<T> vec1, vector<T> vec2);
 
   // DFA / NFA functions
   set<int> getStates(vector<State> states);
@@ -128,16 +128,17 @@ namespace mainCode {
   // Exported
   NFA simplifyDFA(NFA oldDfa);
   NFA convertNFAtoDFA(NFA oldNfa);
-  bool runDFA(NFA oldDfa, string word);
-  bool runNFA(NFA oldNfa, string word);
+  set<int> runDFA(NFA oldDfa, string word);
+  set<int> runNFA(NFA oldNfa, string word);
   int validateNFA(NFA nfa);
   bool checkIfDFA(NFA oldNfa);
-  string photoToNFA(Mat img, string path, bool isBase64, bool testing);
+  string photoToNFA(string path, bool testing);
   // string tesseractTest(string path);
   // string textRecognition(string imPath);
   // string textDetection(string imPath);
   // int fullOpenCVTextRecognition(string imPath);
   // void arrowDetection(string path);
+  cv::Ptr<ml::KNearest> textTrain();
 }
 
 #endif
