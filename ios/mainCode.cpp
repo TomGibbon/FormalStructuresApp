@@ -96,61 +96,70 @@ namespace mainCode {
     States(states), Alphabet(alphabet), TransitionTable(transitionTable), StartState(startState), FinalStates(finalStates) {}
 
   MathmaticalNFA::MathmaticalNFA(NFA nfa):
-        States(getStates(nfa.States)), Alphabet(getAlphabet(nfa.Transitions)), StartState(getStartState(nfa.States)), FinalStates(getFinalStates(nfa.States)) {
-          Alphabet.insert("ε");
-          map<int, map<string, set<int>>> transitionTable;
+    States(getStates(nfa.States)), Alphabet(getAlphabet(nfa.Transitions)), StartState(getStartState(nfa.States)), FinalStates(getFinalStates(nfa.States)) {
+      Alphabet.insert("ε");
+      map<int, map<string, set<int>>> transitionTable;
 
-          // Declare each cell in map
-          for (State state : nfa.States) {
-            for (string token : Alphabet) {
-              transitionTable[state.Id][token] = {};
-            }
-          }
-
-          // Start by adding all single transitions
-          for (Transition transition : nfa.Transitions) {
-            transitionTable[transition.From][transition.Token].insert(transition.To);
-          }
-
-          // Update with epsilon transitions
-          for (State state : nfa.States) {
-            set<int> epsilonTransitions = transitionTable[state.Id]["ε"]; // Get epsilon closure of state
-            epsilonTransitions.insert(state.Id); // Make sure itself is added
-
-            // Continue checking epsilon closure of states until no new ones are detected
-            set<int> remaining = epsilonTransitions; // Contains all states that need to have their epsilon closure checked
-            while (!remaining.empty()) {
-              // Pop front
-              auto iterator = remaining.begin();
-              int current = *iterator; // Contains the next state that needs to be checked
-              remaining.erase(iterator);
-
-              set<int> newStates = transitionTable[current]["ε"]; // Get epsilon closure of current
-              for (int newState : newStates) { // Check if any of the resulting states are new
-                if (epsilonTransitions.find(newState) == epsilonTransitions.end()) {
-                  epsilonTransitions.insert(newState);
-                  remaining.insert(newState); // New state so must be checked later
-                }
-              }
-            }
-
-            // Update the current row in the table using the epsilon closure
-            for (string token : Alphabet) {
-              set<int> currentTransitions = transitionTable[state.Id][token];
-
-              // Update the transition table with the transitions from this epsilon closure
-              if (token == "ε") {
-                transitionTable[state.Id]["ε"] = setUnion(transitionTable[state.Id]["ε"], epsilonTransitions);
-              } else {
-                for (int epsilonTransition : epsilonTransitions) {
-                  set<int> resultingTransitions = transitionTable[epsilonTransition][token];
-                  transitionTable[state.Id][token] = setUnion(transitionTable[state.Id][token], resultingTransitions);
-                }
-              }
-            }
-          }
-          TransitionTable = transitionTable;
+      // Declare each cell in map
+      for (State state : nfa.States) {
+        for (string token : Alphabet) {
+          transitionTable[state.Id][token] = {};
         }
+      }
+
+      // Start by adding all single transitions
+      for (Transition transition : nfa.Transitions) {
+        transitionTable[transition.From][transition.Token].insert(transition.To);
+      }
+
+      // Update with epsilon transitions
+      for (State state : nfa.States) {
+        cout << "Looking at state: " << state.Id << "\n";
+
+        set<int> epsilonTransitions = transitionTable[state.Id]["ε"]; // Get epsilon closure of state
+        epsilonTransitions.insert(state.Id); // Make sure itself is added
+
+        // Continue checking epsilon closure of states until no new ones are detected
+        set<int> remaining = epsilonTransitions; // Contains all states that need to have their epsilon closure checked
+        while (!remaining.empty()) {
+          // Pop front
+          auto iterator = remaining.begin();
+          int current = *iterator; // Contains the next state that needs to be checked
+          remaining.erase(iterator);
+
+          set<int> newStates = transitionTable[current]["ε"]; // Get epsilon closure of current
+          for (int newState : newStates) { // Check if any of the resulting states are new
+            if (epsilonTransitions.find(newState) == epsilonTransitions.end()) {
+              epsilonTransitions.insert(newState);
+              remaining.insert(newState); // New state so must be checked later
+            }
+          }
+        }
+
+        printSet("epsilon closure of state", epsilonTransitions);
+
+        // Update the current row in the table using the epsilon closure
+        for (string token : Alphabet) {
+          set<int> currentTransitions = transitionTable[state.Id][token];
+
+          // Update the transition table with the transitions from this epsilon closure
+          if (token == "ε") {
+            transitionTable[state.Id]["ε"] = setUnion(transitionTable[state.Id]["ε"], epsilonTransitions);
+          } else {
+            for (int epsilonTransition : epsilonTransitions) {
+              set<int> resultingTransitions = transitionTable[epsilonTransition][token];
+              set<int> totalResultingTransitions = resultingTransitions;
+              // Make sure to check any epsilon transitions of resulting states
+              for (int resultingTransition : resultingTransitions) {
+                totalResultingTransitions = setUnion(totalResultingTransitions, transitionTable[resultingTransition]["ε"]);
+              }
+              transitionTable[state.Id][token] = setUnion(transitionTable[state.Id][token], totalResultingTransitions);
+            }
+          }
+        }
+      }
+      TransitionTable = transitionTable;
+    }
 
   // OpenCV
   Circle::Circle(Point center, float radius):
@@ -633,7 +642,7 @@ namespace mainCode {
     Mat blurred;
     GaussianBlur(gray, blurred, Size(9, 9), 3);
     double averageIntensity = mean(blurred)[0];
-    double thresh = averageIntensity / 1.9;
+    double thresh = averageIntensity / 1.6;
     cout << "mean: " << averageIntensity << "\n";
     Mat bin;
     threshold(blurred, bin, thresh, 255, THRESH_BINARY_INV);
@@ -834,13 +843,13 @@ namespace mainCode {
       detectedArrows.push_back(Arrow(tip, tail));
 
       // circle(arrowClusteredUnCropped, tip, 5, Scalar(0, 0, 255), FILLED);
-      // circle(arrowClusteredUnCropped, tail, 5, Scalar(255, 0, 0), FILLED);
+      // circle(arrowClusteredUnCropped, tail, 5, Scalar(0, 0, 255), FILLED);
       // Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
       // copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
 
       // if (testing) {
-      //   imshow("arrow", arrow);
-      //   imshow("end points", arrowEndPointImg);
+      //   // imshow("arrow", arrow);
+      //   // imshow("end points", arrowEndPointImg);
       //   imshow("clustered", arrowClustered);
       //   waitKey(0);
       // }
@@ -928,7 +937,7 @@ namespace mainCode {
         if (minTailDistance > 1.5 * tailStateCircle.CorrespondingCircle.Radius) {
           if (startId == -1) {
             startId = tipStateCircle.CorrespondingState.Id;
-            Scalar color = Scalar(255, 0, 0);
+            Scalar color = Scalar(0, 0, 255);
             circle(res, arrow.Tip, 5, color, FILLED);
             circle(res, arrow.Tail, 5, color, FILLED);
             putText(res, "START", arrow.Tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
@@ -943,7 +952,7 @@ namespace mainCode {
           }
         } else {
           transitions.push_back(Transition(transitionId, tailStateCircle.CorrespondingState.Id, tipStateCircle.CorrespondingState.Id, "0"));
-          Scalar color = Scalar(255, 0, 0);
+          Scalar color = Scalar(0, 0, 255);
           circle(res, arrow.Tip, 5, color, FILLED);
           circle(res, arrow.Tail, 5, color, FILLED);
           transitionId++;
@@ -975,7 +984,7 @@ namespace mainCode {
         state.IsStart = true;
       }
       states.push_back(state);
-      Scalar color = Scalar(0, 0, 255);
+      Scalar color = Scalar(255, 0, 0);
       circle(res, stateCircle.CorrespondingCircle.Center, stateCircle.CorrespondingCircle.Radius, color, 5);
       putText(res, state.Name, stateCircle.CorrespondingCircle.Center, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
       if (state.IsFinal) {
@@ -1124,6 +1133,21 @@ namespace mainCode {
   NFA convertNFAtoDFA(NFA oldNfa) {
     MathmaticalNFA nfa(oldNfa);
 
+    cout << "mathnfa: \n";
+    printSet("states", nfa.States);
+    cout << "Alphabet: {";
+    for (string s : nfa.Alphabet) {
+      cout << s << " ";
+    }
+    cout << "}\nStart state: " << nfa.StartState << "\n";
+    printSet("Final state", nfa.FinalStates);
+    cout << "Transition table: \n";
+    for (int s : nfa.States) {
+      for (string t : nfa.Alphabet) {
+        printSet("[" + to_string(s) + "][" + t + "]", nfa.TransitionTable[s][t]);
+      }
+    }
+
     // Initiate stateSubsets
     set<set<int>> stateSubsets = {{}}; // Contains each possible subset of states
     for (int stateId : nfa.States) {
@@ -1141,7 +1165,8 @@ namespace mainCode {
 
     int newId = 0;
     for (set<int> subset : stateSubsets) {
-
+      // printSet("Looking at subset", subset);
+      // printSet("Starter", nfa.TransitionTable[nfa.StartState]["ε"]);
       // Detemine if corresponding state is start or final
       bool isStart = nfa.TransitionTable[nfa.StartState]["ε"] == subset;
       bool isFinal = !setIntersection(nfa.FinalStates, subset).empty();
@@ -1166,6 +1191,10 @@ namespace mainCode {
       }
       newId++;
     }
+
+    NFA anotenfa(true, newStates, newTransitions);
+    // cout << "nfa:\n";
+    // cout << anotenfa.convertToJSON(true) << "\n\n";
 
     return simplifyDFA(NFA(true, newStates, newTransitions));
   }

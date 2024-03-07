@@ -134,6 +134,21 @@ bool convertNFAtoDFATest() {
   overallResult = overallResult && passed;
   printOutcome(passed);
 
+  cout << "- NFA 3: ";
+  State s5(4, "e", false, false, 0, 0);
+  states = { s0, s1, s2, s3, s5 };
+  nfa.States = states;
+  Transition t8(7, 0, 4, "ε");
+  Transition t9(9, 4, 2, "1");
+  Transition t10(10, 2, 4, "0");
+  transitions = { t0, t1, t2, t3, t4, t5, t6, t8, t9, t10 };
+  nfa.Transitions = transitions;
+  result = convertNFAtoDFA(nfa).convertToJSON(true);
+  passed = result == predictedResult;
+  cout << "result: " << result << "\n";
+  overallResult = overallResult && passed;
+  printOutcome(passed);
+
   return overallResult;
 }
 
@@ -329,7 +344,7 @@ bool checkIfDFATest() {
 
 bool photoToNFATest() {
   string predictedResult = "{\"structure\":{\"isDfa\":false,\"states\":[{\"id\":0,\"name\":\"q0\",\"isStart\":false,\"isFinal\":true,\"locX\":0,\"locY\":0},{\"id\":1,\"name\":\"q1\",\"isStart\":false,\"isFinal\":false,\"locX\":0,\"locY\":0},{\"id\":2,\"name\":\"q2\",\"isStart\":false,\"isFinal\":true,\"locX\":0,\"locY\":0},{\"id\":3,\"name\":\"q3\",\"isStart\":true,\"isFinal\":false,\"locX\":0,\"locY\":0}],\"transitions\":[{\"id\":0,\"from\":0,\"to\":1,\"token\":\"0\"},{\"id\":1,\"from\":2,\"to\":0,\"token\":\"0\"},{\"id\":2,\"from\":2,\"to\":2,\"token\":\"0\"},{\"id\":3,\"from\":3,\"to\":1,\"token\":\"0\"},{\"id\":4,\"from\":3,\"to\":2,\"token\":\"0\"}]},\"type\":\"nfa\"}";
-  string result = photoToNFA("test_photo_digits.jpg", true);
+  string result = photoToNFA("test_photo_2.jpg", true);
   return result == predictedResult;
 }
 
@@ -380,11 +395,11 @@ int main() {
   // tests.push_back(TestObject("setDifference", setDifferenceTest));
   // tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
   // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
-  tests.push_back(TestObject("runNFA", runNFATest));
-  tests.push_back(TestObject("runDFA", runDFATest));
+  // tests.push_back(TestObject("runNFA", runNFATest));
+  // tests.push_back(TestObject("runDFA", runDFATest));
   // tests.push_back(TestObject("validateNFA", validateNFATest));
   // tests.push_back(TestObject("checkIfDFA", checkIfDFATest));
-  // tests.push_back(TestObject("photoToDFA", photoToNFATest));
+  tests.push_back(TestObject("photoToDFA", photoToNFATest));
   // tests.push_back(TestObject("tesseractTest", tesseractTestTest));
   // tests.push_back(TestObject("textRecognition", textRecognitionTest));
   // tests.push_back(TestObject("textDetection", textDetectionTest));

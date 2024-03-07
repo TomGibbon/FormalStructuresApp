@@ -72,6 +72,7 @@ const CameraPage = (props: CameraPageProps) => {
       return;
     }
     try {
+      props.setIsLoading(true);
       console.log(photo.path);
       const result = await CPPCode.photoToNFA(photo.path);
       console.log(result);
@@ -92,6 +93,7 @@ const CameraPage = (props: CameraPageProps) => {
     } catch (error) {
       console.error('Error occured: ' + error);
     }
+    props.setIsLoading(false);
   };
 
   return (

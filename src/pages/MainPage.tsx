@@ -5,6 +5,7 @@ import { Alert, PanResponder, Text, TextInput, View } from 'react-native';
 import BasicButton from '../components/BasicButton';
 import IconButton from '../components/IconButton';
 import StructureDrawing, {
+  exportSVG,
   getDefaultStructureLocation,
 } from '../components/StructureDrawing';
 import Structure from '../types/Structure';
@@ -13,6 +14,7 @@ import { mainPageStyles } from '../styles.js';
 import SaveIcon from '../../res/save_icon.png';
 import PhotosIcon from '../../res/photos_icon.png';
 import CameraIcon from '../../res/camera_icon.png';
+import ShareIcon from '../../res/share_icon.png';
 import EditIcon from '../../res/edit_icon.png';
 import NFA from '../types/NFA';
 import CPPCode from '../nativeModules';
@@ -218,9 +220,13 @@ const MainPage = (props: MainPageProps) => {
     <>
       <View style={mainPageStyles.mainButtonList}>
         <View style={mainPageStyles.titleContainer}>
-          <Text style={mainPageStyles.title}>Formal Structures</Text>
-          <Text style={mainPageStyles.title}>App</Text>
+          <Text style={mainPageStyles.title}>Formal</Text>
+          <Text style={mainPageStyles.title}>Structures App</Text>
         </View>
+        <IconButton
+          icon={ShareIcon}
+          onPress={() => exportSVG(props.structure)}
+        />
         <IconButton icon={SaveIcon} onPress={save} />
         <IconButton icon={PhotosIcon} onPress={() => props.setPageNumber(2)} />
         <IconButton icon={CameraIcon} onPress={() => props.setPageNumber(1)} />

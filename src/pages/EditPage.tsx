@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ScrollView, View, Alert, PanResponder } from 'react-native';
 
 import Structure, { copyStructure } from '../types/Structure';
 import IconButton from '../components/IconButton';
@@ -14,6 +14,12 @@ import BasicButton from '../components/BasicButton';
 import CPPCode from '../nativeModules';
 import NFA from '../types/NFA';
 
+const initialPosition = {
+  zoom: 1.3,
+  x: 0,
+  y: 0,
+};
+
 type EditPageProps = {
   setPageNumber: (newPageNumber: number) => void;
   structure: Structure;
@@ -27,6 +33,65 @@ const EditPage = (props: EditPageProps) => {
   const [editing, setEditing] = useState(false);
   const [svgWidth, setSvgWidth] = useState(0);
   const [svgHeight, setSvgHeight] = useState(0);
+
+  const [scale, setScale] = useState(initialPosition.zoom);
+  const [translateX, setTranslateX] = useState(initialPosition.x);
+  const [translateY, setTranslateY] = useState(initialPosition.x);
+
+  const scaleRef = useRef(initialPosition.zoom);
+  const previousScaleRef = useRef(initialPosition.zoom);
+  const translateXRef = useRef(initialPosition.x);
+  const previousTranslateXRef = useRef(initialPosition.x);
+  const translateYRef = useRef(initialPosition.x);
+  const previousTranslateYRef = useRef(initialPosition.x);
+  const initialPinchSize = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    scaleRef.current = scale;
+    translateXRef.current = translateX;
+    translateYRef.current = translateY;
+  }, [scale, translateX, translateY]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gestureState) => {
+        if (gestureState.numberActiveTouches === 1) {
+          setTranslateX(previousTranslateXRef.current - gestureState.dx);
+          setTranslateY(previousTranslateYRef.current - gestureState.dy);
+          initialPinchSize.current = undefined;
+          previousScaleRef.current = scaleRef.current;
+        } else if (gestureState.numberActiveTouches === 2) {
+          const touches = event.nativeEvent.touches.map(touch => ({
+            x: touch.pageX,
+            y: touch.pageY,
+          }));
+          if (!initialPinchSize.current) {
+            initialPinchSize.current = Math.sqrt(
+              (touches[0].x - touches[1].x) ** 2 +
+                (touches[0].y - touches[1].y) ** 2
+            );
+          }
+          const newPinchSize = Math.sqrt(
+            (touches[0].x - touches[1].x) ** 2 +
+              (touches[0].y - touches[1].y) ** 2
+          );
+          setScale(
+            1.6 ** ((initialPinchSize.current - newPinchSize) / 100) *
+              previousScaleRef.current
+          );
+          setTranslateX(previousTranslateXRef.current - gestureState.dx);
+          setTranslateY(previousTranslateYRef.current - gestureState.dy);
+        }
+      },
+      onPanResponderRelease: () => {
+        previousScaleRef.current = scaleRef.current;
+        previousTranslateXRef.current = translateXRef.current;
+        previousTranslateYRef.current = translateYRef.current;
+        initialPinchSize.current = undefined;
+      },
+    })
+  ).current;
 
   const close = () => {
     props.setPageNumber(0);
@@ -100,18 +165,36 @@ const EditPage = (props: EditPageProps) => {
         }}
       >
         {svgWidth > 0 && svgHeight > 0 ? (
-          <View style={{ width: svgWidth, height: svgHeight }}>
-            <StructureDrawing
-              structure={currentStructure}
-              svgWidth={svgWidth}
-              svgHeight={svgHeight}
-              scale={1}
-              translateX={0}
-              translateY={0}
-              editable={editing}
-              setCurrentStructure={setCurrentStructure}
-            />
-          </View>
+          editing ? (
+            <View style={{ width: svgWidth, height: svgHeight }}>
+              <StructureDrawing
+                structure={currentStructure}
+                svgWidth={svgWidth}
+                svgHeight={svgHeight}
+                scale={scale}
+                translateX={translateX}
+                translateY={translateY}
+                editable={editing}
+                setCurrentStructure={setCurrentStructure}
+              />
+            </View>
+          ) : (
+            <View
+              {...panResponder.panHandlers}
+              style={{ width: svgWidth, height: svgHeight }}
+            >
+              <StructureDrawing
+                structure={currentStructure}
+                svgWidth={svgWidth}
+                svgHeight={svgHeight}
+                scale={scale}
+                translateX={translateX}
+                translateY={translateY}
+                editable={editing}
+                setCurrentStructure={setCurrentStructure}
+              />
+            </View>
+          )
         ) : (
           <></>
         )}

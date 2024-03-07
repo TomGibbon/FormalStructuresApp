@@ -13,6 +13,9 @@ https://cdn-icons-png.flaticon.com/512/7398/7398464.png
 Close icon:
 https://static-00.iconduck.com/assets.00/close-circle-icon-256x255-7gelhh31.png
 
+Share icon:
+https://static.thenounproject.com/png/1058858-200.png
+
 Simplification of DFA is hopcrofts algorithm shown here:
 https://en.wikipedia.org/wiki/DFA_minimization
 

@@ -16,22 +16,16 @@ To replace XCode build paths:
  - Add a thing in Debug and Release
  - Add string "$opencv2" (no speech marks)
 
+Tesseract page: https://tesseract-ocr.github.io/tessdoc/Installation.html
+Medium page, tesseract and opencv: https://medium.com/building-a-simple-text-correction-tool/basic-ocr-with-tesseract-and-opencv-34fae6ab3400
+Tesseract with react native: https://reinteractive.com/articles/Bringing-Tesseract-to-Mobile-with-React-Native
+Tesseract OCR github: https://github.com/gali8/Tesseract-OCR-iOS
+Tesseract C++ examples: https://tesseract-ocr.github.io/tessdoc/Examples_C++.html
+OpenCV official text detection example: https://github.com/opencv/opencv/blob/master/samples/dnn/text_detection.cpp
+OpenCV all models example (the one with lots of images): https://github.com/opencv/opencv/blob/master/doc/tutorials/dnn/dnn_text_spotting/dnn_text_spotting.markdown
+OpenCV kNN handwritten text: https://docs.opencv.org/4.x/d8/d4b/tutorial_py_knn_opencv.html
+Additional recognition for above link:https://learnopencv.com/handwritten-digits-classification-an-opencv-c-python-tutorial/
 
-Output should be:
 
-{
-        "structure":
-        {
-                "isDfa":false,
-                "states":
-                [
-                        { "id":0, "name":"q0", "isStart":false, "isFinal":false, "locX":-177, "locY":-615 }, 
-                        { "id":1, "name":"q1", "isStart":false, "isFinal":false, "locX":869, "locY":-559 }, 
-                        { "id":2, "name":"q2", "isStart":false, "isFinal":false, "locX":-103, "locY":465 }
-                ],
-                "transitions":
-                [
-                ]
-        },
-        "type":"nfa"
-}
+
+
