@@ -1,3 +1,19 @@
+OpenCV documentation:
+https://docs.opencv.org/4.8.0/
+
+Circle Hough Transformation:
+https://en.wikipedia.org/wiki/Circle_Hough_Transform#:~:text=The%20circle%20Hough%20Transform%20(CHT,maxima%20in%20an%20accumulator%20matrix.
+
+Useful CHT video: https://www.youtube.com/watch?v=Ltqt24SQQoI
+
+Canny edge detection:
+https://en.wikipedia.org/wiki/Canny_edge_detector
+
+
+CSS Flex docs:
+https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+
+
 Location of OpenCV:
 
 /opt/homebrew/Cellar/opencv/4.9.0_2/include/opencv4/opencv2/opencv.hpp
