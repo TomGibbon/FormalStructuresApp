@@ -113,6 +113,20 @@ export const editPageStyles = StyleSheet.create({
   scrollView: {
     maxHeight: 200,
   },
+  cancelList: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    width: '100%',
+    top: 530,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 10,
+  },
+  cancelListItem: {
+    paddingHorizontal: 10,
+    maxWidth: 200,
+  },
 });
 
 export const cameraPageStyles = StyleSheet.create({
@@ -167,6 +181,10 @@ export const iconStyles = StyleSheet.create({
   image: {
     height: '80%',
     width: '80%',
+  },
+  smallImage: {
+    height: '75%',
+    width: '75%',
   },
 });
 

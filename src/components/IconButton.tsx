@@ -26,7 +26,10 @@ const IconButton = (props: IconProps) => {
             : iconStyles.imageContainer
         }
       >
-        <Image source={props.icon} style={iconStyles.image} />
+        <Image
+          source={props.icon}
+          style={props.small ? iconStyles.smallImage : iconStyles.image}
+        />
       </View>
     </BasicButton>
   );

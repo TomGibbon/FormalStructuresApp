@@ -18,6 +18,16 @@ type StructureDrawingProps = {
   editable?: boolean;
   setCurrentStructure?: (newStructure: Structure) => void;
   activeIds?: number[];
+  selectedState?: number | undefined;
+  setSelectedState?: (newValue: number | undefined) => void;
+  selectedTransitionArrow?: number[] | undefined;
+  setSelectedTransitionArrow?: (newValue: number[] | undefined) => void;
+  selectingNewTransitionToState?: boolean;
+  setSelectingNewTransitionToState?: (newValue: boolean) => void;
+  selectingTransitionNewToState?: boolean;
+  setSelectingTransitionNewToState?: (newValue: boolean) => void;
+  selectingTransitionNewFromState?: boolean;
+  setSelectingTransitionNewFromState?: (newValue: boolean) => void;
 };
 
 export const getDefaultStructureLocation = (structure: Structure) => {
@@ -64,10 +74,24 @@ export const exportSVG = (structure: Structure) => {
 };
 
 const StructureDrawing = (props: StructureDrawingProps) => {
-  props.editable = props.editable ?? false;
-  const defaultSetCurrentStructure = () => {};
-  props.setCurrentStructure =
-    props.setCurrentStructure ?? defaultSetCurrentStructure;
+  const editable = props.editable ?? false;
+  const defaultSetFunction = () => {};
+  const setCurrentStructure = props.setCurrentStructure ?? defaultSetFunction;
+  const setSelectedState = props.setSelectedState ?? defaultSetFunction;
+  const setSelectedTransitionArrow =
+    props.setSelectedTransitionArrow ?? defaultSetFunction;
+  const selectingNewTransitionToState =
+    props.selectingNewTransitionToState ?? false;
+  const selectingTransitionNewFromState =
+    props.selectingTransitionNewFromState ?? false;
+  const selectingTransitionNewToState =
+    props.selectingTransitionNewToState ?? false;
+  const setSelectingNewTransitionToState =
+    props.setSelectingNewTransitionToState ?? defaultSetFunction;
+  const setSelectingTransitionNewFromState =
+    props.setSelectingTransitionNewFromState ?? defaultSetFunction;
+  const setSelectingTransitionNewToState =
+    props.setSelectingTransitionNewToState ?? defaultSetFunction;
 
   let elements: JSX.Element[] = [];
 
@@ -75,9 +99,19 @@ const StructureDrawing = (props: StructureDrawingProps) => {
     case 'nfa':
       elements = NFADrawing(
         props.structure.structure as NFA,
-        props.editable,
-        props.setCurrentStructure,
-        props.activeIds
+        editable,
+        setCurrentStructure,
+        props.activeIds,
+        props.selectedState,
+        setSelectedState,
+        props.selectedTransitionArrow,
+        setSelectedTransitionArrow,
+        selectingNewTransitionToState,
+        setSelectingNewTransitionToState,
+        selectingTransitionNewToState,
+        setSelectingTransitionNewToState,
+        selectingTransitionNewFromState,
+        setSelectingTransitionNewFromState
       );
       break;
   }

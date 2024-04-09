@@ -227,7 +227,6 @@ const MainPage = (props: MainPageProps) => {
           icon={ShareIcon}
           onPress={() => exportSVG(props.structure)}
         />
-        <IconButton icon={SaveIcon} onPress={save} />
         <IconButton icon={PhotosIcon} onPress={() => props.setPageNumber(2)} />
         <IconButton icon={CameraIcon} onPress={() => props.setPageNumber(1)} />
       </View>
@@ -250,6 +249,7 @@ const MainPage = (props: MainPageProps) => {
           >
             Revert To Original Structure
           </BasicButton>
+          <IconButton small icon={SaveIcon} onPress={save} />
           <BasicButton onPress={simplifyStructure} small>
             Simplify
           </BasicButton>
@@ -289,18 +289,12 @@ const MainPage = (props: MainPageProps) => {
           value={textToRun}
         />
         <BasicButton small style={mainPageStyles.runStep} onPress={runStep}>
-          Run Step
+          Run Character
         </BasicButton>
         <BasicButton small onPress={runStructure}>
           Run!
         </BasicButton>
       </View>
-      {/* <View style={mainPageStyles.convertBox}>
-        <Text>Convert to:</Text>
-        <View style={mainPageStyles.convertButtonsList}>
-          {convertButtons()}
-        </View>
-      </View> */}
       {props.structure.type === 'nfa' &&
       props.structure.structure?.isDfa === false ? (
         <View style={mainPageStyles.convertBox}>

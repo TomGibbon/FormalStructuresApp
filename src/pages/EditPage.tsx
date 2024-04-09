@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, View, Alert, PanResponder } from 'react-native';
+import { ScrollView, View, Alert, PanResponder, Text } from 'react-native';
+import _ from 'lodash';
 
 import Structure, { copyStructure } from '../types/Structure';
 import IconButton from '../components/IconButton';
 import SaveIcon from '../../res/save_icon.png';
 import CloseIcon from '../../res/close_icon.png';
 import { editPageStyles } from '../styles';
-import StructureDrawing, {
-  getDefaultStructureLocation,
-} from '../components/StructureDrawing';
+import StructureDrawing from '../components/StructureDrawing';
 import EditIcons from '../components/EditIcons';
 import BasicButton from '../components/BasicButton';
 import CPPCode from '../nativeModules';
@@ -34,6 +33,19 @@ const EditPage = (props: EditPageProps) => {
   const [svgWidth, setSvgWidth] = useState(0);
   const [svgHeight, setSvgHeight] = useState(0);
 
+  const [selectedState, setSelectedState] = useState<number | undefined>(
+    undefined
+  );
+  const [selectedTransitionArrow, setSelectedTransitionArrow] = useState<
+    number[] | undefined
+  >(undefined);
+  const [selectingNewTransitionToState, setSelectingNewTransitionToState] =
+    useState(false);
+  const [selectingTransitionNewFromState, setSelectingTransitionNewFromState] =
+    useState(false);
+  const [selectingTransitionNewToState, setSelectingTransitionNewToState] =
+    useState(false);
+
   const [scale, setScale] = useState(initialPosition.zoom);
   const [translateX, setTranslateX] = useState(initialPosition.x);
   const [translateY, setTranslateY] = useState(initialPosition.x);
@@ -45,6 +57,17 @@ const EditPage = (props: EditPageProps) => {
   const translateYRef = useRef(initialPosition.x);
   const previousTranslateYRef = useRef(initialPosition.x);
   const initialPinchSize = useRef<number | undefined>(undefined);
+
+  // Reset if editing is turned off
+  useEffect(() => {
+    if (editing === false) {
+      setSelectedState(undefined);
+      setSelectedTransitionArrow(undefined);
+      setSelectingNewTransitionToState(false);
+      setSelectingTransitionNewToState(false);
+      setSelectingTransitionNewFromState(false);
+    }
+  }, [editing]);
 
   useEffect(() => {
     scaleRef.current = scale;
@@ -94,7 +117,25 @@ const EditPage = (props: EditPageProps) => {
   ).current;
 
   const close = () => {
-    props.setPageNumber(0);
+    if (!_.isEqual(props.structure, currentStructure)) {
+      Alert.alert(
+        'Warning',
+        'Closing without saving will remove any progress',
+        [
+          {
+            text: 'Close without saving',
+            onPress: () => props.setPageNumber(0),
+            style: 'destructive',
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+    } else {
+      props.setPageNumber(0);
+    }
   };
 
   const save = async () => {
@@ -147,13 +188,6 @@ const EditPage = (props: EditPageProps) => {
           <BasicButton onPress={() => setEditing(!editing)}>
             {editing ? 'Pan and Zoom' : 'Edit Structure'}
           </BasicButton>
-          <BasicButton
-            onPress={() =>
-              setCurrentStructure(getDefaultStructureLocation(currentStructure))
-            }
-          >
-            Reset Layout
-          </BasicButton>
           <IconButton icon={SaveIcon} onPress={save} />
         </View>
       </View>
@@ -176,6 +210,24 @@ const EditPage = (props: EditPageProps) => {
                 translateY={translateY}
                 editable={editing}
                 setCurrentStructure={setCurrentStructure}
+                selectedState={selectedState}
+                setSelectedState={setSelectedState}
+                selectedTransitionArrow={selectedTransitionArrow}
+                setSelectedTransitionArrow={setSelectedTransitionArrow}
+                selectingNewTransitionToState={selectingNewTransitionToState}
+                setSelectingNewTransitionToState={
+                  setSelectingNewTransitionToState
+                }
+                selectingTransitionNewToState={selectingTransitionNewToState}
+                setSelectingTransitionNewToState={
+                  setSelectingTransitionNewToState
+                }
+                selectingTransitionNewFromState={
+                  selectingTransitionNewFromState
+                }
+                setSelectingTransitionNewFromState={
+                  setSelectingTransitionNewFromState
+                }
               />
             </View>
           ) : (
@@ -192,6 +244,24 @@ const EditPage = (props: EditPageProps) => {
                 translateY={translateY}
                 editable={editing}
                 setCurrentStructure={setCurrentStructure}
+                selectedState={selectedState}
+                setSelectedState={setSelectedState}
+                selectedTransitionArrow={selectedTransitionArrow}
+                setSelectedTransitionArrow={setSelectedTransitionArrow}
+                selectingNewTransitionToState={selectingNewTransitionToState}
+                setSelectingNewTransitionToState={
+                  setSelectingNewTransitionToState
+                }
+                selectingTransitionNewToState={selectingTransitionNewToState}
+                setSelectingTransitionNewToState={
+                  setSelectingTransitionNewToState
+                }
+                selectingTransitionNewFromState={
+                  selectingTransitionNewFromState
+                }
+                setSelectingTransitionNewFromState={
+                  setSelectingTransitionNewFromState
+                }
               />
             </View>
           )
@@ -199,6 +269,47 @@ const EditPage = (props: EditPageProps) => {
           <></>
         )}
       </View>
+      {selectingNewTransitionToState ||
+      selectingTransitionNewToState ||
+      selectingTransitionNewFromState ? (
+        <View style={editPageStyles.cancelList}>
+          {selectingNewTransitionToState ? (
+            <Text style={editPageStyles.cancelListItem}>
+              Select an end state for the new transition(s)
+            </Text>
+          ) : (
+            <></>
+          )}
+          {selectingTransitionNewToState ? (
+            <Text style={editPageStyles.cancelListItem}>
+              Select a new end state for the selected transition(s)
+            </Text>
+          ) : (
+            <></>
+          )}
+          {selectingTransitionNewFromState ? (
+            <Text style={editPageStyles.cancelListItem}>
+              Select a new start state for the selected transition(s)
+            </Text>
+          ) : (
+            <></>
+          )}
+          <BasicButton
+            style={editPageStyles.cancelListItem}
+            onPress={() => {
+              setSelectedState(undefined);
+              setSelectedTransitionArrow(undefined);
+              setSelectingNewTransitionToState(false);
+              setSelectingTransitionNewFromState(false);
+              setSelectingTransitionNewToState(false);
+            }}
+          >
+            Cancel
+          </BasicButton>
+        </View>
+      ) : (
+        <></>
+      )}
       <View style={editPageStyles.line} />
       <ScrollView style={editPageStyles.scrollView}>
         {EditIcons(currentStructure, setCurrentStructure)}
