@@ -876,8 +876,8 @@ namespace mainCode {
         // Check for final state circle
         bool isFinal = false;
         for (Circle secondCircle : detectedCircles) {
-          bool circleWithinSecond = (secondCircle.Radius < circle.Radius < 1 && secondCircle.Radius > circle.Radius / 2);
-          bool secondWithinCircle = (circle.Radius < secondCircle.Radius < 1 && circle.Radius > secondCircle.Radius / 2);
+          bool secondWithinCircle = (secondCircle.Radius < circle.Radius && secondCircle.Radius > circle.Radius / 2);
+          bool circleWithinSecond = (circle.Radius < secondCircle.Radius && circle.Radius > secondCircle.Radius / 2);
           bool circlesWithinEachOther = sqrt(std::pow(circle.Center.x - secondCircle.Center.x, 2) + std::pow(circle.Center.y - secondCircle.Center.y, 2)) < abs(circle.Radius - secondCircle.Radius);
           if ((circleWithinSecond || secondWithinCircle) && circlesWithinEachOther) {
             cout << "Inner circle detected!!\n";
@@ -975,7 +975,7 @@ namespace mainCode {
           noTransitions = false;
         }
       }
-      if (noTransitions) {
+      if (noTransitions && !state.IsStart) {
         continue;
       }
       if (state.Id == startId) {
