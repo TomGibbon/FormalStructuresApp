@@ -18,6 +18,8 @@ import { cameraRollPageStyles } from '../styles';
 import CPPCode from '../nativeModules';
 import Structure from '../types/Structure';
 import { getDefaultStructureLocation } from '../components/StructureDrawing';
+import IconButton from '../components/IconButton';
+import CloseIcon from '../../res/close_icon.png';
 
 type CameraRollPageProps = {
   setPageNumber: (newPageNumber: number) => void;
@@ -90,20 +92,8 @@ const CameraRollPage = (props: CameraRollPageProps) => {
     }
   };
 
-  const tesseractTest = async () => {
-    try {
-      props.setIsLoading(true);
-      const result = await CPPCode.tesseractTest(currentPhotoPath);
-      console.log(result);
-      props.setIsLoading(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   return (
     <>
-      <BasicButton onPress={() => props.setPageNumber(0)}>Back</BasicButton>
       {currentPhotoPath ? (
         <>
           <Image
@@ -111,27 +101,34 @@ const CameraRollPage = (props: CameraRollPageProps) => {
             style={[cameraRollPageStyles.mainPhoto, StyleSheet.absoluteFill]}
           />
           <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
+          <BasicButton onPress={() => setCurrentPhotoPath(undefined)}>
+            Choose Another Photo
+          </BasicButton>
           <BasicButton onPress={postPhotoHere}>Post Photo</BasicButton>
-          <BasicButton onPress={tesseractTest}>Tesseract Test</BasicButton>
         </>
       ) : (
-        <ScrollView>
-          <View style={cameraRollPageStyles.photosContainer}>
-            {photos.map((photo, index) => {
-              return (
-                <TouchableOpacity
-                  onPress={async () => await selectPhoto(photo.node.image.uri)}
-                  key={index}
-                >
-                  <Image
-                    style={cameraRollPageStyles.photo}
-                    source={{ uri: photo.node.image.uri }}
-                  />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+        <>
+          <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
+          <ScrollView>
+            <View style={cameraRollPageStyles.photosContainer}>
+              {photos.map((photo, index) => {
+                return (
+                  <TouchableOpacity
+                    onPress={async () =>
+                      await selectPhoto(photo.node.image.uri)
+                    }
+                    key={index}
+                  >
+                    <Image
+                      style={cameraRollPageStyles.photo}
+                      source={{ uri: photo.node.image.uri }}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </>
       )}
     </>
   );

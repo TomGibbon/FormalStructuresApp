@@ -20,6 +20,8 @@ import Structure from '../types/Structure';
 import CPPCode from '../nativeModules';
 import { getDefaultStructureLocation } from '../components/StructureDrawing';
 import { postPhoto } from '../helperFunctions';
+import IconButton from '../components/IconButton';
+import CloseIcon from '../../res/close_icon.png';
 
 type CameraPageProps = {
   setPageNumber: (newPage: number) => void;
@@ -43,9 +45,7 @@ const CameraPage = (props: CameraPageProps) => {
   if (!device) {
     return (
       <>
-        <BasicButton onPress={() => props.setPageNumber(0)}>
-          Go back
-        </BasicButton>
+        <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
         <Text>No camera device found</Text>
       </>
     );
@@ -53,9 +53,7 @@ const CameraPage = (props: CameraPageProps) => {
   if (!hasPermission) {
     return (
       <>
-        <BasicButton onPress={() => props.setPageNumber(0)}>
-          Go back
-        </BasicButton>
+        <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
         <ActivityIndicator />
       </>
     );
@@ -101,14 +99,14 @@ const CameraPage = (props: CameraPageProps) => {
       {photo ? (
         <>
           <Image source={{ uri: photo.path }} style={StyleSheet.absoluteFill} />
-          <BasicButton onPress={usePhoto}>Use this photo</BasicButton>
+          <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
           <BasicButton onPress={() => setPhoto(undefined)}>
-            Take another photo
+            Take Another Photo
           </BasicButton>
           <BasicButton
             onPress={() => postPhoto(photo.path, props.setIsLoading)}
           >
-            Post photo
+            Post Photo
           </BasicButton>
         </>
       ) : (
@@ -124,9 +122,7 @@ const CameraPage = (props: CameraPageProps) => {
             onPress={takePicture}
             style={cameraPageStyles.photoButton}
           />
-          <BasicButton onPress={() => props.setPageNumber(0)}>
-            Go back
-          </BasicButton>
+          <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
         </>
       )}
     </View>

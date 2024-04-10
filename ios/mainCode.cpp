@@ -640,12 +640,10 @@ namespace mainCode {
     Mat gray;
     cvtColor(src, gray, COLOR_BGR2GRAY);
     Mat blurred;
-    GaussianBlur(gray, blurred, Size(9, 9), 3);
-    double averageIntensity = mean(blurred)[0];
-    double thresh = averageIntensity / 1.6;
-    cout << "mean: " << averageIntensity << "\n";
+    GaussianBlur(gray, blurred, Size(7, 7), 1);
+    double thresholdValue = threshold(blurred, blurred, 0, 255, THRESH_BINARY + THRESH_OTSU); // Gets 
     Mat bin;
-    threshold(blurred, bin, thresh, 255, THRESH_BINARY_INV);
+    threshold(blurred, bin, thresholdValue, 255, THRESH_BINARY_INV);
     if (testing) {
       imshow("binunthinned", bin);
       waitKey(0);

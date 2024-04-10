@@ -1,11 +1,13 @@
  # Stuff to DEFINITELY DO
- - Update go back button on camera and camera roll page to be the close icon
  - Sort out the convert button
  - Allow to access previously saved structures
+ - Fix lighting issue with camera
+ - Remove post photo button
  - TEST!!!!!!!!
 
  # Stuff to try to do
  - Expand hitbox of arrow in edit page
+ - Change to and from to start and end
  
  # Optimise photo to DFA
  - Detect text
