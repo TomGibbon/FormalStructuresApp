@@ -98,10 +98,11 @@ export const exportNFA = (nfa: NFA) => {
     if (index !== -1) {
       return {
         x:
-          structureRadius * Math.sin((index * 2 * Math.PI) / nfa.states.length),
-        y:
           -structureRadius *
           Math.cos((index * 2 * Math.PI) / nfa.states.length),
+        y:
+          -structureRadius *
+          Math.sin((index * 2 * Math.PI) / nfa.states.length),
       };
     } else {
       return { x: 0, y: 0 };
