@@ -3,8 +3,6 @@ type State = {
   name: string;
   isStart: boolean;
   isFinal: boolean;
-  locX: number;
-  locY: number;
 };
 
 export type Transition = {

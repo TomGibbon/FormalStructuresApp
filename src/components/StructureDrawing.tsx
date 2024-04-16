@@ -3,7 +3,7 @@ import React from 'react';
 import { Defs, Marker, Path, Svg } from 'react-native-svg';
 
 import Structure from '../types/Structure';
-import NFADrawing, { exportNFA, getDefaultNFALocation } from './NFADrawing';
+import NFADrawing, { exportNFA } from './NFADrawing';
 import NFA from '../types/NFA';
 import RNFS from 'react-native-fs';
 import { Share } from 'react-native';
@@ -30,25 +30,21 @@ type StructureDrawingProps = {
   setSelectingTransitionNewFromState?: (newValue: boolean) => void;
 };
 
-export const getDefaultStructureLocation = (structure: Structure) => {
-  switch (structure.type) {
-    case 'nfa':
-      return getDefaultNFALocation(structure.structure as NFA);
-    default:
-      return structure;
-  }
-};
+// export const getDefaultStructureLocation = (structure: Structure) => {
+//   switch (structure.type) {
+//     case 'nfa':
+//       return getDefaultNFALocation(structure.structure as NFA);
+//     default:
+//       return structure;
+//   }
+// };
 
 export const exportSVG = (structure: Structure) => {
   let content = '';
   switch (structure.type) {
     case 'nfa':
       const result = exportNFA(structure.structure as NFA);
-      content += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-result.width} ${-result.height} ${
-        result.width * 2
-      } ${
-        result.height * 2
-      }"><defs><marker id="arrow" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" ><path d="M0,0 L10,5 L0,10" fill="black" /></marker></defs>`;
+      content += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${result.minX} ${result.minY} ${result.width} ${result.height}"><defs><marker id="arrow" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" ><path d="M0,0 L10,5 L0,10" fill="black" /></marker></defs>`;
       content += result.text;
       break;
     default:

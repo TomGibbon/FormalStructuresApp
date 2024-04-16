@@ -3,7 +3,7 @@ import { Circle, Line, Path, Text } from 'react-native-svg';
 import NFA, { Transition } from '../types/NFA';
 import { ActionSheetIOS, Alert } from 'react-native';
 import Structure, { copyStructure } from '../types/Structure';
-import { getDefaultStructureLocation } from './StructureDrawing';
+// import { getDefaultStructureLocation } from './StructureDrawing';
 
 export const stateRadius = 30;
 const mainRadiusMultiplier = 2.6;
@@ -28,25 +28,28 @@ type TokenObj = {
   key: string;
 };
 
-export const getDefaultNFALocation = (nfa: NFA) => {
-  const newNfa = {
-    structure: nfa,
-    type: 'nfa',
-  };
-  const radius =
-    (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
-  for (let i = 0; i < nfa.states.length; i++) {
-    newNfa.structure.states[i].locX =
-      radius * Math.sin((i * 2 * Math.PI) / nfa.states.length);
-    newNfa.structure.states[i].locY =
-      -radius * Math.cos((i * 2 * Math.PI) / nfa.states.length);
-  }
-  return newNfa;
-};
+// export const getDefaultNFALocation = (nfa: NFA) => {
+//   const newNfa = {
+//     structure: nfa,
+//     type: 'nfa',
+//   };
+//   const radius =
+//     (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
+//   for (let i = 0; i < nfa.states.length; i++) {
+//     newNfa.structure.states[i].locX =
+//       radius * Math.sin((i * 2 * Math.PI) / nfa.states.length);
+//     newNfa.structure.states[i].locY =
+//       -radius * Math.cos((i * 2 * Math.PI) / nfa.states.length);
+//   }
+//   return newNfa;
+// };
 
 export const exportNFA = (nfa: NFA) => {
-  let width = 0;
-  let height = 0;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
   let transitionArrows: TransitionArrow[] = [];
   let svgElements = '';
 
@@ -60,7 +63,7 @@ export const exportNFA = (nfa: NFA) => {
 
     // If text angle is wanted limits are -90 and 90
 
-    return `<text x="${finalX}" y="${finalY}" text-anchor="middle" alignment-baseline="middle">${token}</text>`;
+    return `<text x="${finalX}" y="${finalY}" text-anchor="middle" alignment-baseline="middle" font-family="-apple-system, BlinkMacSystemFont">${token}</text>`;
   };
 
   const getTokenCurve = (
@@ -79,78 +82,91 @@ export const exportNFA = (nfa: NFA) => {
     const finalX = ellipseCenterX + (curveRadius2 + 10) * Math.cos(rightAngle);
     const finalY = ellipseCenterY + (curveRadius2 + 10) * Math.sin(rightAngle);
 
-    return `<text x="${finalX}" y="${finalY}" text-anchor="middle" alignment-baseline="middle">${token}</text>`;
+    return `<text x="${finalX}" y="${finalY}" text-anchor="middle" alignment-baseline="middle" font-family="-apple-system, BlinkMacSystemFont">${token}</text>`;
+  };
+
+  const calculateStateLocation = (id: number) => {
+    const structureRadius =
+      (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
+    let index = -1;
+    for (let i = 0; i < nfa.states.length; i++) {
+      if (nfa.states[i].id === id) {
+        index = i;
+        break;
+      }
+    }
+    if (index !== -1) {
+      return {
+        x:
+          structureRadius * Math.sin((index * 2 * Math.PI) / nfa.states.length),
+        y:
+          -structureRadius *
+          Math.cos((index * 2 * Math.PI) / nfa.states.length),
+      };
+    } else {
+      return { x: 0, y: 0 };
+    }
   };
 
   // Draw states
   for (let i = 0; i < nfa.states.length; i++) {
+    const state = nfa.states[i];
+    const location = calculateStateLocation(state.id);
+
     // State circle
-    svgElements += `<circle cx="${nfa.states[i].locX}" cy="${nfa.states[i].locY}" r="${stateRadius}" fill="white" stroke="black" stroke-width="1" />`;
-    if (width < Math.abs(nfa.states[i].locX) + stateRadius) {
-      width = Math.abs(nfa.states[i].locX) + stateRadius;
-    }
-    if (height < Math.abs(nfa.states[i].locY) + stateRadius) {
-      height = Math.abs(nfa.states[i].locY) + stateRadius;
-    }
+    svgElements += `<circle cx="${location.x}" cy="${location.y}" r="${stateRadius}" fill="white" stroke="black" stroke-width="1" />`;
+
+    minX = Math.min(minX, location.x - stateRadius);
+    maxX = Math.max(maxX, location.x + stateRadius);
+    minY = Math.min(minY, location.y - stateRadius);
+    maxY = Math.max(maxY, location.y + stateRadius);
 
     // State name
-    svgElements += `<text x="${nfa.states[i].locX}" y="${nfa.states[i].locY}" text-anchor="middle" alignment-baseline="middle">${nfa.states[i].name}</text>`;
+    svgElements += `<text x="${location.x}" y="${location.y}" text-anchor="middle" alignment-baseline="middle" font-family="-apple-system, BlinkMacSystemFont">${nfa.states[i].name}</text>`;
 
     // Optional inner state circle for final states
-    if (nfa.states[i].isFinal) {
-      svgElements += `<circle cx="${nfa.states[i].locX}" cy="${
-        nfa.states[i].locY
-      }" r="${
+    if (state.isFinal) {
+      svgElements += `<circle cx="${location.x}" cy="${location.y}" r="${
         0.85 * stateRadius
       }" fill="transparent" stroke="black" stroke-width="1" />`;
     }
 
     // Optional arrow for start states
-    if (nfa.states[i].isStart) {
-      let angle = Math.atan2(nfa.states[i].locY, nfa.states[i].locX);
+    if (state.isStart) {
+      let angle = Math.atan2(location.y, location.x);
       if (
         nfa.transitions.filter(
           transition =>
-            transition.from === transition.to &&
-            transition.from === nfa.states[i].id
+            transition.from === transition.to && transition.from === state.id
         ).length > 0
       ) {
         angle += Math.PI / 2;
       }
-      const x1 = nfa.states[i].locX + 2 * stateRadius * Math.cos(angle);
-      const y1 = nfa.states[i].locY + 2 * stateRadius * Math.sin(angle);
-      const x2 = nfa.states[i].locX + stateRadius * Math.cos(angle);
-      const y2 = nfa.states[i].locY + stateRadius * Math.sin(angle);
+      const x1 = location.x + 2 * stateRadius * Math.cos(angle);
+      const y1 = location.y + 2 * stateRadius * Math.sin(angle);
+      const x2 = location.x + stateRadius * Math.cos(angle);
+      const y2 = location.y + stateRadius * Math.sin(angle);
       svgElements += `<line x1="${x1}" x2="${x2}" y1="${y1}" y2="${y2}" stroke="black" stoke-width="1" marker-end="url(#arrow)" />`;
-      if (width < Math.abs(x1)) {
-        width = Math.abs(x2);
-      }
-      if (width < Math.abs(x2)) {
-        width = Math.abs(x2);
-      }
-      if (height < Math.abs(y1)) {
-        height = Math.abs(y1);
-      }
-      if (height < Math.abs(y2)) {
-        height = Math.abs(y2);
-      }
+      // No need to update min and max width, this will be counted for when doing self-transition border.
     }
   }
 
   // Draw transitions
   for (let i = 0; i < nfa.transitions.length; i++) {
+    const transition = nfa.transitions[i];
+
     // Check if token needs to be added onto existing transition arrow
     let duplicateTransition = false;
     transitionArrows.forEach(transitionArrow => {
       if (
-        transitionArrow.from === nfa.transitions[i].from &&
-        transitionArrow.to === nfa.transitions[i].to
+        transitionArrow.from === transition.from &&
+        transitionArrow.to === transition.to
       ) {
         duplicateTransition = true;
         let tokenObj = transitionArrow.tokenObj;
-        tokenObj.token += ',' + nfa.transitions[i].token;
+        tokenObj.token += ',' + transition.token;
         transitionArrow.tokenObj = tokenObj;
-        transitionArrow.transitionIds.push(nfa.transitions[i].id);
+        transitionArrow.transitionIds.push(transition.id);
       }
     });
     if (duplicateTransition) {
@@ -158,46 +174,49 @@ export const exportNFA = (nfa: NFA) => {
     }
 
     // Add non-duplicate transitions
-    const from = nfa.states.filter(
-      state => state.id === nfa.transitions[i].from
-    )[0];
+    // const from = nfa.states.filter(
+    //   state => state.id === nfa.transitions[i].from
+    // )[0];
+    const fromLocation = calculateStateLocation(transition.from);
 
-    if (nfa.transitions[i].from === nfa.transitions[i].to) {
+    if (transition.from === transition.to) {
       // Self transition
-      const angle = Math.atan2(from.locY, from.locX);
+      const angle = Math.atan2(fromLocation.y, fromLocation.x);
 
       const startAngle = angle - selfTransitionAngle;
       const endAngle = angle + selfTransitionAngle;
 
-      const x1 = from.locX + stateRadius * Math.cos(startAngle);
-      const y1 = from.locY + stateRadius * Math.sin(startAngle);
-      const x2 = from.locX + stateRadius * Math.cos(endAngle);
-      const y2 = from.locY + stateRadius * Math.sin(endAngle);
+      const x1 = fromLocation.x + stateRadius * Math.cos(startAngle);
+      const y1 = fromLocation.y + stateRadius * Math.sin(startAngle);
+      const x2 = fromLocation.x + stateRadius * Math.cos(endAngle);
+      const y2 = fromLocation.y + stateRadius * Math.sin(endAngle);
 
       const angleDeg = (angle * 180) / Math.PI;
 
       svgElements += `<path d="M ${x1} ${y1} A ${curveRadius1} ${curveRadius2} ${angleDeg} 1 1 ${x2} ${y2}" stroke="black" stroke-width="1" marker-end="url(#arrow)" fill="transparent" />`;
 
       transitionArrows.push({
-        transitionIds: [nfa.transitions[i].id],
-        from: nfa.transitions[i].from,
-        to: nfa.transitions[i].to,
+        transitionIds: [transition.id],
+        from: transition.from,
+        to: transition.to,
         tokenObj: {
           isCurve: true,
-          x: from.locX,
-          y: from.locY,
+          x: fromLocation.x,
+          y: fromLocation.y,
           angle: angle,
-          token: nfa.transitions[i].token,
+          token: transition.token,
           key: i + 'token',
         },
       });
     } else {
       // Non-self transition
-      const to = nfa.states.filter(
-        state => state.id === nfa.transitions[i].to
-      )[0];
+      // const to = nfa.states.filter(state => state.id === transition.to)[0];
+      const toLocation = calculateStateLocation(transition.to);
 
-      const angle = Math.atan2(to.locY - from.locY, to.locX - from.locX);
+      const angle = Math.atan2(
+        toLocation.y - fromLocation.y,
+        toLocation.x - fromLocation.x
+      );
 
       let x1;
       let y1;
@@ -206,38 +225,44 @@ export const exportNFA = (nfa: NFA) => {
 
       if (
         nfa.transitions.filter(
-          transition =>
-            transition.from === nfa.transitions[i].to &&
-            transition.to === nfa.transitions[i].from
+          differentTransition =>
+            differentTransition.from === transition.to &&
+            differentTransition.to === transition.from
         ).length > 0
       ) {
         // Two way transition
         x1 =
-          from.locX + stateRadius * Math.cos(angle - duplicateTransitionSplit);
+          fromLocation.x +
+          stateRadius * Math.cos(angle - duplicateTransitionSplit);
         y1 =
-          from.locY + stateRadius * Math.sin(angle - duplicateTransitionSplit);
-        x2 = to.locX - stateRadius * Math.cos(angle + duplicateTransitionSplit);
-        y2 = to.locY - stateRadius * Math.sin(angle + duplicateTransitionSplit);
+          fromLocation.y +
+          stateRadius * Math.sin(angle - duplicateTransitionSplit);
+        x2 =
+          toLocation.x -
+          stateRadius * Math.cos(angle + duplicateTransitionSplit);
+        y2 =
+          toLocation.y -
+          stateRadius * Math.sin(angle + duplicateTransitionSplit);
       } else {
         // One way transition
-        x1 = from.locX + stateRadius * Math.cos(angle);
-        y1 = from.locY + stateRadius * Math.sin(angle);
-        x2 = to.locX - stateRadius * Math.cos(angle);
-        y2 = to.locY - stateRadius * Math.sin(angle);
+        x1 = fromLocation.x + stateRadius * Math.cos(angle);
+        y1 = fromLocation.y + stateRadius * Math.sin(angle);
+        x2 = toLocation.x - stateRadius * Math.cos(angle);
+        y2 = toLocation.y - stateRadius * Math.sin(angle);
       }
 
       svgElements += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="black" stroke-width="1" marker-end="url(#arrow)" />`;
 
       transitionArrows.push({
-        transitionIds: [nfa.transitions[i].id],
-        from: nfa.transitions[i].from,
-        to: nfa.transitions[i].to,
+        transitionIds: [transition.id],
+        from: transition.from,
+        to: transition.to,
         tokenObj: {
           isCurve: false,
           x: x2,
           y: y2,
           angle: angle,
-          token: nfa.transitions[i].token,
+          token: transition.token,
           key: i + 'token',
         },
       });
@@ -263,10 +288,20 @@ export const exportNFA = (nfa: NFA) => {
     }
   });
 
-  width += curveRadius1 + curveRadius2; // Make sure self-transitions
-  height += curveRadius1 + curveRadius2;
+  minX -= 2 * curveRadius1; // Add for self transitions
+  maxX += 2 * curveRadius1;
+  minY -= 2 * curveRadius1;
+  maxY += 2 * curveRadius1;
+  const width = maxX - minX;
+  const height = maxY - minY;
 
-  return { width: width, height: height, text: svgElements };
+  return {
+    minX: minX,
+    minY: minY,
+    width: width,
+    height: height,
+    text: svgElements,
+  };
 };
 
 const getNewId = (transitions: Transition[]) => {
@@ -573,7 +608,8 @@ const NFADrawing = (
                         t => t.from !== state.id && t.to !== state.id
                       );
                       setCurrentStructure(
-                        getDefaultStructureLocation(newStructure)
+                        // getDefaultStructureLocation(newStructure)
+                        newStructure
                       );
                       setSelectedState(undefined);
                     },
@@ -816,25 +852,52 @@ const NFADrawing = (
     );
   };
 
+  const calculateStateLocation = (id: number) => {
+    const structureRadius =
+      (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
+    let index = -1;
+    for (let i = 0; i < nfa.states.length; i++) {
+      if (nfa.states[i].id === id) {
+        index = i;
+        break;
+      }
+    }
+    if (index !== -1) {
+      return {
+        x:
+          structureRadius * Math.sin((index * 2 * Math.PI) / nfa.states.length),
+        y:
+          -structureRadius *
+          Math.cos((index * 2 * Math.PI) / nfa.states.length),
+      };
+    } else {
+      return { x: 0, y: 0 };
+    }
+  };
+
   // Draw states
   for (let i = 0; i < nfa.states.length; i++) {
+    const state = nfa.states[i];
+    const location = calculateStateLocation(state.id);
     // State circle
     elements.push(
       <Circle
         key={i + 'state'}
-        cx={nfa.states[i].locX}
-        cy={nfa.states[i].locY}
+        // cx={nfa.states[i].locX}
+        cx={location.x}
+        // cy={nfa.states[i].locY}
+        cy={location.y}
         r={stateRadius}
         fill={'white'}
         stroke={
-          selectedState === nfa.states[i].id
+          selectedState === state.id
             ? 'blue'
-            : activeIds?.find(id => id === nfa.states[i].id) !== undefined
+            : activeIds?.find(id => id === state.id) !== undefined
             ? 'red'
             : 'black'
         }
         strokeWidth={1}
-        onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
+        onPress={editable ? () => statePress(state.id) : undefined}
       />
     );
 
@@ -842,54 +905,57 @@ const NFADrawing = (
     elements.push(
       <Text
         key={i + 'id'}
-        x={nfa.states[i].locX}
-        y={nfa.states[i].locY}
+        // x={nfa.states[i].locX}
+        x={location.x}
+        // y={nfa.states[i].locY}
+        y={location.y}
         textAnchor={'middle'}
         alignmentBaseline={'middle'}
-        onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
+        onPress={editable ? () => statePress(state.id) : undefined}
       >
-        {nfa.states[i].name}
+        {state.name}
       </Text>
     );
 
     // Optional inner state circle for final states
-    if (nfa.states[i].isFinal) {
+    if (state.isFinal) {
       elements.push(
         <Circle
           key={i + 'stateinner'}
-          cx={nfa.states[i].locX}
-          cy={nfa.states[i].locY}
+          // cx={nfa.states[i].locX}
+          cx={location.x}
+          // cy={nfa.states[i].locY}
+          cy={location.y}
           r={0.85 * stateRadius}
           fill={'transparent'}
           stroke={
-            selectedState === nfa.states[i].id
+            selectedState === state.id
               ? 'blue'
-              : activeIds?.find(id => id === nfa.states[i].id) !== undefined
+              : activeIds?.find(id => id === state.id) !== undefined
               ? 'red'
               : 'black'
           }
           strokeWidth={1}
-          onPress={editable ? () => statePress(nfa.states[i].id) : undefined}
+          onPress={editable ? () => statePress(state.id) : undefined}
         />
       );
     }
 
     // Optional arrow for start states
-    if (nfa.states[i].isStart) {
-      let angle = Math.atan2(nfa.states[i].locY, nfa.states[i].locX);
+    if (state.isStart) {
+      let angle = Math.atan2(location.y, location.x);
       if (
         nfa.transitions.filter(
           transition =>
-            transition.from === transition.to &&
-            transition.from === nfa.states[i].id
+            transition.from === transition.to && transition.from === state.id
         ).length > 0
       ) {
         angle += Math.PI / 2;
       }
-      const x1 = nfa.states[i].locX + 2 * stateRadius * Math.cos(angle);
-      const y1 = nfa.states[i].locY + 2 * stateRadius * Math.sin(angle);
-      const x2 = nfa.states[i].locX + stateRadius * Math.cos(angle);
-      const y2 = nfa.states[i].locY + stateRadius * Math.sin(angle);
+      const x1 = location.x + 2 * stateRadius * Math.cos(angle);
+      const y1 = location.y + 2 * stateRadius * Math.sin(angle);
+      const x2 = location.x + stateRadius * Math.cos(angle);
+      const y2 = location.y + stateRadius * Math.sin(angle);
       elements.push(
         <Line
           key={i + 'entry'}
@@ -907,18 +973,20 @@ const NFADrawing = (
 
   // Draw transitions
   for (let i = 0; i < nfa.transitions.length; i++) {
+    const transition = nfa.transitions[i];
+
     // Check if token needs to be added onto existing transition arrow
     let duplicateTransition = false;
     transitionArrows.forEach(transitionArrow => {
       if (
-        transitionArrow.from === nfa.transitions[i].from &&
-        transitionArrow.to === nfa.transitions[i].to
+        transitionArrow.from === transition.from &&
+        transitionArrow.to === transition.to
       ) {
         duplicateTransition = true;
         let tokenObj = transitionArrow.tokenObj;
-        tokenObj.token += ',' + nfa.transitions[i].token;
+        tokenObj.token += ',' + transition.token;
         transitionArrow.tokenObj = tokenObj;
-        transitionArrow.transitionIds.push(nfa.transitions[i].id);
+        transitionArrow.transitionIds.push(transition.id);
       }
     });
     if (duplicateTransition) {
@@ -926,21 +994,20 @@ const NFADrawing = (
     }
 
     // Add non-duplicate transitions
-    const from = nfa.states.filter(
-      state => state.id === nfa.transitions[i].from
-    )[0];
+    // const from = nfa.states.filter(state => state.id === transition.from)[0];
+    const fromLocation = calculateStateLocation(transition.from);
 
-    if (nfa.transitions[i].from === nfa.transitions[i].to) {
+    if (transition.from === transition.to) {
       // Self transition
-      const angle = Math.atan2(from.locY, from.locX);
+      const angle = Math.atan2(fromLocation.y, fromLocation.x);
 
       const startAngle = angle - selfTransitionAngle;
       const endAngle = angle + selfTransitionAngle;
 
-      const x1 = from.locX + stateRadius * Math.cos(startAngle);
-      const y1 = from.locY + stateRadius * Math.sin(startAngle);
-      const x2 = from.locX + stateRadius * Math.cos(endAngle);
-      const y2 = from.locY + stateRadius * Math.sin(endAngle);
+      const x1 = fromLocation.x + stateRadius * Math.cos(startAngle);
+      const y1 = fromLocation.y + stateRadius * Math.sin(startAngle);
+      const x2 = fromLocation.x + stateRadius * Math.cos(endAngle);
+      const y2 = fromLocation.y + stateRadius * Math.sin(endAngle);
 
       const angleDeg = (angle * 180) / Math.PI;
 
@@ -949,17 +1016,15 @@ const NFADrawing = (
           key={i + 'transition'}
           d={`M ${x1} ${y1} A ${curveRadius1} ${curveRadius2} ${angleDeg} 1 1 ${x2} ${y2}`}
           stroke={
-            selectedTransitionArrow?.find(
-              tArr => tArr === nfa.transitions[i].id
-            ) !== undefined
+            selectedTransitionArrow?.find(tArr => tArr === transition.id) !==
+            undefined
               ? 'blue'
               : 'black'
           }
           strokeWidth={1}
           markerEnd={
-            selectedTransitionArrow?.find(
-              tArr => tArr === nfa.transitions[i].id
-            ) !== undefined
+            selectedTransitionArrow?.find(tArr => tArr === transition.id) !==
+            undefined
               ? 'url(#blueArrow)'
               : 'url(#blackArrow)'
           }
@@ -970,9 +1035,7 @@ const NFADrawing = (
                   const transitionIds = transitionArrows
                     .map(tArr => tArr.transitionIds)
                     .find(
-                      ids =>
-                        ids.find(id => id === nfa.transitions[i].id) !==
-                        undefined
+                      ids => ids.find(id => id === transition.id) !== undefined
                     );
                   if (transitionIds) {
                     transitionPress(transitionIds);
@@ -986,25 +1049,29 @@ const NFADrawing = (
       );
 
       transitionArrows.push({
-        transitionIds: [nfa.transitions[i].id],
-        from: nfa.transitions[i].from,
-        to: nfa.transitions[i].to,
+        transitionIds: [transition.id],
+        from: transition.from,
+        to: transition.to,
         tokenObj: {
           isCurve: true,
-          x: from.locX,
-          y: from.locY,
+          x: fromLocation.x,
+          y: fromLocation.y,
           angle: angle,
-          token: nfa.transitions[i].token,
+          token: transition.token,
           key: i + 'token',
         },
       });
     } else {
       // Non-self transition
-      const to = nfa.states.filter(
-        state => state.id === nfa.transitions[i].to
-      )[0];
+      // const to = nfa.states.filter(
+      //   state => state.id === nfa.transitions[i].to
+      // )[0];
+      const toLocation = calculateStateLocation(transition.to);
 
-      const angle = Math.atan2(to.locY - from.locY, to.locX - from.locX);
+      const angle = Math.atan2(
+        toLocation.y - fromLocation.y,
+        toLocation.x - fromLocation.x
+      );
 
       let x1;
       let y1;
@@ -1013,24 +1080,30 @@ const NFADrawing = (
 
       if (
         nfa.transitions.filter(
-          transition =>
-            transition.from === nfa.transitions[i].to &&
-            transition.to === nfa.transitions[i].from
+          differentTransition =>
+            differentTransition.from === transition.to &&
+            differentTransition.to === transition.from
         ).length > 0
       ) {
         // Two way transition
         x1 =
-          from.locX + stateRadius * Math.cos(angle - duplicateTransitionSplit);
+          fromLocation.x +
+          stateRadius * Math.cos(angle - duplicateTransitionSplit);
         y1 =
-          from.locY + stateRadius * Math.sin(angle - duplicateTransitionSplit);
-        x2 = to.locX - stateRadius * Math.cos(angle + duplicateTransitionSplit);
-        y2 = to.locY - stateRadius * Math.sin(angle + duplicateTransitionSplit);
+          fromLocation.y +
+          stateRadius * Math.sin(angle - duplicateTransitionSplit);
+        x2 =
+          toLocation.x -
+          stateRadius * Math.cos(angle + duplicateTransitionSplit);
+        y2 =
+          toLocation.y -
+          stateRadius * Math.sin(angle + duplicateTransitionSplit);
       } else {
         // One way transition
-        x1 = from.locX + stateRadius * Math.cos(angle);
-        y1 = from.locY + stateRadius * Math.sin(angle);
-        x2 = to.locX - stateRadius * Math.cos(angle);
-        y2 = to.locY - stateRadius * Math.sin(angle);
+        x1 = fromLocation.x + stateRadius * Math.cos(angle);
+        y1 = fromLocation.y + stateRadius * Math.sin(angle);
+        x2 = toLocation.x - stateRadius * Math.cos(angle);
+        y2 = toLocation.y - stateRadius * Math.sin(angle);
       }
 
       elements.push(
@@ -1041,17 +1114,15 @@ const NFADrawing = (
           x2={x2}
           y2={y2}
           stroke={
-            selectedTransitionArrow?.find(
-              tArr => tArr === nfa.transitions[i].id
-            ) !== undefined
+            selectedTransitionArrow?.find(tArr => tArr === transition.id) !==
+            undefined
               ? 'blue'
               : 'black'
           }
           strokeWidth={1}
           markerEnd={
-            selectedTransitionArrow?.find(
-              tArr => tArr === nfa.transitions[i].id
-            ) !== undefined
+            selectedTransitionArrow?.find(tArr => tArr === transition.id) !==
+            undefined
               ? 'url(#blueArrow)'
               : 'url(#blackArrow)'
           }
@@ -1061,9 +1132,7 @@ const NFADrawing = (
                   const transitionIds = transitionArrows
                     .map(tArr => tArr.transitionIds)
                     .find(
-                      ids =>
-                        ids.find(id => id === nfa.transitions[i].id) !==
-                        undefined
+                      ids => ids.find(id => id === transition.id) !== undefined
                     );
                   if (transitionIds) {
                     transitionPress(transitionIds);
@@ -1077,15 +1146,15 @@ const NFADrawing = (
       );
 
       transitionArrows.push({
-        transitionIds: [nfa.transitions[i].id],
-        from: nfa.transitions[i].from,
-        to: nfa.transitions[i].to,
+        transitionIds: [transition.id],
+        from: transition.from,
+        to: transition.to,
         tokenObj: {
           isCurve: false,
           x: x2,
           y: y2,
           angle: angle,
-          token: nfa.transitions[i].token,
+          token: transition.token,
           key: i + 'token',
         },
       });

@@ -5,7 +5,7 @@ import BasicButton from '../components/BasicButton';
 import IconButton from '../components/IconButton';
 import StructureDrawing, {
   exportSVG,
-  getDefaultStructureLocation,
+  // getDefaultStructureLocation,
 } from '../components/StructureDrawing';
 import Structure from '../types/Structure';
 import { mainPageStyles } from '../styles.js';
@@ -112,9 +112,10 @@ const MainPage = (props: MainPageProps) => {
         const nfa = props.structure.structure as NFA;
         if (nfa.isDfa) {
           try {
-            const result = getDefaultStructureLocation(
-              JSON.parse(await CPPCode.simplifyDFA(nfa))
-            );
+            // const result = getDefaultStructureLocation(
+            //   JSON.parse(await CPPCode.simplifyDFA(nfa))
+            // );
+            const result = JSON.parse(await CPPCode.simplifyDFA(nfa));
             props.setStructure(result);
             setRunStepText('');
             setActiveIds([]);
@@ -185,10 +186,13 @@ const MainPage = (props: MainPageProps) => {
 
   const convertNFAtoDFA = async () => {
     try {
-      const result = getDefaultStructureLocation(
-        JSON.parse(
-          await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
-        )
+      // const result = getDefaultStructureLocation(
+      //   JSON.parse(
+      //     await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
+      //   )
+      // );
+      const result = JSON.parse(
+        await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
       );
       props.setStructure(result);
       setRunStepText('');

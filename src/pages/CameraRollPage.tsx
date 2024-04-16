@@ -17,7 +17,7 @@ import { convertHEICtoJPG, postPhoto } from '../helperFunctions';
 import { cameraRollPageStyles } from '../styles';
 import CPPCode from '../nativeModules';
 import Structure from '../types/Structure';
-import { getDefaultStructureLocation } from '../components/StructureDrawing';
+// import { getDefaultStructureLocation } from '../components/StructureDrawing';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
 
@@ -49,7 +49,8 @@ const CameraRollPage = (props: CameraRollPageProps) => {
       props.setIsLoading(true);
       const result = await CPPCode.photoToNFA(currentPhotoPath);
       try {
-        const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        // const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        const processedResult = JSON.parse(result);
         props.setStructure(processedResult);
         props.setPageNumber(0);
       } catch (error) {

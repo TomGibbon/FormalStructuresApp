@@ -1,14 +1,17 @@
- # Stuff to DEFINITELY DO
- - Change app icon
- - Change to and from to start and end
- - Fix lighting issue with camera
- - Remove post photo button
- - TEST!!!!!!!!
+# Stuff to DEFINITELY DO
+- Change app icon
+- Change to and from to start and end
+- Remove post photo button
+- TEST!!!!!!!!
 
- # Stuff to try to do
- - Expand hitbox of arrow in edit page
- 
- # Optimise photo to DFA
- - Detect text
- - Allow crossed arrows
- ? Allow states to be moved
+# Stuff to try to do
+- Expand hitbox of arrow in edit page
+
+# Test
+- Time test photos
+- Test lighting issue
+
+# Optimise photo to DFA
+- Detect text
+- Allow crossed arrows
+? Allow states to be moved

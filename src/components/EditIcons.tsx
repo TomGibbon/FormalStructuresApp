@@ -15,7 +15,7 @@ import { stateRadius } from './NFADrawing';
 import { editIconStyles } from '../styles';
 import BasicButton from './BasicButton';
 import NFA from '../types/NFA';
-import { getDefaultStructureLocation } from './StructureDrawing';
+// import { getDefaultStructureLocation } from './StructureDrawing';
 
 const symbolWidth = 130;
 const symbolHeight = 80;
@@ -136,10 +136,11 @@ const EditIcons = (
       name: 'q' + newId,
       isStart: isStart,
       isFinal: isFinal,
-      locX: 0,
-      locY: 0,
+      // locX: 0,
+      // locY: 0,
     });
-    setCurrentStructure(getDefaultStructureLocation(newStructure));
+    // setCurrentStructure(getDefaultStructureLocation(newStructure));
+    setCurrentStructure(newStructure);
   };
 
   switch (structure.type) {

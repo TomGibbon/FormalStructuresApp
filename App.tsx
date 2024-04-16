@@ -15,7 +15,7 @@ import { appStyles } from './src/styles.js';
 import MainPage from './src/pages/MainPage';
 import CameraPage from './src/pages/CameraPage';
 import Structure from './src/types/Structure';
-import { getDefaultStructureLocation } from './src/components/StructureDrawing';
+// import { getDefaultStructureLocation } from './src/components/StructureDrawing';
 import CameraRollPage from './src/pages/CameraRollPage';
 import Loading from './src/components/Loading';
 import EditPage from './src/pages/EditPage';
@@ -31,32 +31,32 @@ const defaultStructures = [
           name: 'a',
           isStart: true,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 1,
           name: 'b',
           isStart: false,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 2,
           name: 'c',
           isStart: false,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 3,
           name: 'd',
           isStart: false,
           isFinal: true,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
       ],
       transitions: [
@@ -80,56 +80,56 @@ const defaultStructures = [
           name: 'q0',
           isStart: true,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 1,
           name: 'q1',
           isStart: false,
           isFinal: true,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 2,
           name: 'q2',
           isStart: false,
           isFinal: true,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 3,
           name: 'q3',
           isStart: false,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 4,
           name: 'q4',
           isStart: false,
           isFinal: true,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 5,
           name: 'q5',
           isStart: false,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
         {
           id: 6,
           name: 'q6',
           isStart: false,
           isFinal: false,
-          locX: 0,
-          locY: 0,
+          // locX: 0,
+          // locY: 0,
         },
       ],
       transitions: [
@@ -238,7 +238,8 @@ function App(): JSX.Element {
       }
     };
 
-    setStructure(getDefaultStructureLocation(structure));
+    // setStructure(getDefaultStructureLocation(structure));
+    setStructure(structure);
     setDefaultPreviousStructures();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

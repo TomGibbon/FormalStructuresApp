@@ -18,7 +18,7 @@ import {
 import { cameraPageStyles } from '../styles.js';
 import Structure from '../types/Structure';
 import CPPCode from '../nativeModules';
-import { getDefaultStructureLocation } from '../components/StructureDrawing';
+// import { getDefaultStructureLocation } from '../components/StructureDrawing';
 import { postPhoto } from '../helperFunctions';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
@@ -75,7 +75,8 @@ const CameraPage = (props: CameraPageProps) => {
       const result = await CPPCode.photoToNFA(photo.path);
       console.log(result);
       try {
-        const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        // const processedResult = getDefaultStructureLocation(JSON.parse(result));
+        const processedResult = JSON.parse(result);
         props.setStructure(processedResult);
         props.setPageNumber(0);
       } catch (error) {

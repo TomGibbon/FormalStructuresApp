@@ -5,9 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { previousStructuresPageStyles } from '../styles';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
-import StructureDrawing, {
-  getDefaultStructureLocation,
-} from '../components/StructureDrawing';
+import StructureDrawing from '../components/StructureDrawing'; // getDefaultStructureLocation,
 import Structure from '../types/Structure';
 
 type PreviousStructruresPageProps = {
@@ -39,7 +37,7 @@ const PreviousStructuresPage = (props: PreviousStructruresPageProps) => {
       <ScrollView>
         <View style={previousStructuresPageStyles.gridContainer}>
           {previousStructures.map((structure, index) => {
-            structure = getDefaultStructureLocation(structure);
+            // structure = getDefaultStructureLocation(structure);
             return (
               <TouchableOpacity
                 style={previousStructuresPageStyles.structure}
