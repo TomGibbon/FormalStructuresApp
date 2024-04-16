@@ -24,10 +24,10 @@ RCT_EXPORT_MODULE();
     std::string name = [stateDict[@"name"] UTF8String];
     bool isStart = [stateDict[@"isStart"] boolValue];
     bool isFinal = [stateDict[@"isFinal"] boolValue];
-    int locX = [stateDict[@"locX"] intValue];
-    int locY = [stateDict[@"locY"] intValue];
+    // int locX = [stateDict[@"locX"] intValue];
+    // int locY = [stateDict[@"locY"] intValue];
 
-    mainCode::State state(_id, name, isStart, isFinal, locX, locY);
+    mainCode::State state(_id, name, isStart, isFinal);
     states.push_back(state);
   }
 

@@ -27,10 +27,11 @@ namespace mainCode {
       string Name;
       bool IsStart;
       bool IsFinal;
-      int LocX;
-      int LocY;
+      // int LocX;
+      // int LocY;
 
-      State(int id, string name, bool isStart, bool isFinal, int locX, int locY);
+      // State(int id, string name, bool isStart, bool isFinal, int locX, int locY);
+      State(int id, string name, bool isStart, bool isFinal);
       string convertToJSON(bool testing);
   };
 
@@ -133,12 +134,8 @@ namespace mainCode {
   int validateNFA(NFA nfa);
   bool checkIfDFA(NFA oldNfa);
   string photoToNFA(string path, bool testing);
-  // string tesseractTest(string path);
-  // string textRecognition(string imPath);
-  // string textDetection(string imPath);
-  // int fullOpenCVTextRecognition(string imPath);
   // void arrowDetection(string path);
-  cv::Ptr<ml::KNearest> textTrain();
+  // cv::Ptr<ml::KNearest> textTrain();
 }
 
 #endif

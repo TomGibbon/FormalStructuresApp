@@ -14,14 +14,14 @@ namespace mainCode {
   // ==================================
 
   // State
-  State::State(int id, string name, bool isStart, bool isFinal, int locX, int locY):
-    Id(id), Name(name), IsStart(isStart), IsFinal(isFinal), LocX(locX), LocY(locY) {}
+  State::State(int id, string name, bool isStart, bool isFinal):
+    Id(id), Name(name), IsStart(isStart), IsFinal(isFinal) {}
 
   string State::convertToJSON(bool testing) {
     if (testing) {
-      return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"name\":\"" + Name + "\", \"isStart\":" + boolToString(IsStart) + ", \"isFinal\":" + boolToString(IsFinal) + ", \"locX\":" + to_string(LocX) + ", \"locY\":" + to_string(LocY) + " }";
+      return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"name\":\"" + Name + "\", \"isStart\":" + boolToString(IsStart) + ", \"isFinal\":" + boolToString(IsFinal) + " }";
     } else {
-      return "{\"id\":" + to_string(Id) + ",\"name\":\"" + Name + "\",\"isStart\":" + boolToString(IsStart) + ",\"isFinal\":" + boolToString(IsFinal) + ",\"locX\":" + to_string(LocX) + ",\"locY\":" + to_string(LocY) + "}";
+      return "{\"id\":" + to_string(Id) + ",\"name\":\"" + Name + "\",\"isStart\":" + boolToString(IsStart) + ",\"isFinal\":" + boolToString(IsFinal) + "}";
     }
   }
 
@@ -169,7 +169,7 @@ namespace mainCode {
     CorrespondingState(correspondingState), CorrespondingCircle(correspondingCircle) {}
 
   StateCircle::StateCircle():
-    CorrespondingState(State(0, "", false, false, 0, 0)), CorrespondingCircle(Circle(Point(), 0)) {}
+    CorrespondingState(State(0, "", false, false)), CorrespondingCircle(Circle(Point(), 0)) {}
 
   Arrow::Arrow(Point tip, Point tail):
     Tip(tip), Tail(tail) {}
@@ -545,86 +545,86 @@ namespace mainCode {
   //   return Arrow(Point(-1, -1), Point(-1, -1));
   // }
 
-  cv::Ptr<ml::KNearest> textTrain() {
-    cout << "\n";
-    Mat src = imread("digits.png", IMREAD_COLOR);
-    if (src.empty()) {
-      cerr << "Could not open file\n";
-      return nullptr;
-    }
-    cout << "Training\n";
-    Mat gray;
-    cvtColor(src, gray, COLOR_BGR2GRAY);
-    Mat bin;
-    threshold(gray, bin, 25, 255, THRESH_BINARY_INV);
-    bitwise_not(bin, bin);
-    thinning(bin, bin);
-
-    vector<vector<Mat>> cells;
-    for (int i = 0; i < 50; i++) {
-      vector<Mat> row;
-      for (int j = 0; j < 100; j++) {
-        row.push_back(bin(Rect(j * 20, i * 20, 20, 20)).clone());
-        // imshow("d", bin(Rect(j * 20, i * 20, 20, 20)).clone());
-        // waitKey(0);
-      }
-      cells.push_back(row);
-    }
-
-    Mat train, test;
-    // Mat x(50 * 100, 20 * 20, CV_32F);
-    for (int i = 0; i < 50; i++) {
-      for (int j = 0; j < 50; j++) {
-        train.push_back(cells[i][j].reshape(1, 1));
-        test.push_back(cells[i][j + 50].reshape(1, 1));
-      }
-    }
-    train.convertTo(train, CV_32F);
-    test.convertTo(test, CV_32F);
-
-    Mat train_labels, test_labels;
-    for (int i = 0; i < 10; i++) {
-      Mat label = Mat::ones(250, 1, CV_32F) * i;
-      train_labels.push_back(label);
-      test_labels.push_back(label);
-    }
-
-    Ptr<ml::KNearest> knn = ml::KNearest::create();
-    knn->train(train, ml::ROW_SAMPLE, train_labels);
-
-    Mat result, dist;
-    knn->findNearest(test, 5, result, noArray(), dist);
-    Mat matches = result == test_labels;
-    int correct = countNonZero(matches);
-    float accuracy = (float) correct * 100 / result.rows;
-
-    cout << "Accuracy: " << accuracy << "%\n";
-
-    return knn;
-
-    // string filename = "knn_data.yml";
-    // FileStorage fs_write(filename, FileStorage::WRITE);
-    // if (!fs_write.isOpened()) {
-    //   cerr << "Failed to open file for writing\n";
-    //   return;
-    // }
-    // fs_write << "train" << train;
-    // fs_write << "train_labels" << train_labels;
-    // fs_write.release();
-
-    // // Now load the data
-    // FileStorage fs_read(filename, FileStorage::READ);
-    // if (!fs_read.isOpened()) {
-    //   cerr << "Failed to open file for reading\n";
-    //   return;
-    // }
-
-    // // Read the data
-    // Mat loaded_train, loaded_train_labels;
-    // fs_read["train"] >> loaded_train;
-    // fs_read["train_labels"] >> loaded_train_labels;
-    // fs_read.release();
-  }
+  // cv::Ptr<ml::KNearest> textTrain() {
+  //   cout << "\n";
+  //   Mat src = imread("digits.png", IMREAD_COLOR);
+  //   if (src.empty()) {
+  //     cerr << "Could not open file\n";
+  //     return nullptr;
+  //   }
+  //   cout << "Training\n";
+  //   Mat gray;
+  //   cvtColor(src, gray, COLOR_BGR2GRAY);
+  //   Mat bin;
+  //   threshold(gray, bin, 25, 255, THRESH_BINARY_INV);
+  //   bitwise_not(bin, bin);
+  //   thinning(bin, bin);
+  //
+  //   vector<vector<Mat>> cells;
+  //   for (int i = 0; i < 50; i++) {
+  //     vector<Mat> row;
+  //     for (int j = 0; j < 100; j++) {
+  //       row.push_back(bin(Rect(j * 20, i * 20, 20, 20)).clone());
+  //       // imshow("d", bin(Rect(j * 20, i * 20, 20, 20)).clone());
+  //       // waitKey(0);
+  //     }
+  //     cells.push_back(row);
+  //   }
+  //
+  //   Mat train, test;
+  //   // Mat x(50 * 100, 20 * 20, CV_32F);
+  //   for (int i = 0; i < 50; i++) {
+  //     for (int j = 0; j < 50; j++) {
+  //       train.push_back(cells[i][j].reshape(1, 1));
+  //       test.push_back(cells[i][j + 50].reshape(1, 1));
+  //     }
+  //   }
+  //   train.convertTo(train, CV_32F);
+  //   test.convertTo(test, CV_32F);
+  //
+  //   Mat train_labels, test_labels;
+  //   for (int i = 0; i < 10; i++) {
+  //     Mat label = Mat::ones(250, 1, CV_32F) * i;
+  //     train_labels.push_back(label);
+  //     test_labels.push_back(label);
+  //   }
+  //
+  //   Ptr<ml::KNearest> knn = ml::KNearest::create();
+  //   knn->train(train, ml::ROW_SAMPLE, train_labels);
+  //
+  //   Mat result, dist;
+  //   knn->findNearest(test, 5, result, noArray(), dist);
+  //   Mat matches = result == test_labels;
+  //   int correct = countNonZero(matches);
+  //   float accuracy = (float) correct * 100 / result.rows;
+  //
+  //   cout << "Accuracy: " << accuracy << "%\n";
+  //
+  //   return knn;
+  //
+  //   // string filename = "knn_data.yml";
+  //   // FileStorage fs_write(filename, FileStorage::WRITE);
+  //   // if (!fs_write.isOpened()) {
+  //   //   cerr << "Failed to open file for writing\n";
+  //   //   return;
+  //   // }
+  //   // fs_write << "train" << train;
+  //   // fs_write << "train_labels" << train_labels;
+  //   // fs_write.release();
+  //
+  //   // // Now load the data
+  //   // FileStorage fs_read(filename, FileStorage::READ);
+  //   // if (!fs_read.isOpened()) {
+  //   //   cerr << "Failed to open file for reading\n";
+  //   //   return;
+  //   // }
+  //
+  //   // // Read the data
+  //   // Mat loaded_train, loaded_train_labels;
+  //   // fs_read["train"] >> loaded_train;
+  //   // fs_read["train_labels"] >> loaded_train_labels;
+  //   // fs_read.release();
+  // }
 
   // Exported
 
@@ -883,16 +883,16 @@ namespace mainCode {
             cout << "Inner circle detected!!\n";
             isFinal = true;
             if (circle.Radius > secondCircle.Radius) {
-              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true, 0, 0), circle));
+              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true), circle));
               circlesToSkip.push_back(secondCircle); // May check in seperate loop
             } else {
-              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true, 0, 0), secondCircle));
+              stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true), secondCircle));
               circlesToSkip.push_back(secondCircle); // May check in seperate loop
             }
           }
         }
         if (!isFinal) {
-          stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, false, 0, 0), circle));
+          stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, false), circle));
         }
         stateId++;
       }
@@ -1089,7 +1089,7 @@ namespace mainCode {
     for (set<int> partition : p) {
       bool isStart = partition.find(dfa.StartState) != partition.end();
       bool isFinal = !setIntersection(partition, dfa.FinalStates).empty();
-      states.push_back(State(id, "q" + to_string(id), isStart, isFinal, -1, -1));
+      states.push_back(State(id, "q" + to_string(id), isStart, isFinal));
       id++;
     }
 
@@ -1168,7 +1168,7 @@ namespace mainCode {
       // Detemine if corresponding state is start or final
       bool isStart = nfa.TransitionTable[nfa.StartState]["ε"] == subset;
       bool isFinal = !setIntersection(nfa.FinalStates, subset).empty();
-      newStates.push_back(State(newId, "q" + to_string(newId), isStart, isFinal, -1, -1));
+      newStates.push_back(State(newId, "q" + to_string(newId), isStart, isFinal));
 
       string result0;
       string result1;
@@ -1276,168 +1276,3 @@ namespace mainCode {
   }
 
 }
-
-// void fourPointsTransform(const Mat& frame, const Point2f vertices[], Mat& result) {
-  //   const Size outputSize = Size(100, 32);
-
-  //   Point2f targetVertices[4] = {
-  //     Point(0, outputSize.height - 1),
-  //     Point(0, 0), Point(outputSize.width - 1, 0),
-  //     Point(outputSize.width - 1, outputSize.height - 1)
-  //   };
-  //   Mat rotationMatrix = getPerspectiveTransform(vertices, targetVertices);
-
-  //   warpPerspective(frame, result, rotationMatrix, outputSize);
-  // }
-
-  // string tesseractTest(string path) {
-  //   string result;
-  //
-  //   string outText;
-  //
-  //   tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
-  //   // Initialize tesseract-ocr with English, without specifying tessdata path
-  //   if (api->Init(NULL, "eng") == -1) {
-  //     result += "Could not initialize tesseract.\n";
-  //     return result;
-  //   }
-  //
-  //   Mat im = imread(path, IMREAD_COLOR);
-  //
-  //   // Open input image with leptonica library
-  //   // Pix* image = pixRead(path.c_str());
-  //   api->SetPageSegMode(tesseract::PSM_AUTO);
-  //   api->SetImage(im.data, im.cols, im.rows, 3, im.step);
-  //   // Get OCR result
-  //   outText = string(api->GetUTF8Text());
-  //   result += "OCR output:\n" + outText;
-  //
-  //   // Destroy used object and release memory
-  //   api->End();
-  //   delete api;
-  //   // pixDestroy(&image);
-
-  //   //   return result;
-//   // }
-
-//   int fullOpenCVTextRecognition(string imPath) {
-//     float confThreshold = 0.5;
-//     float nmsThreshold = 0.4;
-
-//     // Load networks.
-//     TextDetectionModel_EAST detector("testing_resources/frozen_east_text_detection.pb");
-//     detector.setConfidenceThreshold(confThreshold)
-//             .setNMSThreshold(nmsThreshold);
-
-//     TextRecognitionModel recognizer("testing_resources/crnn_cs.onnx");
-
-//     // Load vocabulary
-//     ifstream vocFile;
-//     vocFile.open(samples::findFile("testing_resources/alphabet_94.txt"));
-//     CV_Assert(vocFile.is_open());
-//     String vocLine;
-//     vector<String> vocabulary;
-//     while (getline(vocFile, vocLine)) {
-//       vocabulary.push_back(vocLine);
-//     }
-//     recognizer.setVocabulary(vocabulary);
-//     recognizer.setDecodeType("CTC-greedy");
-
-//     // Parameters for Recognition
-//     double recScale = 1.0 / 127.5;
-//     Scalar recMean = Scalar(127.5, 127.5, 127.5);
-//     Size recInputSize = Size(100, 32);
-//     recognizer.setInputParams(recScale, recInputSize, recMean);
-
-//     // Parameters for Detection
-//     double detScale = 1.0;
-//     Size detInputSize = Size(320, 320);
-//     Scalar detMean = Scalar(123.68, 116.78, 103.94);
-//     bool swapRB = true;
-//     detector.setInputParams(detScale, detInputSize, detMean, swapRB);
-
-//     // Open an image file.
-//     Mat frame = imread(imPath, IMREAD_COLOR);
-//     cout << frame.size << "\n";
-
-//     // Detection
-//     vector<vector<Point>> detResults;
-//     detector.detect(frame, detResults);
-//     Mat result = frame.clone();
-
-//     if (detResults.size() > 0) {
-//       // Text Recognition
-//       vector<vector<Point>> contours;
-//       for (uint i = 0; i < detResults.size(); i++) {
-//         vector<Point> quadrangle = detResults[i];
-//         CV_CheckEQ(quadrangle.size(), (size_t) 4, "");
-//         contours.emplace_back(quadrangle);
-//         vector<Point2f> quadrangle_2f;
-//         for (int j = 0; j < 4; j++) {
-//           quadrangle_2f.emplace_back(quadrangle[j]);
-//         }
-//         Mat cropped;
-//         fourPointsTransform(frame, &quadrangle_2f[0], cropped); // Maybe change frame to be grayscale
-//         string recognitionResult = recognizer.recognize(cropped);
-//         cout << i << ": '" << recognitionResult << "'\n";
-//         putText(result, recognitionResult, quadrangle[3], FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 0, 255), 2);
-//       }
-//       polylines(result, contours, true, Scalar(0, 255, 0), 2);
-//     }
-//     imshow("EAST: An Efficient and Accurate Scene Text Detector", result);
-//     waitKey(0);
-//     return 0;
-//   }
-
-//   string textDetection(string imPath) {
-//     Mat frame = imread(imPath);
-
-//     TextDetectionModel_EAST model("testing_resources/frozen_east_text_detection.pb");
-//     float confThresh = 0.5;
-//     float nmsThresh = 0.4;
-//     model.setConfidenceThreshold(confThresh).setNMSThreshold(nmsThresh);
-//     double detScale = 1.0;
-//     Size detInputSize = Size(320, 320);
-//     Scalar detMean = Scalar(123.68, 116.78, 103.94);
-//     bool swapRB = true;
-//     model.setInputParams(detScale, detInputSize, detMean, swapRB);
-
-//     vector<vector<Point>> results;
-//     model.detect(frame, results);
-
-//     polylines(frame, results, true, Scalar(0, 255, 0), 2);
-//     imshow("Text Detection", frame);
-//     waitKey(0);
-
-//     return "";
-//   }
-
-//   string textRecognition(string imPath) {
-//     Mat image = imread(imPath, IMREAD_COLOR);
-
-//     // Load models
-//     TextRecognitionModel model("testing_resources/crnn_cs.onnx");
-//     model.setDecodeType("CTC-greedy");
-
-//     // Load vocabulary
-//     ifstream vocFile;
-//     vocFile.open("testing_resources/alphabet_94.txt");
-//     CV_Assert(vocFile.is_open());
-//     String vocLine;
-//     vector<String> vocabulary;
-//     while (getline(vocFile, vocLine)) {
-//       vocabulary.push_back(vocLine);
-//     }
-//     model.setVocabulary(vocabulary);
-
-//     // Set parameters
-//     double scale = 1.0 / 127.5;
-//     Scalar mean = Scalar(127.5, 127.5, 127.5);
-//     Size inputSize = Size(100, 32);
-//     model.setInputParams(scale, inputSize, mean);
-
-//     // Output
-//     string recognitionResult = model.recognize(image);
-//     // cout << "'" << recognitionResult << "'" << endl;
-//     return recognitionResult;
-//   }
