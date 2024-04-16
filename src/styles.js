@@ -23,7 +23,7 @@ export const mainPageStyles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   svgContainer: {
@@ -89,6 +89,9 @@ export const mainPageStyles = StyleSheet.create({
   runStep: {
     marginRight: basicMargin,
   },
+  previousStructuresButton: {
+    maxWidth: 100,
+  },
 });
 
 export const editPageStyles = StyleSheet.create({
@@ -142,6 +145,56 @@ export const cameraPageStyles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  closeButton: {
+    marginTop: basicMargin,
+    marginLeft: basicMargin,
+  },
+  buttonList: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: basicMargin,
+    marginHorizontal: basicMargin,
+  },
+});
+
+export const cameraRollPageStyles = StyleSheet.create({
+  photosContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    marginTop: basicMargin,
+  },
+  photoContainer: {
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+  },
+  photo: {
+    height: 122,
+    width: 122,
+  },
+  mainPhoto: {
+    zIndex: -1,
+  },
+});
+
+export const previousStructuresPageStyles = StyleSheet.create({
+  gridContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    marginTop: basicMargin,
+  },
+  structure: {
+    width: 123,
+    height: 123,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+  },
 });
 
 export const basicButtonStyles = StyleSheet.create({
@@ -152,7 +205,6 @@ export const basicButtonStyles = StyleSheet.create({
     height: largeHeight,
     paddingHorizontal: 5,
     paddingVertical: 7,
-
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -163,9 +215,11 @@ export const basicButtonStyles = StyleSheet.create({
     height: smallHeight,
     paddingHorizontal: 5,
     paddingVertical: 7,
-
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  text: {
+    textAlign: 'center',
   },
 });
 
@@ -206,22 +260,6 @@ export const loadingStyles = StyleSheet.create({
   },
   largeText: {
     fontSize: 20,
-  },
-});
-
-export const cameraRollPageStyles = StyleSheet.create({
-  photosContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  photo: {
-    height: 120,
-    width: 120,
-  },
-  mainPhoto: {
-    zIndex: -1,
   },
 });
 

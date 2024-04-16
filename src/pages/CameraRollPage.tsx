@@ -114,6 +114,7 @@ const CameraRollPage = (props: CameraRollPageProps) => {
               {photos.map((photo, index) => {
                 return (
                   <TouchableOpacity
+                    style={cameraRollPageStyles.photoContainer}
                     onPress={async () =>
                       await selectPhoto(photo.node.image.uri)
                     }

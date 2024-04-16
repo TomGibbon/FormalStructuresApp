@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-
 import { Alert, PanResponder, Text, TextInput, View } from 'react-native';
 
 import BasicButton from '../components/BasicButton';
@@ -18,6 +17,7 @@ import ShareIcon from '../../res/share_icon.png';
 import EditIcon from '../../res/edit_icon.png';
 import NFA from '../types/NFA';
 import CPPCode from '../nativeModules';
+import { addToPreviousStructures } from '../helperFunctions';
 
 const initialPosition = {
   zoom: 1.3,
@@ -100,8 +100,9 @@ const MainPage = (props: MainPageProps) => {
     })
   ).current;
 
-  const save = () => {
+  const save = async () => {
     props.setOriginalStructure(props.structure);
+    await addToPreviousStructures(props.structure);
     Alert.alert('Structure saved!', undefined, [{ text: 'OK' }]);
   };
 
@@ -227,6 +228,12 @@ const MainPage = (props: MainPageProps) => {
           icon={ShareIcon}
           onPress={() => exportSVG(props.structure)}
         />
+        <BasicButton
+          style={mainPageStyles.previousStructuresButton}
+          onPress={() => props.setPageNumber(4)}
+        >
+          Previous Structures
+        </BasicButton>
         <IconButton icon={PhotosIcon} onPress={() => props.setPageNumber(2)} />
         <IconButton icon={CameraIcon} onPress={() => props.setPageNumber(1)} />
       </View>
@@ -247,7 +254,7 @@ const MainPage = (props: MainPageProps) => {
             small
             onPress={() => props.setStructure(props.originalStructure)}
           >
-            Revert To Original Structure
+            Use Last Saved Structure
           </BasicButton>
           <IconButton small icon={SaveIcon} onPress={save} />
           <BasicButton onPress={simplifyStructure} small>

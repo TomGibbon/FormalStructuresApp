@@ -22,7 +22,7 @@ const BasicButton = (props: BasicButtonProps) => {
 
   return (
     <TouchableOpacity onPress={props.onPress} style={combinedStyles}>
-      <Text>{props.children}</Text>
+      <Text style={basicButtonStyles.text}>{props.children}</Text>
     </TouchableOpacity>
   );
 };

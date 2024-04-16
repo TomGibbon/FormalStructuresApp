@@ -99,15 +99,17 @@ const CameraPage = (props: CameraPageProps) => {
       {photo ? (
         <>
           <Image source={{ uri: photo.path }} style={StyleSheet.absoluteFill} />
-          <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
-          <BasicButton onPress={() => setPhoto(undefined)}>
-            Take Another Photo
-          </BasicButton>
-          <BasicButton
-            onPress={() => postPhoto(photo.path, props.setIsLoading)}
-          >
-            Post Photo
-          </BasicButton>
+          <View style={cameraPageStyles.buttonList}>
+            <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
+            <BasicButton onPress={() => setPhoto(undefined)}>
+              Take Another Photo
+            </BasicButton>
+            <BasicButton
+              onPress={() => postPhoto(photo.path, props.setIsLoading)}
+            >
+              Post Photo
+            </BasicButton>
+          </View>
         </>
       ) : (
         <>
@@ -122,7 +124,11 @@ const CameraPage = (props: CameraPageProps) => {
             onPress={takePicture}
             style={cameraPageStyles.photoButton}
           />
-          <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
+          <IconButton
+            style={cameraPageStyles.closeButton}
+            icon={CloseIcon}
+            onPress={() => props.setPageNumber(0)}
+          />
         </>
       )}
     </View>

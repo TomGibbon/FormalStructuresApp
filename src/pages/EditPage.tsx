@@ -12,6 +12,7 @@ import EditIcons from '../components/EditIcons';
 import BasicButton from '../components/BasicButton';
 import CPPCode from '../nativeModules';
 import NFA from '../types/NFA';
+import { addToPreviousStructures } from '../helperFunctions';
 
 const initialPosition = {
   zoom: 1.3,
@@ -154,6 +155,7 @@ const EditPage = (props: EditPageProps) => {
           const newNfa = newStructure.structure as NFA;
           newNfa.isDfa = isDfa;
           props.setStructure(newStructure);
+          await addToPreviousStructures(newStructure);
         }
         props.setPageNumber(0);
       } else {

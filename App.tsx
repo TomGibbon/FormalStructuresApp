@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { SafeAreaView, StatusBar } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { appStyles } from './src/styles.js';
 
@@ -18,6 +19,7 @@ import { getDefaultStructureLocation } from './src/components/StructureDrawing';
 import CameraRollPage from './src/pages/CameraRollPage';
 import Loading from './src/components/Loading';
 import EditPage from './src/pages/EditPage';
+import PreviousStructuresPage from './src/pages/PreviousStructuresPage';
 
 const defaultStructures = [
   {
@@ -197,6 +199,13 @@ const Page = (props: PageProps) => {
           setStructure={props.setStructure}
         />
       );
+    case 4:
+      return (
+        <PreviousStructuresPage
+          setPageNumber={props.setPageNumber}
+          setStructure={props.setStructure}
+        />
+      );
     default:
       return <></>;
   }
@@ -213,7 +222,24 @@ function App(): JSX.Element {
   console.log('rerendering');
 
   useEffect(() => {
+    const setDefaultPreviousStructures = async () => {
+      try {
+        const previousStructures = await AsyncStorage.getItem(
+          'previous-structures'
+        );
+        if (previousStructures === null) {
+          await AsyncStorage.setItem(
+            'previous-structures',
+            JSON.stringify(defaultStructures)
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     setStructure(getDefaultStructureLocation(structure));
+    setDefaultPreviousStructures();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
