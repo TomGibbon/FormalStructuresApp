@@ -100,6 +100,12 @@ const MainPage = (props: MainPageProps) => {
     })
   ).current;
 
+  const resetRunResult = () => {
+    setRunResult(undefined);
+    setRunStepText('');
+    setActiveIds([]);
+  };
+
   const save = async () => {
     props.setOriginalStructure(props.structure);
     await addToPreviousStructures(props.structure);
@@ -117,8 +123,7 @@ const MainPage = (props: MainPageProps) => {
             // );
             const result = JSON.parse(await CPPCode.simplifyDFA(nfa));
             props.setStructure(result);
-            setRunStepText('');
-            setActiveIds([]);
+            resetRunResult();
           } catch (error) {
             console.error(
               'Error occured while simplifying structure: ' + error
@@ -194,9 +199,9 @@ const MainPage = (props: MainPageProps) => {
       const result = JSON.parse(
         await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
       );
+      console.log(JSON.stringify(result));
       props.setStructure(result);
-      setRunStepText('');
-      setActiveIds([]);
+      resetRunResult();
     } catch (error) {
       console.error('Error occured while converting NFA to DFA: ' + error);
     }
