@@ -293,6 +293,7 @@ export const exportNFA = (nfa: NFA) => {
   maxX += 2 * curveRadius1;
   minY -= 2 * curveRadius1;
   maxY += 2 * curveRadius1;
+
   const width = maxX - minX;
   const height = maxY - minY;
 
