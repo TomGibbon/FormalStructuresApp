@@ -7,12 +7,6 @@
 #include <map>
 
 #include <opencv2/opencv.hpp>
-// #include <openssl/bio.h>
-// #include <openssl/buffer.h>
-// #include <openssl/evp.h>
-
-// #include <tesseract/baseapi.h>
-// #include <leptonica/allheaders.h>
 
 using namespace std;
 using namespace cv;
