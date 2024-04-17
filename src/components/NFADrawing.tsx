@@ -87,7 +87,9 @@ export const exportNFA = (nfa: NFA) => {
 
   const calculateStateLocation = (id: number) => {
     const structureRadius =
-      (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
+      nfa.states.length === 1
+        ? 0
+        : (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
     let index = -1;
     for (let i = 0; i < nfa.states.length; i++) {
       if (nfa.states[i].id === id) {
