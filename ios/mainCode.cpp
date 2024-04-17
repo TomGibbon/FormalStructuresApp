@@ -112,41 +112,34 @@ namespace mainCode {
         transitionTable[transition.Start][transition.Token].insert(transition.End);
       }
 
-      // Update with epsilon transitions
+      // Get epsilon transitions
       for (State state : nfa.States) {
-        cout << "Looking at state: " << state.Id << "\n";
-
-        set<int> epsilonTransitions = transitionTable[state.Id]["ε"]; // Get epsilon closure of state
-        epsilonTransitions.insert(state.Id); // Make sure itself is added
+        transitionTable[state.Id]["ε"].insert(state.Id); // Make sure itself is added
 
         // Continue checking epsilon closure of states until no new ones are detected
-        set<int> remaining = epsilonTransitions; // Contains all states that need to have their epsilon closure checked
+        set<int> remaining = transitionTable[state.Id]["ε"]; // Contains all states that need to have their epsilon closure checked
         while (!remaining.empty()) {
           // Pop front
           auto iterator = remaining.begin();
           int current = *iterator; // Contains the next state that needs to be checked
           remaining.erase(iterator);
-
           set<int> newStates = transitionTable[current]["ε"]; // Get epsilon closure of current
           for (int newState : newStates) { // Check if any of the resulting states are new
-            if (epsilonTransitions.find(newState) == epsilonTransitions.end()) {
-              epsilonTransitions.insert(newState);
+            if (transitionTable[state.Id]["ε"].find(newState) == transitionTable[state.Id]["ε"].end()) {
+              transitionTable[state.Id]["ε"].insert(newState);
               remaining.insert(newState); // New state so must be checked later
             }
           }
         }
+      }
 
-        printSet("epsilon closure of state", epsilonTransitions);
-
-        // Update the current row in the table using the epsilon closure
+      // Update with epsilon transitions
+      for (State state : nfa.States) {
         for (string token : Alphabet) {
-          set<int> currentTransitions = transitionTable[state.Id][token];
-
-          // Update the transition table with the transitions from this epsilon closure
           if (token == "ε") {
-            transitionTable[state.Id]["ε"] = setUnion(transitionTable[state.Id]["ε"], epsilonTransitions);
+            continue; // Already done
           } else {
-            for (int epsilonTransition : epsilonTransitions) {
+            for (int epsilonTransition : transitionTable[state.Id]["ε"]) {
               set<int> resultingTransitions = transitionTable[epsilonTransition][token];
               set<int> totalResultingTransitions = resultingTransitions;
               // Make sure to check any epsilon transitions of resulting states
@@ -162,6 +155,7 @@ namespace mainCode {
     }
 
   // OpenCV
+
   Circle::Circle(Point center, float radius):
     Center(center), Radius(radius) {}
 
@@ -173,6 +167,7 @@ namespace mainCode {
 
   Arrow::Arrow(Point tip, Point tail):
     Tip(tip), Tail(tail) {}
+  
   // Helpers
 
   void printVector(string name, vector<int> list) {
@@ -325,16 +320,16 @@ namespace mainCode {
     return result;
   }
   
-  template <typename T>
-  vector<T> vectorDifference(vector<T> vec1, vector<T> vec2) {
-    vector<T> result;
-    for (T item : vec1) {
-      if (find(vec2.begin(), vec2.end(), item) == vec2.end()) {
-        result.push_back(item);
-      }
-    }
-    return result;
-  }
+  // template <typename T>
+  // vector<T> vectorDifference(vector<T> vec1, vector<T> vec2) {
+  //   vector<T> result;
+  //   for (T item : vec1) {
+  //     if (find(vec2.begin(), vec2.end(), item) == vec2.end()) {
+  //       result.push_back(item);
+  //     }
+  //   }
+  //   return result;
+  // }
 
   // DFA / NFA functions
 
@@ -1131,21 +1126,6 @@ namespace mainCode {
   NFA convertNFAtoDFA(NFA oldNfa) {
     MathmaticalNFA nfa(oldNfa);
 
-    cout << "mathnfa: \n";
-    printSet("states", nfa.States);
-    cout << "Alphabet: {";
-    for (string s : nfa.Alphabet) {
-      cout << s << " ";
-    }
-    cout << "}\nStart state: " << nfa.StartState << "\n";
-    printSet("Final state", nfa.FinalStates);
-    cout << "Transition table: \n";
-    for (int s : nfa.States) {
-      for (string t : nfa.Alphabet) {
-        printSet("[" + to_string(s) + "][" + t + "]", nfa.TransitionTable[s][t]);
-      }
-    }
-
     // Initiate stateSubsets
     set<set<int>> stateSubsets = {{}}; // Contains each possible subset of states
     for (int stateId : nfa.States) {
@@ -1190,7 +1170,7 @@ namespace mainCode {
       newId++;
     }
 
-    NFA anotenfa(true, newStates, newTransitions);
+    // NFA anotenfa(true, newStates, newTransitions);
     // cout << "nfa:\n";
     // cout << anotenfa.convertToJSON(true) << "\n\n";
 
