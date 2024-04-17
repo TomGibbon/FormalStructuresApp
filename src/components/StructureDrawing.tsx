@@ -22,12 +22,12 @@ type StructureDrawingProps = {
   setSelectedState?: (newValue: number | undefined) => void;
   selectedTransitionArrow?: number[] | undefined;
   setSelectedTransitionArrow?: (newValue: number[] | undefined) => void;
-  selectingNewTransitionToState?: boolean;
-  setSelectingNewTransitionToState?: (newValue: boolean) => void;
-  selectingTransitionNewToState?: boolean;
-  setSelectingTransitionNewToState?: (newValue: boolean) => void;
-  selectingTransitionNewFromState?: boolean;
-  setSelectingTransitionNewFromState?: (newValue: boolean) => void;
+  selectingNewTransitionEndState?: boolean;
+  setSelectingNewTransitionEndState?: (newValue: boolean) => void;
+  selectingTransitionNewEndState?: boolean;
+  setSelectingTransitionNewEndState?: (newValue: boolean) => void;
+  selectingTransitionNewStartState?: boolean;
+  setSelectingTransitionNewStartState?: (newValue: boolean) => void;
 };
 
 // export const getDefaultStructureLocation = (structure: Structure) => {
@@ -76,18 +76,18 @@ const StructureDrawing = (props: StructureDrawingProps) => {
   const setSelectedState = props.setSelectedState ?? defaultSetFunction;
   const setSelectedTransitionArrow =
     props.setSelectedTransitionArrow ?? defaultSetFunction;
-  const selectingNewTransitionToState =
-    props.selectingNewTransitionToState ?? false;
-  const selectingTransitionNewFromState =
-    props.selectingTransitionNewFromState ?? false;
-  const selectingTransitionNewToState =
-    props.selectingTransitionNewToState ?? false;
-  const setSelectingNewTransitionToState =
-    props.setSelectingNewTransitionToState ?? defaultSetFunction;
-  const setSelectingTransitionNewFromState =
-    props.setSelectingTransitionNewFromState ?? defaultSetFunction;
-  const setSelectingTransitionNewToState =
-    props.setSelectingTransitionNewToState ?? defaultSetFunction;
+  const selectingNewTransitionEndState =
+    props.selectingNewTransitionEndState ?? false;
+  const selectingTransitionNewStartState =
+    props.selectingTransitionNewStartState ?? false;
+  const selectingTransitionNewEndState =
+    props.selectingTransitionNewEndState ?? false;
+  const setSelectingNewTransitionEndState =
+    props.setSelectingNewTransitionEndState ?? defaultSetFunction;
+  const setSelectingTransitionNewStartState =
+    props.setSelectingTransitionNewStartState ?? defaultSetFunction;
+  const setSelectingTransitionNewEndState =
+    props.setSelectingTransitionNewEndState ?? defaultSetFunction;
 
   let elements: JSX.Element[] = [];
 
@@ -102,12 +102,12 @@ const StructureDrawing = (props: StructureDrawingProps) => {
         setSelectedState,
         props.selectedTransitionArrow,
         setSelectedTransitionArrow,
-        selectingNewTransitionToState,
-        setSelectingNewTransitionToState,
-        selectingTransitionNewToState,
-        setSelectingTransitionNewToState,
-        selectingTransitionNewFromState,
-        setSelectingTransitionNewFromState
+        selectingNewTransitionEndState,
+        setSelectingNewTransitionEndState,
+        selectingTransitionNewEndState,
+        setSelectingTransitionNewEndState,
+        selectingTransitionNewStartState,
+        setSelectingTransitionNewStartState
       );
       break;
   }

@@ -32,11 +32,11 @@ namespace mainCode {
   class Transition {
     public:
       int Id;
-      int From;
-      int To;
+      int Start;
+      int End;
       string Token;
 
-      Transition(int id, int from, int to, string token);
+      Transition(int id, int start, int end, string token);
       string convertToJSON(bool testing);
   };
 

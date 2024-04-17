@@ -34,11 +34,11 @@ RCT_EXPORT_MODULE();
   std::vector<mainCode::Transition> transitions;
   for (NSDictionary *transitionDict in transitionDicts) {
     int _id = [transitionDict[@"id"] intValue];
-    int from = [transitionDict[@"from"] intValue];
-    int to = [transitionDict[@"to"] intValue];
+    int start = [transitionDict[@"start"] intValue];
+    int end = [transitionDict[@"end"] intValue];
     std::string token = [transitionDict[@"token"] UTF8String];
 
-    mainCode::Transition transition(_id, from, to, token);
+    mainCode::Transition transition(_id, start, end, token);
     transitions.push_back(transition);
   }
 

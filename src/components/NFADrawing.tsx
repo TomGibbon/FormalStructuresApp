@@ -14,8 +14,8 @@ const curveRadius2 = stateRadius / 2;
 
 type TransitionArrow = {
   transitionIds: number[];
-  from: number;
-  to: number;
+  start: number;
+  end: number;
   tokenObj: TokenObj;
 };
 
@@ -140,7 +140,7 @@ export const exportNFA = (nfa: NFA) => {
       if (
         nfa.transitions.filter(
           transition =>
-            transition.from === transition.to && transition.from === state.id
+            transition.start === transition.end && transition.start === state.id
         ).length > 0
       ) {
         angle += Math.PI / 2;
@@ -162,8 +162,8 @@ export const exportNFA = (nfa: NFA) => {
     let duplicateTransition = false;
     transitionArrows.forEach(transitionArrow => {
       if (
-        transitionArrow.from === transition.from &&
-        transitionArrow.to === transition.to
+        transitionArrow.start === transition.start &&
+        transitionArrow.end === transition.end
       ) {
         duplicateTransition = true;
         let tokenObj = transitionArrow.tokenObj;
@@ -178,21 +178,21 @@ export const exportNFA = (nfa: NFA) => {
 
     // Add non-duplicate transitions
     // const from = nfa.states.filter(
-    //   state => state.id === nfa.transitions[i].from
+    //   state => state.id === nfa.transitions[i].start
     // )[0];
-    const fromLocation = calculateStateLocation(transition.from);
+    const startLocation = calculateStateLocation(transition.start);
 
-    if (transition.from === transition.to) {
+    if (transition.start === transition.end) {
       // Self transition
-      const angle = Math.atan2(fromLocation.y, fromLocation.x);
+      const angle = Math.atan2(startLocation.y, startLocation.x);
 
       const startAngle = angle - selfTransitionAngle;
       const endAngle = angle + selfTransitionAngle;
 
-      const x1 = fromLocation.x + stateRadius * Math.cos(startAngle);
-      const y1 = fromLocation.y + stateRadius * Math.sin(startAngle);
-      const x2 = fromLocation.x + stateRadius * Math.cos(endAngle);
-      const y2 = fromLocation.y + stateRadius * Math.sin(endAngle);
+      const x1 = startLocation.x + stateRadius * Math.cos(startAngle);
+      const y1 = startLocation.y + stateRadius * Math.sin(startAngle);
+      const x2 = startLocation.x + stateRadius * Math.cos(endAngle);
+      const y2 = startLocation.y + stateRadius * Math.sin(endAngle);
 
       const angleDeg = (angle * 180) / Math.PI;
 
@@ -200,12 +200,12 @@ export const exportNFA = (nfa: NFA) => {
 
       transitionArrows.push({
         transitionIds: [transition.id],
-        from: transition.from,
-        to: transition.to,
+        start: transition.start,
+        end: transition.end,
         tokenObj: {
           isCurve: true,
-          x: fromLocation.x,
-          y: fromLocation.y,
+          x: startLocation.x,
+          y: startLocation.y,
           angle: angle,
           token: transition.token,
           key: i + 'token',
@@ -214,11 +214,11 @@ export const exportNFA = (nfa: NFA) => {
     } else {
       // Non-self transition
       // const to = nfa.states.filter(state => state.id === transition.to)[0];
-      const toLocation = calculateStateLocation(transition.to);
+      const endLocation = calculateStateLocation(transition.end);
 
       const angle = Math.atan2(
-        toLocation.y - fromLocation.y,
-        toLocation.x - fromLocation.x
+        endLocation.y - startLocation.y,
+        endLocation.x - startLocation.x
       );
 
       let x1;
@@ -229,37 +229,37 @@ export const exportNFA = (nfa: NFA) => {
       if (
         nfa.transitions.filter(
           differentTransition =>
-            differentTransition.from === transition.to &&
-            differentTransition.to === transition.from
+            differentTransition.start === transition.end &&
+            differentTransition.end === transition.start
         ).length > 0
       ) {
         // Two way transition
         x1 =
-          fromLocation.x +
+          startLocation.x +
           stateRadius * Math.cos(angle - duplicateTransitionSplit);
         y1 =
-          fromLocation.y +
+          startLocation.y +
           stateRadius * Math.sin(angle - duplicateTransitionSplit);
         x2 =
-          toLocation.x -
+          endLocation.x -
           stateRadius * Math.cos(angle + duplicateTransitionSplit);
         y2 =
-          toLocation.y -
+          endLocation.y -
           stateRadius * Math.sin(angle + duplicateTransitionSplit);
       } else {
         // One way transition
-        x1 = fromLocation.x + stateRadius * Math.cos(angle);
-        y1 = fromLocation.y + stateRadius * Math.sin(angle);
-        x2 = toLocation.x - stateRadius * Math.cos(angle);
-        y2 = toLocation.y - stateRadius * Math.sin(angle);
+        x1 = startLocation.x + stateRadius * Math.cos(angle);
+        y1 = startLocation.y + stateRadius * Math.sin(angle);
+        x2 = endLocation.x - stateRadius * Math.cos(angle);
+        y2 = endLocation.y - stateRadius * Math.sin(angle);
       }
 
       svgElements += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="black" stroke-width="1" marker-end="url(#arrow)" />`;
 
       transitionArrows.push({
         transitionIds: [transition.id],
-        from: transition.from,
-        to: transition.to,
+        start: transition.start,
+        end: transition.end,
         tokenObj: {
           isCurve: false,
           x: x2,
@@ -325,19 +325,19 @@ const NFADrawing = (
   setSelectedState: (newValue: number | undefined) => void,
   selectedTransitionArrow: number[] | undefined,
   setSelectedTransitionArrow: (newValue: number[] | undefined) => void,
-  selectingNewTransitionToState: boolean,
-  setSelectingNewTransitionToState: (newValue: boolean) => void,
-  selectingTransitionNewToState: boolean,
-  setSelectingTransitionNewToState: (newValue: boolean) => void,
-  selectingTransitionNewFromState: boolean,
-  setSelectingTransitionNewFromState: (newValue: boolean) => void
+  selectingNewTransitionEndState: boolean,
+  setSelectingNewTransitionEndState: (newValue: boolean) => void,
+  selectingTransitionNewEndState: boolean,
+  setSelectingTransitionNewEndState: (newValue: boolean) => void,
+  selectingTransitionNewStartState: boolean,
+  setSelectingTransitionNewStartState: (newValue: boolean) => void
 ) => {
   let elements = [];
   let transitionArrows: TransitionArrow[] = [];
 
   const statePress = (id: number) => {
     // Check if user is selecting a state for a new transition
-    if (selectingNewTransitionToState) {
+    if (selectingNewTransitionEndState) {
       const newStructure = copyStructure({
         structure: nfa,
         type: 'nfa',
@@ -353,7 +353,7 @@ const NFADrawing = (
             text: 'Cancel',
             onPress: () => {
               setSelectedState(undefined);
-              setSelectingNewTransitionToState(false);
+              setSelectingNewTransitionEndState(false);
             },
             style: 'cancel',
           },
@@ -394,12 +394,12 @@ const NFADrawing = (
                   let duplicateTransition = false;
                   tokens.forEach(token => {
                     const newId = getNewId(newNfa.transitions);
-                    const from = selectedState!;
+                    const start = selectedState!;
                     if (
                       newNfa.transitions.find(
                         transition =>
-                          transition.from === from &&
-                          transition.to === id &&
+                          transition.start === start &&
+                          transition.end === id &&
                           transition.token === token
                       )
                     ) {
@@ -412,8 +412,8 @@ const NFADrawing = (
                     } else {
                       newNfa.transitions.push({
                         id: newId,
-                        from: from,
-                        to: id,
+                        start: start,
+                        end: id,
                         token: token,
                       });
                       setCurrentStructure({ structure: newNfa, type: 'nfa' });
@@ -428,19 +428,19 @@ const NFADrawing = (
                 }
               }
               setSelectedState(undefined);
-              setSelectingNewTransitionToState(false);
+              setSelectingNewTransitionEndState(false);
             },
           },
           {
             text: 'ε',
             onPress: () => {
               const newId = getNewId(newNfa.transitions);
-              const from = selectedState!;
+              const start = selectedState!;
               if (
                 newNfa.transitions.find(
                   transition =>
-                    transition.from === from &&
-                    transition.to === id &&
+                    transition.start === start &&
+                    transition.end === id &&
                     transition.token === 'ε'
                 )
               ) {
@@ -450,22 +450,22 @@ const NFADrawing = (
               } else {
                 newNfa.transitions.push({
                   id: newId,
-                  from: from,
-                  to: id,
+                  start: start,
+                  end: id,
                   token: 'ε',
                 });
                 setCurrentStructure({ structure: newNfa, type: 'nfa' });
               }
               setSelectedState(undefined);
-              setSelectingNewTransitionToState(false);
+              setSelectingNewTransitionEndState(false);
             },
           },
         ],
         'plain-text'
       );
 
-      // Selecting new To state for selected transitions
-    } else if (selectingTransitionNewToState) {
+      // Selecting new end state for selected transitions
+    } else if (selectingTransitionNewEndState) {
       const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
       const newNfa = newStructure.structure as NFA;
       const transitions = newNfa.transitions.filter(
@@ -477,8 +477,8 @@ const NFADrawing = (
         if (
           newNfa.transitions.find(
             existingTransition =>
-              existingTransition.from === transition.from &&
-              existingTransition.to === id &&
+              existingTransition.start === transition.start &&
+              existingTransition.end === id &&
               existingTransition.token === transition.token
           )
         ) {
@@ -486,13 +486,13 @@ const NFADrawing = (
             existingTransition => existingTransition.id !== transition.id
           );
         } else {
-          transition.to = id;
+          transition.end = id;
         }
       });
       setCurrentStructure(newStructure);
       setSelectedTransitionArrow(undefined);
-      setSelectingTransitionNewToState(false);
-    } else if (selectingTransitionNewFromState) {
+      setSelectingTransitionNewEndState(false);
+    } else if (selectingTransitionNewStartState) {
       const newStructure = copyStructure({ structure: nfa, type: 'nfa' });
       const newNfa = newStructure.structure as NFA;
       const transitions = newNfa.transitions.filter(
@@ -504,8 +504,8 @@ const NFADrawing = (
         if (
           newNfa.transitions.find(
             existingTransition =>
-              existingTransition.from === id &&
-              existingTransition.to === transition.to &&
+              existingTransition.start === id &&
+              existingTransition.end === transition.end &&
               existingTransition.token === transition.token
           )
         ) {
@@ -513,11 +513,11 @@ const NFADrawing = (
             existingTransition => existingTransition.id !== transition.id
           );
         } else {
-          transition.from = id;
+          transition.start = id;
         }
       });
       setSelectedTransitionArrow(undefined);
-      setSelectingTransitionNewFromState(false);
+      setSelectingTransitionNewStartState(false);
       setCurrentStructure(newStructure);
     } else {
       setSelectedState(id);
@@ -580,7 +580,7 @@ const NFADrawing = (
               break;
             case 2:
               // Add transition from
-              setSelectingNewTransitionToState(true);
+              setSelectingNewTransitionEndState(true);
               break;
             case 3:
               // Make start
@@ -609,7 +609,7 @@ const NFADrawing = (
                         s => s.id !== state.id
                       );
                       newNfa.transitions = newNfa.transitions.filter(
-                        t => t.from !== state.id && t.to !== state.id
+                        t => t.start !== state.id && t.end !== state.id
                       );
                       setCurrentStructure(
                         // getDefaultStructureLocation(newStructure)
@@ -636,9 +636,9 @@ const NFADrawing = (
   const transitionPress = (ids: number[]) => {
     // Do nothing if user is selecting a state for transition purposes
     if (
-      selectingNewTransitionToState ||
-      selectingTransitionNewToState ||
-      selectingTransitionNewFromState
+      selectingNewTransitionEndState ||
+      selectingTransitionNewEndState ||
+      selectingTransitionNewStartState
     ) {
       return;
     }
@@ -649,9 +649,9 @@ const NFADrawing = (
     const transitions = newNfa.transitions.filter(
       transition => ids.find(id => id === transition.id) !== undefined
     );
-    const from = transitions[0].from;
-    const to = transitions[0].to;
-    const options = ['Cancel', 'Change From', 'Change To', 'Change Tokens'];
+    const start = transitions[0].start;
+    const end = transitions[0].end;
+    const options = ['Cancel', 'Change Start', 'Change End', 'Change Tokens'];
     let containsEpsilon: boolean;
     if (transitions.find(transition => transition.token === 'ε')) {
       options.push('Remove ε transition');
@@ -672,12 +672,12 @@ const NFADrawing = (
             setSelectedTransitionArrow(undefined);
             break;
           case 1:
-            // Change From
-            setSelectingTransitionNewFromState(true);
+            // Change Start
+            setSelectingTransitionNewStartState(true);
             break;
           case 2:
-            // Change to
-            setSelectingTransitionNewToState(true);
+            // Change End
+            setSelectingTransitionNewEndState(true);
             break;
           case 3:
             // Change token
@@ -737,8 +737,8 @@ const NFADrawing = (
                         }
                         newTransitions.push({
                           id: newId,
-                          from: from,
-                          to: to,
+                          start: start,
+                          end: end,
                           token: token,
                         });
                       });
@@ -781,8 +781,8 @@ const NFADrawing = (
               const newId = getNewId(newNfa.transitions);
               newNfa.transitions.push({
                 id: newId,
-                from: from,
-                to: to,
+                start: start,
+                end: end,
                 token: 'ε',
               });
             }
@@ -954,7 +954,7 @@ const NFADrawing = (
       if (
         nfa.transitions.filter(
           transition =>
-            transition.from === transition.to && transition.from === state.id
+            transition.start === transition.end && transition.start === state.id
         ).length > 0
       ) {
         angle += Math.PI / 2;
@@ -986,8 +986,8 @@ const NFADrawing = (
     let duplicateTransition = false;
     transitionArrows.forEach(transitionArrow => {
       if (
-        transitionArrow.from === transition.from &&
-        transitionArrow.to === transition.to
+        transitionArrow.start === transition.start &&
+        transitionArrow.end === transition.end
       ) {
         duplicateTransition = true;
         let tokenObj = transitionArrow.tokenObj;
@@ -1001,20 +1001,20 @@ const NFADrawing = (
     }
 
     // Add non-duplicate transitions
-    // const from = nfa.states.filter(state => state.id === transition.from)[0];
-    const fromLocation = calculateStateLocation(transition.from);
+    // const from = nfa.states.filter(state => state.id === transition.start)[0];
+    const startLocation = calculateStateLocation(transition.start);
 
-    if (transition.from === transition.to) {
+    if (transition.start === transition.end) {
       // Self transition
-      const angle = Math.atan2(fromLocation.y, fromLocation.x);
+      const angle = Math.atan2(startLocation.y, startLocation.x);
 
       const startAngle = angle - selfTransitionAngle;
       const endAngle = angle + selfTransitionAngle;
 
-      const x1 = fromLocation.x + stateRadius * Math.cos(startAngle);
-      const y1 = fromLocation.y + stateRadius * Math.sin(startAngle);
-      const x2 = fromLocation.x + stateRadius * Math.cos(endAngle);
-      const y2 = fromLocation.y + stateRadius * Math.sin(endAngle);
+      const x1 = startLocation.x + stateRadius * Math.cos(startAngle);
+      const y1 = startLocation.y + stateRadius * Math.sin(startAngle);
+      const x2 = startLocation.x + stateRadius * Math.cos(endAngle);
+      const y2 = startLocation.y + stateRadius * Math.sin(endAngle);
 
       const angleDeg = (angle * 180) / Math.PI;
 
@@ -1057,12 +1057,12 @@ const NFADrawing = (
 
       transitionArrows.push({
         transitionIds: [transition.id],
-        from: transition.from,
-        to: transition.to,
+        start: transition.start,
+        end: transition.end,
         tokenObj: {
           isCurve: true,
-          x: fromLocation.x,
-          y: fromLocation.y,
+          x: startLocation.x,
+          y: startLocation.y,
           angle: angle,
           token: transition.token,
           key: i + 'token',
@@ -1073,11 +1073,11 @@ const NFADrawing = (
       // const to = nfa.states.filter(
       //   state => state.id === nfa.transitions[i].to
       // )[0];
-      const toLocation = calculateStateLocation(transition.to);
+      const endLocation = calculateStateLocation(transition.end);
 
       const angle = Math.atan2(
-        toLocation.y - fromLocation.y,
-        toLocation.x - fromLocation.x
+        endLocation.y - startLocation.y,
+        endLocation.x - startLocation.x
       );
 
       let x1;
@@ -1088,29 +1088,29 @@ const NFADrawing = (
       if (
         nfa.transitions.filter(
           differentTransition =>
-            differentTransition.from === transition.to &&
-            differentTransition.to === transition.from
+            differentTransition.start === transition.end &&
+            differentTransition.end === transition.start
         ).length > 0
       ) {
         // Two way transition
         x1 =
-          fromLocation.x +
+          startLocation.x +
           stateRadius * Math.cos(angle - duplicateTransitionSplit);
         y1 =
-          fromLocation.y +
+          startLocation.y +
           stateRadius * Math.sin(angle - duplicateTransitionSplit);
         x2 =
-          toLocation.x -
+          endLocation.x -
           stateRadius * Math.cos(angle + duplicateTransitionSplit);
         y2 =
-          toLocation.y -
+          endLocation.y -
           stateRadius * Math.sin(angle + duplicateTransitionSplit);
       } else {
         // One way transition
-        x1 = fromLocation.x + stateRadius * Math.cos(angle);
-        y1 = fromLocation.y + stateRadius * Math.sin(angle);
-        x2 = toLocation.x - stateRadius * Math.cos(angle);
-        y2 = toLocation.y - stateRadius * Math.sin(angle);
+        x1 = startLocation.x + stateRadius * Math.cos(angle);
+        y1 = startLocation.y + stateRadius * Math.sin(angle);
+        x2 = endLocation.x - stateRadius * Math.cos(angle);
+        y2 = endLocation.y - stateRadius * Math.sin(angle);
       }
 
       elements.push(
@@ -1154,8 +1154,8 @@ const NFADrawing = (
 
       transitionArrows.push({
         transitionIds: [transition.id],
-        from: transition.from,
-        to: transition.to,
+        start: transition.start,
+        end: transition.end,
         tokenObj: {
           isCurve: false,
           x: x2,

@@ -40,11 +40,13 @@ const EditPage = (props: EditPageProps) => {
   const [selectedTransitionArrow, setSelectedTransitionArrow] = useState<
     number[] | undefined
   >(undefined);
-  const [selectingNewTransitionToState, setSelectingNewTransitionToState] =
+  const [selectingNewTransitionEndState, setSelectingNewTransitionEndState] =
     useState(false);
-  const [selectingTransitionNewFromState, setSelectingTransitionNewFromState] =
-    useState(false);
-  const [selectingTransitionNewToState, setSelectingTransitionNewToState] =
+  const [
+    selectingTransitionNewStartState,
+    setSelectingTransitionNewStartState,
+  ] = useState(false);
+  const [selectingTransitionNewEndState, setSelectingTransitionNewEndState] =
     useState(false);
 
   const [scale, setScale] = useState(initialPosition.zoom);
@@ -64,9 +66,9 @@ const EditPage = (props: EditPageProps) => {
     if (editing === false) {
       setSelectedState(undefined);
       setSelectedTransitionArrow(undefined);
-      setSelectingNewTransitionToState(false);
-      setSelectingTransitionNewToState(false);
-      setSelectingTransitionNewFromState(false);
+      setSelectingNewTransitionEndState(false);
+      setSelectingTransitionNewEndState(false);
+      setSelectingTransitionNewStartState(false);
     }
   }, [editing]);
 
@@ -216,19 +218,19 @@ const EditPage = (props: EditPageProps) => {
                 setSelectedState={setSelectedState}
                 selectedTransitionArrow={selectedTransitionArrow}
                 setSelectedTransitionArrow={setSelectedTransitionArrow}
-                selectingNewTransitionToState={selectingNewTransitionToState}
-                setSelectingNewTransitionToState={
-                  setSelectingNewTransitionToState
+                selectingNewTransitionEndState={selectingNewTransitionEndState}
+                setSelectingNewTransitionEndState={
+                  setSelectingNewTransitionEndState
                 }
-                selectingTransitionNewToState={selectingTransitionNewToState}
-                setSelectingTransitionNewToState={
-                  setSelectingTransitionNewToState
+                selectingTransitionNewEndState={selectingTransitionNewEndState}
+                setSelectingTransitionNewEndState={
+                  setSelectingTransitionNewEndState
                 }
-                selectingTransitionNewFromState={
-                  selectingTransitionNewFromState
+                selectingTransitionNewStartState={
+                  selectingTransitionNewStartState
                 }
-                setSelectingTransitionNewFromState={
-                  setSelectingTransitionNewFromState
+                setSelectingTransitionNewStartState={
+                  setSelectingTransitionNewStartState
                 }
               />
             </View>
@@ -250,19 +252,19 @@ const EditPage = (props: EditPageProps) => {
                 setSelectedState={setSelectedState}
                 selectedTransitionArrow={selectedTransitionArrow}
                 setSelectedTransitionArrow={setSelectedTransitionArrow}
-                selectingNewTransitionToState={selectingNewTransitionToState}
-                setSelectingNewTransitionToState={
-                  setSelectingNewTransitionToState
+                selectingNewTransitionEndState={selectingNewTransitionEndState}
+                setSelectingNewTransitionEndState={
+                  setSelectingNewTransitionEndState
                 }
-                selectingTransitionNewToState={selectingTransitionNewToState}
-                setSelectingTransitionNewToState={
-                  setSelectingTransitionNewToState
+                selectingTransitionNewEndState={selectingTransitionNewEndState}
+                setSelectingTransitionNewEndState={
+                  setSelectingTransitionNewEndState
                 }
-                selectingTransitionNewFromState={
-                  selectingTransitionNewFromState
+                selectingTransitionNewStartState={
+                  selectingTransitionNewStartState
                 }
-                setSelectingTransitionNewFromState={
-                  setSelectingTransitionNewFromState
+                setSelectingTransitionNewStartState={
+                  setSelectingTransitionNewStartState
                 }
               />
             </View>
@@ -271,25 +273,25 @@ const EditPage = (props: EditPageProps) => {
           <></>
         )}
       </View>
-      {selectingNewTransitionToState ||
-      selectingTransitionNewToState ||
-      selectingTransitionNewFromState ? (
+      {selectingNewTransitionEndState ||
+      selectingTransitionNewEndState ||
+      selectingTransitionNewStartState ? (
         <View style={editPageStyles.cancelList}>
-          {selectingNewTransitionToState ? (
+          {selectingNewTransitionEndState ? (
             <Text style={editPageStyles.cancelListItem}>
               Select an end state for the new transition(s)
             </Text>
           ) : (
             <></>
           )}
-          {selectingTransitionNewToState ? (
+          {selectingTransitionNewEndState ? (
             <Text style={editPageStyles.cancelListItem}>
               Select a new end state for the selected transition(s)
             </Text>
           ) : (
             <></>
           )}
-          {selectingTransitionNewFromState ? (
+          {selectingTransitionNewStartState ? (
             <Text style={editPageStyles.cancelListItem}>
               Select a new start state for the selected transition(s)
             </Text>
@@ -301,9 +303,9 @@ const EditPage = (props: EditPageProps) => {
             onPress={() => {
               setSelectedState(undefined);
               setSelectedTransitionArrow(undefined);
-              setSelectingNewTransitionToState(false);
-              setSelectingTransitionNewFromState(false);
-              setSelectingTransitionNewToState(false);
+              setSelectingNewTransitionEndState(false);
+              setSelectingTransitionNewStartState(false);
+              setSelectingTransitionNewEndState(false);
             }}
           >
             Cancel

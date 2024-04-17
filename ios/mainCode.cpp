@@ -26,14 +26,14 @@ namespace mainCode {
   }
 
   // Transition
-  Transition::Transition(int id, int from, int to, string token):
-    Id(id), From(from), To(to), Token(token) {}
+  Transition::Transition(int id, int start, int end, string token):
+    Id(id), Start(start), End(end), Token(token) {}
 
   string Transition::convertToJSON(bool testing) {
     if (testing) {
-      return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"from\":" + to_string(From) + ", \"to\":" + to_string(To) + ", \"token\":\"" + Token + "\" }";
+      return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"start\":" + to_string(Start) + ", \"end\":" + to_string(End) + ", \"token\":\"" + Token + "\" }";
     } else {
-      return "{\"id\":" + to_string(Id) + ",\"from\":" + to_string(From) + ",\"to\":" + to_string(To) + ",\"token\":\"" + Token + "\"}";
+      return "{\"id\":" + to_string(Id) + ",\"start\":" + to_string(Start) + ",\"end\":" + to_string(End) + ",\"token\":\"" + Token + "\"}";
     }
   }
 
@@ -81,13 +81,13 @@ namespace mainCode {
     States(getStates(dfa.States)), Alphabet(getAlphabet(dfa.Transitions)), TransitionTable(), StartState(getStartState(dfa.States)), FinalStates(getFinalStates(dfa.States)) {
       map<int, map<string, int>> transitionTable; // No need to declare cells as dfa is assumed to have all possible transitions mapped
       for (Transition transition : dfa.Transitions) {
-        int from = transition.From;
-        int to = transition.To;
+        int start = transition.Start;
+        int end = transition.End;
         string token = transition.Token;
 
-        map<string, int> fromTable = transitionTable[from];
-        fromTable[token] = to;
-        transitionTable[from] = fromTable;
+        map<string, int> startTable = transitionTable[start];
+        startTable[token] = end;
+        transitionTable[start] = startTable;
       }
       TransitionTable = transitionTable;
     }
@@ -109,7 +109,7 @@ namespace mainCode {
 
       // Start by adding all single transitions
       for (Transition transition : nfa.Transitions) {
-        transitionTable[transition.From][transition.Token].insert(transition.To);
+        transitionTable[transition.Start][transition.Token].insert(transition.End);
       }
 
       // Update with epsilon transitions
@@ -971,7 +971,7 @@ namespace mainCode {
       // Check for states with no transitions (i.e. dead circles)
       bool noTransitions = true;
       for (Transition transition : transitions) {
-        if (transition.From == state.Id || transition.To == state.Id) {
+        if (transition.Start == state.Id || transition.End == state.Id) {
           noTransitions = false;
         }
       }
@@ -1095,32 +1095,32 @@ namespace mainCode {
 
     // Generate new DFA transitions
     vector<Transition> transitions;
-    for (int fromState : reachableStates) {
+    for (int startState : reachableStates) {
       for (string token : dfa.Alphabet) {
-        int fromId = 0;
+        int startId = 0;
         for (set<int> partition : p) {
-          if (partition.find(fromState) != partition.end()) {
+          if (partition.find(startState) != partition.end()) {
             break;
           }
-          fromId++;
+          startId++;
         }
-        int toState = dfa.TransitionTable[fromState][token];
-        int toId = 0;
+        int endState = dfa.TransitionTable[startState][token];
+        int endId = 0;
         for (set<int> partition : p) {
-          if (partition.find(toState) != partition.end()) {
+          if (partition.find(endState) != partition.end()) {
             break;
           }
-          toId++;
+          endId++;
         }
         bool alreadyInList = false;
         for (Transition preAddedTransition : transitions) {
-          if (preAddedTransition.From == fromId && preAddedTransition.To == toId && preAddedTransition.Token == token) {
+          if (preAddedTransition.Start == startId && preAddedTransition.End == endId && preAddedTransition.Token == token) {
             alreadyInList = true;
             break;
           }
         }
         if (!alreadyInList) {
-          transitions.push_back(Transition(transitions.size(), fromId, toId, token));
+          transitions.push_back(Transition(transitions.size(), startId, endId, token));
         }
       }
     }
@@ -1248,7 +1248,7 @@ namespace mainCode {
     vector<Transition> checkedTransitions;
     for (Transition transition : nfa.Transitions) {
       for (Transition checkedTransition : checkedTransitions) {
-        if (checkedTransition.From == transition.From && checkedTransition.To == transition.To && checkedTransition.Token == transition.Token) {
+        if (checkedTransition.Start == transition.Start && checkedTransition.End == transition.End && checkedTransition.Token == transition.Token) {
           return 3;
         }
       }

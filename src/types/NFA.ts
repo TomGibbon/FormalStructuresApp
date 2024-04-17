@@ -7,8 +7,8 @@ type State = {
 
 export type Transition = {
   id: number;
-  from: number;
-  to: number;
+  start: number;
+  end: number;
   token: string;
 };
 
