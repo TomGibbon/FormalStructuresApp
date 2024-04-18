@@ -1,5 +1,4 @@
 # Stuff to DEFINITELY DO
-- Add delete transition(s) option
 - Remove post photo button
 - TEST!!!!!!!!
 
@@ -7,8 +6,8 @@
 - Expand hitbox of arrow in edit page
 
 # Test
-- Time test photos
-- Test lighting issue
+- Draw up front-end tests
+- Do photo testing with accuracy and record time
 
 # Optimise photo to DFA
 - Detect text
@@ -16,23 +15,3 @@
 ? Allow states to be moved
 
 # Bugs
-
-Simplifying not working:
-
-{
-  "structure":
-  {
-    "isDfa":true,
-    "states":
-    [
-      { "id":0, "name":"q0", "isStart":false, "isFinal":false }, 
-      { "id":1, "name":"q1", "isStart":true, "isFinal":false }
-    ],
-    "transitions":
-    [
-      { "id":0, "start":1, "end":1, "token":"0" }, 
-      { "id":1, "start":1, "end":1, "token":"1" }
-    ]
-  },
-  "type":"nfa"
-}

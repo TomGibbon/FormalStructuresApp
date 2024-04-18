@@ -657,13 +657,15 @@ const NFADrawing = (
       options.push('Remove ε transition');
       containsEpsilon = true;
     } else {
-      options.push('Add ε transition');
+      options.push('Add ε Transition');
       containsEpsilon = false;
     }
+    options.push('Delete Transition(s)');
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options: options,
         cancelButtonIndex: 0,
+        destructiveButtonIndex: 5,
       },
       buttonIndex => {
         switch (buttonIndex) {
@@ -788,6 +790,35 @@ const NFADrawing = (
             }
             setCurrentStructure(newStructure);
             setSelectedTransitionArrow(undefined);
+            break;
+          case 5:
+            // Delete transition(s)
+            Alert.alert(
+              'Warning',
+              'Are you sure you want to delete these transition(s)?',
+              [
+                {
+                  text: 'Delete Transition(s)',
+                  onPress: () => {
+                    newNfa.transitions = newNfa.transitions.filter(
+                      t =>
+                        transitions.find(
+                          selectedTransition => selectedTransition.id === t.id
+                        ) === undefined
+                    );
+                    setCurrentStructure(newStructure);
+                    setSelectedState(undefined);
+                  },
+                  style: 'destructive',
+                },
+                {
+                  text: 'Cancel',
+                  onPress: () => setSelectedState(undefined),
+                  style: 'cancel',
+                },
+              ]
+            );
+            break;
         }
       }
     );
