@@ -1003,7 +1003,6 @@ namespace mainCode {
   }
 
   NFA simplifyDFA(NFA oldDfa) {
-    // cout << "\n\n";
     MathmaticalDFA dfa(oldDfa);
 
     // Removing unreachable states
@@ -1032,8 +1031,16 @@ namespace mainCode {
         finalStates.insert(stateId);
       }
     }
-    set<set<int>> p = { finalStates, nonFinalStates };
-    set<set<int>> w = { finalStates, nonFinalStates };
+
+    // Must not add empty sets as Hopcrofts algorithm cannot remove them.
+    set<set<int>> p;
+    if (!finalStates.empty()) {
+      p.insert(finalStates);
+    }
+    if (!nonFinalStates.empty()) {
+      p.insert(nonFinalStates);
+    }
+    set<set<int>> w = p;
 
     // Hopcrofts algorithm
     while (!w.empty()) {

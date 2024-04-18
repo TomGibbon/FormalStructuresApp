@@ -302,12 +302,14 @@ bool simplifyDFATest() {
   Transition pt4(4, 2, 2, "0");
   Transition pt5(5, 2, 2, "1");
   vector<Transition> predictedTransitions = { pt0, pt1, pt2, pt3, pt4, pt5 };
-  NFA predictedNfa(true, predictedStates, predictedTransitions);
-  string predictedResult = predictedNfa.convertToJSON(true);
+  NFA predictedDfa(true, predictedStates, predictedTransitions);
+  string predictedResult = predictedDfa.convertToJSON(true);
   string result = simplifyDFA(dfa).convertToJSON(true);
   bool passed = result == predictedResult;
   overralResult = overralResult && passed;
+  printOutcome(passed);
 
+  cout << "- DFA with unreachable states: ";
   dfa.States = { s0, s3, s1, s2 };
   Transition t14(14, 0, 3, "0");
   Transition t15(15, 0, 1, "1");
@@ -318,7 +320,67 @@ bool simplifyDFATest() {
   Transition t20(20, 2, 0, "0");
   Transition t21(21, 2, 0, "1");
   dfa.Transitions = { t14, t15, t16, t17, t18, t19, t20, t21 };
-  
+  result = simplifyDFA(dfa).convertToJSON(true);
+  Transition pt6(0, 0, 2, "0");
+  Transition pt7(1, 0, 1, "1");
+  Transition pt8(2, 1, 1, "0");
+  Transition pt9(3, 1, 1, "1");
+  Transition pt10(4, 2, 1, "0");
+  Transition pt11(5, 2, 1, "1");
+  predictedTransitions = { pt6, pt7, pt8, pt9, pt10, pt11 };
+  predictedDfa.Transitions = predictedTransitions;
+  predictedResult = predictedDfa.convertToJSON(true);
+  result = simplifyDFA(dfa).convertToJSON(true);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- DFA with no final states: ";
+  State s7(1, "q1", false, false);
+  dfa.States = { s0, s3, s7 };
+  dfa.Transitions = { t14, t15, t16, t17, t18, t19 };
+  predictedStates = { s0 };
+  Transition pt12(0, 0, 0, "0");
+  Transition pt13(1, 0, 0, "1");
+  predictedTransitions = { pt12, pt13 };
+  predictedDfa.States = predictedStates;
+  predictedDfa.Transitions = predictedTransitions;
+  predictedResult = predictedDfa.convertToJSON(true);
+  result = simplifyDFA(dfa).convertToJSON(true);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- DFA with only final states: ";
+  State s8(0, "q0", true, true);
+  State s9(1, "q1", false, true);
+  State s10(2, "q2", false, true);
+  dfa.States = { s8, s9, s10 };
+  Transition t22(0, 0, 1, "0");
+  Transition t23(1, 0, 2, "1");
+  Transition t24(2, 1, 2, "0");
+  Transition t25(3, 1, 2, "1");
+  Transition t26(4, 2, 2, "0");
+  Transition t27(5, 2, 2, "1");
+  dfa.Transitions = { t22, t23, t24, t25, t26, t27 };
+  predictedStates = { s8 };
+  predictedDfa.States = predictedStates;
+  predictedResult = predictedDfa.convertToJSON(true);
+  result = simplifyDFA(dfa).convertToJSON(true);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- DFA that cannot be simplified: ";
+  State s11(1, "q1", false, false);
+  State s12(2, "q2", false, true);
+  dfa.States = { s0, s11, s12 };
+  predictedDfa = dfa;
+  predictedResult = predictedDfa.convertToJSON(true);
+  result = simplifyDFA(dfa).convertToJSON(true);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
 
   return overralResult;
 }
@@ -326,7 +388,7 @@ bool simplifyDFATest() {
 bool convertNFAtoDFATest() {
   bool overallResult = true;
 
-  cout << "\n- NFA 1: ";
+  cout << "- Normal NFA: ";
   State s0(0, "a", true, false);
   State s1(1, "b", false, false);
   State s2(2, "c", false, false);
@@ -341,7 +403,6 @@ bool convertNFAtoDFATest() {
   Transition t6(6, 3, 3, "0");
   vector<Transition> transitions = { t0, t1, t2, t3, t4, t5, t6 };
   NFA nfa(false, states, transitions);
-
   State ps0(0, "q0", false, false);
   State ps1(1, "q1", true, true);
   State ps2(2, "q2", false, true);
@@ -358,13 +419,12 @@ bool convertNFAtoDFATest() {
   vector<Transition> predictedTransitions = { pt0, pt1, pt2, pt3, pt4, pt5, pt6, pt7 };
   NFA predictedNfa(true, predictedStates, predictedTransitions);
   string predictedResult = predictedNfa.convertToJSON(true);
-
   string result = convertNFAtoDFA(nfa).convertToJSON(true);
   bool passed = result == predictedResult;
   overallResult = overallResult && passed;
   printOutcome(passed);
 
-  cout << "- NFA 2: ";
+  cout << "- NFA with unreachable state: ";
   State s4(4, "q4", false, false);
   states = { s0, s1, s2, s3, s4 };
   nfa.States = states;
@@ -376,8 +436,8 @@ bool convertNFAtoDFATest() {
   overallResult = overallResult && passed;
   printOutcome(passed);
 
-  cout << "- NFA 3: ";
-  State s5(4, "e", false, false);
+  cout << "- NFA with reachable state that cannot lead to final state: ";
+  State s5(4, "q4", false, false);
   states = { s0, s1, s2, s3, s5 };
   nfa.States = states;
   Transition t8(7, 0, 4, "ε");
@@ -418,7 +478,6 @@ bool runDFATest() {
   transitions.push_back(Transition(13, 6, 6, "1"));
   NFA dfa(true, states, transitions);
   string word = "000010011";
-
   set<int> predictedResult = { 5 };
   set<int> result = runDFA(dfa, word);
 
@@ -426,34 +485,67 @@ bool runDFATest() {
 }
 
 bool runNFATest() {
-  vector<State> states;
-  states.push_back(State(0, "a", true, false));
-  states.push_back(State(1, "b", false, false));
-  states.push_back(State(2, "c", false, false));
-  states.push_back(State(3, "d", false, true));
-  vector<Transition> transitions;
-  transitions.push_back(Transition(0, 0, 1, "1"));
-  transitions.push_back(Transition(1, 0, 2, "ε"));
-  transitions.push_back(Transition(2, 0, 3, "1"));
-  transitions.push_back(Transition(3, 1, 3, "0"));
-  transitions.push_back(Transition(4, 1, 3, "1"));
-  transitions.push_back(Transition(5, 2, 3, "ε"));
-  transitions.push_back(Transition(6, 3, 3, "0"));
-  transitions.push_back(Transition(7, 1, 2, "2"));
-  transitions.push_back(Transition(8, 1, 2, "1"));
+  bool overralResult = true;
+
+  cout << "- Normal word: ";
+  State s0(0, "a", true, false);
+  State s1(1, "b", false, false);
+  State s2(2, "c", false, false);
+  State s3(3, "d", false, true);
+  vector<State> states = { s0, s1, s2, s3 };
+  Transition t0(0, 0, 1, "1");
+  Transition t1(1, 0, 2, "ε");
+  Transition t2(2, 0, 3, "1");
+  Transition t3(3, 1, 3, "0");
+  Transition t4(4, 1, 3, "1");
+  Transition t5(5, 2, 3, "ε");
+  Transition t6(6, 3, 3, "0");
+  Transition t7(7, 3, 1, "1");
+  vector<Transition> transitions = { t0, t1, t2, t3, t4, t5, t6, t7 };
   NFA nfa(false, states, transitions);
   string word = "1100";
-
   set<int> predictedResult = { 3 };
   set<int> result = runNFA(nfa, word);
+  bool passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
 
-  return result == predictedResult;
+  cout << "- Word that ends on no states: ";
+  transitions = { t0, t1, t2, t3, t4, t5, t6 };
+  nfa.Transitions = transitions;
+  word = "01";
+  predictedResult = {};
+  result = runNFA(nfa, word);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- Word that reaches no states before end: ";
+  word = "011";
+  predictedResult = {};
+  result = runNFA(nfa, word);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- Word that ends on a state with epsilon transitions: ";
+  Transition t8(8, 1, 2, "ε");
+  transitions = { t0, t3, t4, t6, t7, t8 };
+  nfa.Transitions = transitions;
+  word = "1";
+  predictedResult = { 1, 2 };
+  result = runNFA(nfa, word);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  return overralResult;
 }
 
 bool validateNFATest() {
   bool overallPass = true;
 
-  cout << "\n- Duplicate names: ";
+  cout << "- Structure with duplicate names: ";
   State s0(0, "a", true, true);
   State s1(1, "a", false, false);
   vector<State> states = { s0, s1 };
@@ -465,7 +557,7 @@ bool validateNFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- No starting state: ";
+  cout << "- Structure with no starting state: ";
   states = { s1 };
   nfa.States = states;
   predictedResult = 2;
@@ -474,7 +566,7 @@ bool validateNFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- More than one starting state: ";
+  cout << "- Structure with two starting states: ";
   State s2(2, "b", true, false);
   states = { s0, s2 };
   nfa.States = states;
@@ -484,11 +576,11 @@ bool validateNFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- Duplicate transition: ";
+  cout << "- Structure with duplicate transitions: ";
   states = { s1, s2 };
-  Transition t1(0, 1, 2, "0");
-  Transition t2(1, 1, 2, "0");
-  transitions = { t1, t2 };
+  Transition t0(0, 1, 2, "0");
+  Transition t1(1, 1, 2, "0");
+  transitions = { t0, t1 };
   nfa.States = states;
   nfa.Transitions = transitions;
   predictedResult = 3;
@@ -497,7 +589,7 @@ bool validateNFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- Allowed: ";
+  cout << "- Valid NFA: ";
   transitions = { t1 };
   nfa.Transitions = transitions;
   predictedResult = 0;
@@ -506,23 +598,13 @@ bool validateNFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
   
-  cout << "- Custom: ";
-  State ss0(0, "a", true, false);
-  State ss1(1, "a", false, false);
-  State ss2(2, "c", false, false);
-  State ss3(3, "d", false, true);
-  states = { ss0, ss1, ss2, ss3 };
-  Transition tt0(0, 0, 1, "1");
-  Transition tt1(1, 0, 2, "ε");
-  Transition tt2(2, 0, 3, "1");
-  Transition tt3(3, 1, 3, "0");
-  Transition tt4(4, 1, 3, "1");
-  Transition tt5(5, 2, 3, "ε");
-  Transition tt6(6, 3, 3, "0");
-  transitions = { tt0, tt1, tt2, tt3, tt4, tt5, tt6 };
-  nfa.States = states;
+  cout << "- Valid DFA: ";
+  Transition t2(2, 1, 1, "1");
+  Transition t3(3, 2, 2, "0");
+  Transition t4(4, 2, 1, "1");
+  transitions = { t0, t2, t3, t4 };
   nfa.Transitions = transitions;
-  predictedResult = 1;
+  predictedResult = 0;
   result = validateNFA(nfa);
   passed = result == predictedResult;
   overallPass = overallPass && passed;
@@ -534,7 +616,7 @@ bool validateNFATest() {
 bool checkIfDFATest() {
   bool overallPass = true;
 
-  cout << "\n- NFA with missing transition: ";
+  cout << "- NFA with missing transition: ";
   State s0(0, "a", true, false);
   State s1(1, "b", false, true);
   vector<State> states = { s0, s1 };
@@ -560,9 +642,19 @@ bool checkIfDFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  cout << "- NFA with epsilon transition: ";
+  cout << "- NFA with epsilon transition to itself: ";
   Transition t5(5, 0, 0, "ε");
   transitions = { t0, t1, t2, t3, t5 };
+  nfa.Transitions = transitions;
+  predictedResult = false;
+  result = checkIfDFA(nfa);
+  passed = result == predictedResult;
+  overallPass = overallPass && passed;
+  printOutcome(passed);
+
+  cout << "- NFA with epsilon transition to other state: ";
+  Transition t6(5, 0, 1, "ε");
+  transitions = { t0, t1, t2, t3, t6 };
   nfa.Transitions = transitions;
   predictedResult = false;
   result = checkIfDFA(nfa);
@@ -606,7 +698,7 @@ int main() {
   tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
   tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
   tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
-  tests.push_back(TestObject("runDFA", runDFATest, true));
+  tests.push_back(TestObject("runDFA", runDFATest, false));
   tests.push_back(TestObject("runNFA", runNFATest, true));
   tests.push_back(TestObject("validateNFA", validateNFATest, true));
   tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
@@ -620,11 +712,12 @@ int main() {
     }
     try {
       if (test.Function()) {
-        cout << greenColor << "Passed!\n";
+        cout << greenColor << "Passed!";
         numPassed++;
       } else {
-        cout << redColor << "Failed\n";
+        cout << redColor << "Failed";
       }
+      cout << "\n\n";
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << "\n";
     }

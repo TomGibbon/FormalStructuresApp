@@ -14,3 +14,25 @@
 - Detect text
 - Allow crossed arrows
 ? Allow states to be moved
+
+# Bugs
+
+Simplifying not working:
+
+{
+  "structure":
+  {
+    "isDfa":true,
+    "states":
+    [
+      { "id":0, "name":"q0", "isStart":false, "isFinal":false }, 
+      { "id":1, "name":"q1", "isStart":true, "isFinal":false }
+    ],
+    "transitions":
+    [
+      { "id":0, "start":1, "end":1, "token":"0" }, 
+      { "id":1, "start":1, "end":1, "token":"1" }
+    ]
+  },
+  "type":"nfa"
+}
