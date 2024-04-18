@@ -24,6 +24,7 @@ type EditPageProps = {
   setPageNumber: (newPageNumber: number) => void;
   structure: Structure;
   setStructure: (newStructure: Structure) => void;
+  setSavedStructure: (newStructure: Structure) => void;
 };
 
 const EditPage = (props: EditPageProps) => {
@@ -157,6 +158,7 @@ const EditPage = (props: EditPageProps) => {
           const newNfa = newStructure.structure as NFA;
           newNfa.isDfa = isDfa;
           props.setStructure(newStructure);
+          props.setSavedStructure(newStructure);
           await addToPreviousStructures(newStructure);
         }
         props.setPageNumber(0);

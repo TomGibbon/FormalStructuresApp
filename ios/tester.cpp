@@ -9,8 +9,9 @@ class TestObject {
   public:
     string Name;
     bool (*Function)();
+    bool MultipleTests;
 
-    TestObject(string name, bool (*function)()) : Name(name), Function(function) {}
+    TestObject(string name, bool (*function)(), bool multipleTests) : Name(name), Function(function), MultipleTests(multipleTests) {}
 };
 
 const char* greenColor = "\033[32m";
@@ -156,8 +157,8 @@ bool setIntersectionTest() {
   bool overralResult = true;
 
   cout << "- No common values: ";
-  set<int> set1 = { 0, 4, 2, 1, 1, 5 };
-  set<int> set2 = { 3, 7, 6, 6 };
+  set<int> set1 = { 0, 4, 2, 1, 5 };
+  set<int> set2 = { 3, 7, 6 };
   set<int> predictedResult = {};
   set<int> result = setIntersection(set1, set2);
   bool passed = result == predictedResult;
@@ -165,7 +166,6 @@ bool setIntersectionTest() {
   printOutcome(passed);
 
   cout << "- Common values: ";
-  set1 = { 0, 4, 2, 1, 1, 5 };
   set2 = { 1, 3, 7, 6, 5, 2 };
   predictedResult = { 1, 2, 5 };
   result = setIntersection(set1, set2);
@@ -178,11 +178,20 @@ bool setIntersectionTest() {
 
 bool setUnionTest() {
   bool overralResult = true;
-  set<int> set1 = { 0, 4, 2, 1, 1, 5 };
-  set<int> set2 = { 1, 3, 7, 6, 5, 2 };
+
+  cout << "- No common values: ";
+  set<int> set1 = { 0, 4, 2, 1, 5 };
+  set<int> set2 = { 3, 7, 6 };
   set<int> predictedResult = { 0, 1, 2, 3, 4, 5, 6, 7 };
   set<int> result = setUnion(set1, set2);
   bool passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- Common values: ";
+  set2 = { 1, 3, 7, 6, 5, 2 };
+  result = setUnion(set1, set2);
+  passed = result == predictedResult;
   overralResult = overralResult && passed;
   printOutcome(passed);
 
@@ -192,28 +201,72 @@ bool setUnionTest() {
 bool setDifferenceTest() {
   bool overallPass = true;
 
-  cout << "\n- Set: ";
-  set<int> set1 = { 0, 4, 2, 1, 1, 5 };
-  set<int> set2 = { 1, 3, 7, 6, 5, 2 };
-  set<int> predictedResult1 = { 0, 4 };
-  set<int> result1 = setDifference(set1, set2);
-  bool passed = result1 == predictedResult1;
+  cout << "- No common values: ";
+  set<int> set1 = { 0, 4, 2, 1, 5 };
+  set<int> set2 = { 3, 7, 6 };
+  set<int> predictedResult1 = { 0, 4, 2, 1, 5 };
+  set<int> result = setDifference(set1, set2);
+  bool passed = result == predictedResult1;
   overallPass = overallPass && passed;
   printOutcome(passed);
 
-  // cout << "- Vector: ";
-  // vector<int> vector1 = { 0, 4, 2, 1, 1, 5 };
-  // vector<int> vector2 = { 1, 3, 7, 6, 5, 2 };
-  // vector<int> predictedResult2 = { 0, 4 };
-  // vector<int> result2 = vectorDifference(vector1, vector2);
-  // passed = result2 == predictedResult2;
-  // overallPass = overallPass && passed;
-  // printOutcome(passed);
+  cout << "- Common values: ";
+  set2 = { 1, 3, 7, 6, 5, 2 };
+  predictedResult1 = { 0, 4 };
+  result = setDifference(set1, set2);
+  passed = result == predictedResult1;
+  overallPass = overallPass && passed;
+  printOutcome(passed);
 
   return overallPass;
 }
 
+bool getStatesTest() {
+  State s0(0, "q0", true, false);
+  State s1(1, "q1", false, false);
+  State s2(2, "q2", false, true);
+  vector<State> states = { s0, s1, s2 };
+  set<int> predictedResult = { 0, 1, 2 };
+  set<int> result = getStates(states);
+  return result == predictedResult;
+}
+
+bool getAlphabetTest() {
+  Transition t0(0, 0, 1, "0");
+  Transition t1(1, 1, 4, "0");
+  Transition t2(2, 2, 3, "1");
+  Transition t3(3, 3, 1, "a");
+  Transition t4(4, 2, 2, "ε");
+  vector<Transition> transitions = { t0, t1, t2, t3, t4 };
+  set<string> predictedResult = { "0", "1", "a", "ε" };
+  set<string> result = getAlphabet(transitions);
+  return result == predictedResult;
+}
+
+bool getStartStateTest() {
+  State s0(0, "q0", true, false);
+  State s1(1, "q1", false, false);
+  State s2(2, "q2", false, true);
+  vector<State> states = { s0, s1, s2 };
+  int predictedResult = 0;
+  int result = getStartState(states);
+  return result == predictedResult;
+}
+
+bool getFinalStatesTest() {
+  State s0(0, "q0", true, false);
+  State s1(1, "q1", false, false);
+  State s2(2, "q2", false, true);
+  vector<State> states = { s0, s1, s2 };
+  set<int> predictedResult = { 2 };
+  set<int> result = getFinalStates(states);
+  return result == predictedResult;
+}
+
 bool simplifyDFATest() {
+  bool overralResult = true;
+
+  cout << "- DFA that can be simplified: ";
   State s0(0, "q0", true, false);
   State s1(1, "q1", false, true);
   State s2(2, "q2", false, true);
@@ -238,7 +291,6 @@ bool simplifyDFATest() {
   Transition t13(13, 6, 6, "1");
   vector<Transition> transitions = { t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13 };
   NFA dfa(true, states, transitions);
-
   State ps0(0, "q0", true, false);
   State ps1(1, "q1", false, true);
   State ps2(2, "q2", false, false);
@@ -253,7 +305,22 @@ bool simplifyDFATest() {
   NFA predictedNfa(true, predictedStates, predictedTransitions);
   string predictedResult = predictedNfa.convertToJSON(true);
   string result = simplifyDFA(dfa).convertToJSON(true);
-  return result == predictedResult;
+  bool passed = result == predictedResult;
+  overralResult = overralResult && passed;
+
+  dfa.States = { s0, s3, s1, s2 };
+  Transition t14(14, 0, 3, "0");
+  Transition t15(15, 0, 1, "1");
+  Transition t16(16, 3, 1, "0");
+  Transition t17(17, 3, 1, "1");
+  Transition t18(18, 1, 1, "0");
+  Transition t19(19, 1, 1, "1");
+  Transition t20(20, 2, 0, "0");
+  Transition t21(21, 2, 0, "1");
+  dfa.Transitions = { t14, t15, t16, t17, t18, t19, t20, t21 };
+  
+
+  return overralResult;
 }
 
 bool convertNFAtoDFATest() {
@@ -528,22 +595,29 @@ bool photoToNFATest() {
 
 int main() {
   vector<TestObject> tests;
-  tests.push_back(TestObject("mathmaticalDFAConstructor", mathmaticalDFAConstructorTest));
-  tests.push_back(TestObject("mathmaticalNFAConstructor", mathmaticalNFAConstructorTest));
-  tests.push_back(TestObject("setIntersection", setIntersectionTest));
-  tests.push_back(TestObject("setUnion", setUnionTest));
-  tests.push_back(TestObject("setDifference", setDifferenceTest));
-  tests.push_back(TestObject("simplifyDFA", simplifyDFATest));
-  tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest));
-  tests.push_back(TestObject("runNFA", runNFATest));
-  tests.push_back(TestObject("runDFA", runDFATest));
-  tests.push_back(TestObject("validateNFA", validateNFATest));
-  tests.push_back(TestObject("checkIfDFA", checkIfDFATest));
+  tests.push_back(TestObject("mathmaticalDFAConstructor", mathmaticalDFAConstructorTest, true));
+  tests.push_back(TestObject("mathmaticalNFAConstructor", mathmaticalNFAConstructorTest, true));
+  tests.push_back(TestObject("setIntersection", setIntersectionTest, true));
+  tests.push_back(TestObject("setUnion", setUnionTest, true));
+  tests.push_back(TestObject("setDifference", setDifferenceTest, true));
+  tests.push_back(TestObject("getStates", getStatesTest, false));
+  tests.push_back(TestObject("getAlphabet", getAlphabetTest, false));
+  tests.push_back(TestObject("getStartState", getStartStateTest, false));
+  tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
+  tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
+  tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
+  tests.push_back(TestObject("runDFA", runDFATest, true));
+  tests.push_back(TestObject("runNFA", runNFATest, true));
+  tests.push_back(TestObject("validateNFA", validateNFATest, true));
+  tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
   // tests.push_back(TestObject("photoToDFA", photoToNFATest));
   // tests.push_back(TestObject("textTrain", textTrainTest));
   int numPassed = 0;
   for (TestObject test : tests) {
-    cout << whiteColor << test.Name << ":\n";
+    cout << whiteColor << test.Name << ": ";
+    if (test.MultipleTests) {
+      cout << "\n";
+    }
     try {
       if (test.Function()) {
         cout << greenColor << "Passed!\n";

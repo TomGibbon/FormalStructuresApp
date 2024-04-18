@@ -29,8 +29,8 @@ type MainPageProps = {
   setPageNumber: (newPage: number) => void;
   structure: Structure;
   setStructure: (newStructure: Structure) => void;
-  originalStructure: Structure;
-  setOriginalStructure: (newStructure: Structure) => void;
+  savedStructure: Structure;
+  setSavedStructure: (newStructure: Structure) => void;
 };
 
 const MainPage = (props: MainPageProps) => {
@@ -107,7 +107,7 @@ const MainPage = (props: MainPageProps) => {
   };
 
   const save = async () => {
-    props.setOriginalStructure(props.structure);
+    props.setSavedStructure(props.structure);
     await addToPreviousStructures(props.structure);
     Alert.alert('Structure saved!', undefined, [{ text: 'OK' }]);
   };
@@ -261,7 +261,7 @@ const MainPage = (props: MainPageProps) => {
           />
           <BasicButton
             small
-            onPress={() => props.setStructure(props.originalStructure)}
+            onPress={() => props.setStructure(props.savedStructure)}
           >
             Use Last Saved Structure
           </BasicButton>
