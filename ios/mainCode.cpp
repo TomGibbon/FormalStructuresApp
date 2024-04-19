@@ -629,6 +629,9 @@ namespace mainCode {
     if (!src.data) {
       return "Could not open file";
     }
+    if (src.cols == 3024 && src.rows == 4032) {
+      resize(src, src, Size(1260, 1680));
+    } 
     cout << "Cols: " << src.cols << ", Rows: " << src.rows << "\n";
     int srcSize = src.cols * src.rows;
     RNG rng;
@@ -636,16 +639,21 @@ namespace mainCode {
     cvtColor(src, gray, COLOR_BGR2GRAY);
     Mat blurred;
     GaussianBlur(gray, blurred, Size(7, 7), 1);
-    double thresholdValue = threshold(blurred, blurred, 0, 255, THRESH_BINARY + THRESH_OTSU); // Gets 
+    Mat outputArray;
+    double thresholdValue = threshold(blurred, outputArray, 0, 255, THRESH_BINARY + THRESH_OTSU);
+    thresholdValue -= 20;
+    cout << "ThresholdValue: " << to_string(thresholdValue) << "\n";
     Mat bin;
     threshold(blurred, bin, thresholdValue, 255, THRESH_BINARY_INV);
     if (testing) {
       imshow("binunthinned", bin);
+      imshow("blurred", blurred);
       waitKey(0);
     }
     thinning(bin, bin);
     Mat res = src.clone();
-    // Mat circleRes = src.clone();
+    Mat circleRes = src.clone();
+    Mat arrowRes = src.clone();
     Mat contourRes = src.clone();
     vector<vector<Point>> contours;
     findContours(bin.clone(), contours, RETR_LIST, CHAIN_APPROX_NONE);
@@ -670,7 +678,7 @@ namespace mainCode {
       double area = contourArea(hull);
       double perimeter = arcLength(hull, true);
       double circularity = (4 * CV_PI * area) / (perimeter * perimeter);
-      if (circularity > 0.9 && area > minCircleArea) {
+      if (circularity > 0.92 && area > minCircleArea) {
 
         // min enclosing circle
         Point2f center;
@@ -686,8 +694,8 @@ namespace mainCode {
         }
 
         if (!duplicate) {
-          // Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-          // circle(circleRes, center, radius, color, 3);
+          Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+          circle(circleRes, center, radius, color, 3);
           detectedCircles.push_back(Circle(center, radius));
         }
         remainingContours.push_back(contour);
@@ -695,43 +703,6 @@ namespace mainCode {
         remainingContours.push_back(contour);
       }
     }
-
-    // Detect text
-    // Ptr<ml::KNearest> knn = textTrain();
-    // vector<vector<Point>> newRemainingContours;
-    // Mat textRes = src.clone();
-    // cout << "averages: \n";
-    // for (vector<Point> contour : contours) {
-    //   Mat emptyBinary(bin.size(), CV_8UC1, Scalar(0));
-    //   drawContours(emptyBinary, vector<vector<Point>>{ contour }, 0, Scalar(255));
-    //   Rect boundingBox = boundingRect(contour);
-    //   Mat cropped = emptyBinary(boundingBox).clone();
-    //   copyMakeBorder(cropped, cropped, 5, 5, 5, 5, BORDER_CONSTANT);
-    //   resize(cropped, cropped, Size(20, 20));
-    //   for (int i = 0; i < cropped.rows; i++) {
-    //     for (int j = 0; j < cropped.cols; j++) {
-    //       if (cropped.at<uchar>(i, j) > 0) {
-    //         cropped.at<uchar>(i, j) = 255;
-    //       }
-    //     }
-    //   } 
-    //   thinning(cropped, cropped);
-    //   Mat test;
-    //   test.push_back(cropped.reshape(1, 1));
-    //   test.convertTo(test, CV_32F);
-    //   Mat result, dist;
-    //   knn->findNearest(test, 5, result, noArray(), dist);
-    //   double minDist;
-    //   minMaxLoc(dist, &minDist);
-    //   cout << "minDist: " << minDist << "\n";
-    //   putText(textRes, to_string(result.at<float>(0, 0)), Point(boundingBox.x, boundingBox.y), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2);
-    //   imshow(to_string(result.at<float>(0, 0)) + " with minDist " + to_string(minDist), cropped);
-    //   waitKey(0);
-    // }
-    // if (testing) {
-    //   imshow("text", textRes);
-    //   waitKey(0);
-    // }
 
     // Detect Arrows
     vector<Arrow> detectedArrows;
@@ -746,17 +717,21 @@ namespace mainCode {
       Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
       drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
       
-      // Mat arrow = newBinary(boundingBox).clone();
-      // for (int y = 0; y < arrow.rows; y++) {
-      //   for (int x = 0; x < arrow.cols; x++) {
-      //     if (arrow.at<uchar>(y, x) == 10) {
-      //       arrow.at<uchar>(y, x) = 255;
-      //     } else {
-      //       arrow.at<uchar>(y, x) = 0;
-      //     }
-      //   }
-      // }
-      // copyMakeBorder(arrow, arrow, 5, 5, 5, 5, BORDER_CONSTANT);
+      Mat arrow = newBinary(boundingBox).clone();
+      for (int y = 0; y < arrow.rows; y++) {
+        for (int x = 0; x < arrow.cols; x++) {
+          if (arrow.at<uchar>(y, x) == 10) {
+            arrow.at<uchar>(y, x) = 255;
+          } else {
+            arrow.at<uchar>(y, x) = 0;
+          }
+        }
+      }
+      copyMakeBorder(arrow, arrow, 5, 5, 5, 5, BORDER_CONSTANT);
+      if (testing) {
+        imshow("arrow", arrow);
+        waitKey(0);
+      }
 
       // Extract end points
       int kernelData[3][3] = {
@@ -777,8 +752,8 @@ namespace mainCode {
         }
       }
 
-      // Mat arrowEndPointImg = endPointImg(boundingBox).clone();
-      // copyMakeBorder(arrowEndPointImg, arrowEndPointImg, 5, 5, 5, 5, BORDER_CONSTANT);
+      Mat arrowEndPointImg = endPointImg(boundingBox).clone();
+      copyMakeBorder(arrowEndPointImg, arrowEndPointImg, 5, 5, 5, 5, BORDER_CONSTANT);
 
       // Find clusters
       vector<Point> nonZeroPoints;
@@ -828,24 +803,24 @@ namespace mainCode {
 
       // Draw onto res
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-      // circle(res, tip, 5, color, FILLED);
-      // circle(res, tail, 5, color, FILLED);
+      circle(arrowRes, tip, 20, color, FILLED);
+      circle(arrowRes, tail, 20, color, FILLED);
       // string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
       // putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
 
       detectedArrows.push_back(Arrow(tip, tail));
 
-      // circle(arrowClusteredUnCropped, tip, 5, Scalar(0, 0, 255), FILLED);
-      // circle(arrowClusteredUnCropped, tail, 5, Scalar(0, 0, 255), FILLED);
-      // Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
-      // copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
+      circle(arrowClusteredUnCropped, tip, 5, Scalar(0, 0, 255), FILLED);
+      circle(arrowClusteredUnCropped, tail, 5, Scalar(0, 0, 255), FILLED);
+      Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
+      copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
 
-      // if (testing) {
-      //   // imshow("arrow", arrow);
-      //   // imshow("end points", arrowEndPointImg);
-      //   imshow("clustered", arrowClustered);
-      //   waitKey(0);
-      // }
+      if (testing) {
+        imshow("arrow", arrow);
+        imshow("end points", arrowEndPointImg);
+        imshow("clustered", arrowClustered);
+        waitKey(0);
+      }
     }
 
     // Generate NFA
@@ -853,17 +828,11 @@ namespace mainCode {
     vector<Circle> circlesToSkip;
     int stateId = 0;
     for (Circle circle : detectedCircles) {
-      cout << "circlesToSkip: {";
-      for (Circle c : circlesToSkip) {
-        cout << "(" << c.Center << ", " << c.Radius << ")  ";
-      }
-      cout << "}\nCircle: {" << circle.Center << ", " << circle.Radius << "}\n";
       // Check if current circle is a final inner ring
       bool found = false;
       for (Circle innerCircle : circlesToSkip) {
         if (innerCircle.Center.x == circle.Center.x && innerCircle.Center.y == circle.Center.y && innerCircle.Radius == circle.Radius) {
           found = true;
-          cout << "Inner circle already visitied\n";
           break;
         }
       }
@@ -875,7 +844,6 @@ namespace mainCode {
           bool circleWithinSecond = (circle.Radius < secondCircle.Radius && circle.Radius > secondCircle.Radius / 2);
           bool circlesWithinEachOther = sqrt(std::pow(circle.Center.x - secondCircle.Center.x, 2) + std::pow(circle.Center.y - secondCircle.Center.y, 2)) < abs(circle.Radius - secondCircle.Radius);
           if ((circleWithinSecond || secondWithinCircle) && circlesWithinEachOther) {
-            cout << "Inner circle detected!!\n";
             isFinal = true;
             if (circle.Radius > secondCircle.Radius) {
               stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true), circle));
@@ -901,17 +869,13 @@ namespace mainCode {
     int startId = -1;
     int transitionId = 0;
     for (Arrow arrow : detectedArrows) {
-      cout << "\n\nArrow: {" << arrow.Tip << ", " << arrow.Tail << "}\n";
       float minTipDistance = INFINITY;
       float minTailDistance = INFINITY;
       StateCircle tipStateCircle;
       StateCircle tailStateCircle;
       for (StateCircle stateCircle : stateCircles) {
-        cout << "Checking Circle: {" << stateCircle.CorrespondingCircle.Center << ", " << stateCircle.CorrespondingCircle.Radius << "}\n";
         float tipDistance = sqrt(std::pow(arrow.Tip.x - stateCircle.CorrespondingCircle.Center.x, 2) + std::pow(arrow.Tip.y - stateCircle.CorrespondingCircle.Center.y, 2));
         float tailDistance = sqrt(std::pow(arrow.Tail.x - stateCircle.CorrespondingCircle.Center.x, 2) + std::pow(arrow.Tail.y - stateCircle.CorrespondingCircle.Center.y, 2));
-        cout << "tipDistance: " << tipDistance << "\n";
-        cout << "tailDistance: " << tailDistance << "\n";
         if (tipDistance < minTipDistance) {
           minTipDistance = tipDistance;
           tipStateCircle = stateCircle;
@@ -922,23 +886,21 @@ namespace mainCode {
         }
       }
       // Check if starting arrow
-      cout << "\nminTipDistance: " << minTipDistance << "\n";
-      cout << "minTailDistance: " << minTailDistance << "\n";
-      cout << "tipStateRadius: " << tipStateCircle.CorrespondingCircle.Radius << "\n";
-      cout << "tailStateRadius: " << tailStateCircle.CorrespondingCircle.Radius << "\n";
-      if (minTipDistance < tipStateCircle.CorrespondingCircle.Radius * 2) { // Arrow too far away
-        if (minTailDistance > 1.5 * tailStateCircle.CorrespondingCircle.Radius) {
+      if (minTipDistance < 2.5 * tipStateCircle.CorrespondingCircle.Radius) { // Arrow too far away
+        if (minTailDistance > 1.7 * tailStateCircle.CorrespondingCircle.Radius) {
+          Scalar color = Scalar(0, 0, 255);
+          circle(res, arrow.Tip, 5, color, FILLED);
+          circle(res, arrow.Tail, 5, color, FILLED);
+          putText(res, "START", arrow.Tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
           if (startId == -1) {
             startId = tipStateCircle.CorrespondingState.Id;
-            Scalar color = Scalar(0, 0, 255);
-            circle(res, arrow.Tip, 5, color, FILLED);
-            circle(res, arrow.Tail, 5, color, FILLED);
-            putText(res, "START", arrow.Tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
-            cout << "Start arrow\n";
           } else {
+            cout << "\nFailed: More than 1 start state\n";
             if (testing) {
               imshow("contours", contourRes);
               imshow("result", res);
+              imshow("circles", circleRes);
+              imshow("arrows", arrowRes);
               waitKey(0);
             }
             return "More than 1 start state";
@@ -953,9 +915,12 @@ namespace mainCode {
       }
     }
     if (startId == -1) {
+      cout << "\nFailed: No start state\n";
       if (testing) {
         imshow("contours", contourRes);
         imshow("result", res);
+        imshow("circles", circleRes);
+        imshow("arrows", arrowRes);
         waitKey(0);
       }
       return "No start state";
@@ -970,11 +935,11 @@ namespace mainCode {
           noTransitions = false;
         }
       }
-      if (noTransitions && !state.IsStart) {
-        continue;
-      }
       if (state.Id == startId) {
         state.IsStart = true;
+      }
+      if (noTransitions && !state.IsStart) {
+        continue;
       }
       states.push_back(state);
       Scalar color = Scalar(255, 0, 0);
@@ -986,6 +951,7 @@ namespace mainCode {
     }
 
     NFA nfa(false, states, transitions);
+
     bool isDFA = checkIfDFA(nfa);
     nfa.IsDfa = isDFA;
 
@@ -993,8 +959,9 @@ namespace mainCode {
 
     if (testing) {
       imshow("bin", bin);
-      // imshow("circles", circleRes);
       imshow("contours", contourRes);
+      imshow("circles", circleRes);
+      imshow("arrows", arrowRes);
       imshow("result", res);
       waitKey(0);
     }

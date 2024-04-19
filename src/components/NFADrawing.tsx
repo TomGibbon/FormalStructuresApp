@@ -72,10 +72,8 @@ export const exportNFA = (nfa: NFA) => {
     angle: number,
     token: string
   ) => {
-    const ellipseCenterX =
-      stateX + (stateRadius + curveRadius1 - 9) * Math.cos(angle); // -9 is not exact
-    const ellipseCenterY =
-      stateY + (stateRadius + curveRadius1 - 9) * Math.sin(angle);
+    const ellipseCenterX = stateX + (stateRadius + curveRadius1 - 9) * Math.cos(angle); // -9 is not exact
+    const ellipseCenterY = stateY + (stateRadius + curveRadius1 - 9) * Math.sin(angle);
 
     const rightAngle = angle + Math.PI / 2;
 
@@ -86,10 +84,7 @@ export const exportNFA = (nfa: NFA) => {
   };
 
   const calculateStateLocation = (id: number) => {
-    const structureRadius =
-      nfa.states.length === 1
-        ? 0
-        : (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
+    const structureRadius = nfa.states.length === 1 ? 0 : (stateRadius * nfa.states.length * mainRadiusMultiplier) / Math.PI;
     let index = -1;
     for (let i = 0; i < nfa.states.length; i++) {
       if (nfa.states[i].id === id) {
@@ -99,12 +94,8 @@ export const exportNFA = (nfa: NFA) => {
     }
     if (index !== -1) {
       return {
-        x:
-          -structureRadius *
-          Math.cos((index * 2 * Math.PI) / nfa.states.length),
-        y:
-          -structureRadius *
-          Math.sin((index * 2 * Math.PI) / nfa.states.length),
+        x: -structureRadius * Math.cos((index * 2 * Math.PI) / nfa.states.length),
+        y: -structureRadius * Math.sin((index * 2 * Math.PI) / nfa.states.length),
       };
     } else {
       return { x: 0, y: 0 };

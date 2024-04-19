@@ -111,8 +111,6 @@ namespace mainCode {
   set<T> setUnion(set<T> set1, set<T> set2);
   template <typename T>
   set<T> setDifference(set<T> set1, set<T> set2);
-  template <typename T>
-  vector<T> vectorDifference(vector<T> vec1, vector<T> vec2);
 
   // DFA / NFA functions
   set<int> getStates(vector<State> states);
