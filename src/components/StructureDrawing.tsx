@@ -65,7 +65,7 @@ export const exportSVG = (structure: Structure) => {
       });
     })
     .catch(err => {
-      console.log(err.message);
+      console.error(err.message);
     });
 };
 

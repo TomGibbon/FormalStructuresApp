@@ -71,11 +71,8 @@ const CameraPage = (props: CameraPageProps) => {
     }
     try {
       props.setIsLoading(true);
-      console.log(photo.path);
       const result = await CPPCode.photoToNFA(photo.path);
-      console.log(result);
       try {
-        // const processedResult = getDefaultStructureLocation(JSON.parse(result));
         const processedResult = JSON.parse(result);
         props.setStructure(processedResult);
         props.setPageNumber(0);

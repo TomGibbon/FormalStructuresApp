@@ -761,7 +761,7 @@ namespace mainCode {
       if (nonZeroPoints.size() != 3 && nonZeroPoints.size() != 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
         continue;
       }
-        
+      
       Mat points(nonZeroPoints.size(), 2, CV_32SC1);
       for (int i = 0; i < nonZeroPoints.size(); i++) {
         points.at<int>(i, 0) = nonZeroPoints[i].x;
@@ -1156,7 +1156,11 @@ namespace mainCode {
     int currentState = dfa.StartState;
     for (char character : word) {
       string characterString(1, character);
-      currentState = dfa.TransitionTable[currentState][characterString];
+      if (dfa.TransitionTable[currentState].count(characterString) > 0) { // Must check, as an undefined transition will default in 0
+        currentState = dfa.TransitionTable[currentState][characterString];
+      } else {
+        return set<int> {};
+      }
     }
     return set<int> { currentState };
   }
@@ -1171,7 +1175,7 @@ namespace mainCode {
       for (int currentState : currentStates) {
         set<int> epsilonClosure = nfa.TransitionTable[currentState]["ε"];
         for (int epsilonState : epsilonClosure) {
-          newStates = setUnion(newStates, nfa.TransitionTable[epsilonState][characterString]);
+          newStates = setUnion(newStates, nfa.TransitionTable[epsilonState][characterString]); // No need to check if transition exists, default value would be {} which is the desired outcome
         }
       }
       currentStates = newStates;

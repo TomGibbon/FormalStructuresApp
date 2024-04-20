@@ -454,6 +454,9 @@ bool convertNFAtoDFATest() {
 }
 
 bool runDFATest() {
+  bool overralResult = true;
+
+  cout << "- Normal word: ";
   vector<State> states;
   states.push_back(State(0, "q0", true, false));
   states.push_back(State(1, "q1", false, true));
@@ -481,6 +484,17 @@ bool runDFATest() {
   string word = "000010011";
   set<int> predictedResult = { 5 };
   set<int> result = runDFA(dfa, word);
+  bool passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- Word using characters not in alphabet: ";
+  word = "azb";
+  predictedResult = {};
+  result = runDFA(dfa, word);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
 
   return result == predictedResult;
 }
@@ -535,6 +549,14 @@ bool runNFATest() {
   nfa.Transitions = transitions;
   word = "1";
   predictedResult = { 1, 2 };
+  result = runNFA(nfa, word);
+  passed = result == predictedResult;
+  overralResult = overralResult && passed;
+  printOutcome(passed);
+
+  cout << "- Word using characters not in alphabet: ";
+  word = "azb";
+  predictedResult = {};
   result = runNFA(nfa, word);
   passed = result == predictedResult;
   overralResult = overralResult && passed;
@@ -726,11 +748,11 @@ int main() {
   // tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
   // tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
   // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
-  // tests.push_back(TestObject("runDFA", runDFATest, false));
-  // tests.push_back(TestObject("runNFA", runNFATest, true));
+  tests.push_back(TestObject("runDFA", runDFATest, true));
+  tests.push_back(TestObject("runNFA", runNFATest, true));
   // tests.push_back(TestObject("validateNFA", validateNFATest, true));
   // tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
-  tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
+  // tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
   // tests.push_back(TestObject("textTrain", textTrainTest));
   int numPassed = 0;
   for (TestObject test : tests) {

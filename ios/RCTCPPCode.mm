@@ -138,7 +138,7 @@ RCT_EXPORT_METHOD(checkIfDFA:(NSDictionary *)nfaDict
   }
 }
 
-RCT_EXPORT_METHOD(runStepNFA:(NSDictionary *)nfaDict
+RCT_EXPORT_METHOD(runCharacter:(NSDictionary *)nfaDict
                   withWord:(NSString *)word
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

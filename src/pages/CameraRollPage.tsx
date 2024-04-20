@@ -72,7 +72,6 @@ const CameraRollPage = (props: CameraRollPageProps) => {
   const selectPhoto = async (path: string) => {
     try {
       const jpgData = await convertHEICtoJPG(path);
-      console.log(jpgData.path);
       setCurrentPhotoPath(jpgData.path);
     } catch (error) {
       console.error(error);

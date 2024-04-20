@@ -14,8 +14,8 @@ export type Transition = {
 
 type NFA = {
   isDfa: boolean;
-  states: Array<State>;
-  transitions: Array<Transition>;
+  states: State[];
+  transitions: Transition[];
 };
 
 export default NFA;

@@ -154,16 +154,18 @@ const MainPage = (props: MainPageProps) => {
     }
   };
 
-  const runStep = async () => {
+  const runCharacter = async () => {
     if (runStepText === textToRun) {
       await runStructure();
     } else {
       try {
         const newText = runStepText + textToRun[runStepText.length];
+        console.log('newText: ' + newText);
         switch (props.structure.type) {
           case 'nfa':
             const nfa = props.structure.structure as NFA;
-            const result = await CPPCode.runStepNFA(nfa, newText);
+            const result = await CPPCode.runCharacter(nfa, newText);
+            console.log(result);
             setActiveIds(result);
         }
         setRunStepText(newText);
@@ -178,6 +180,7 @@ const MainPage = (props: MainPageProps) => {
       case 'nfa':
         const nfa = props.structure.structure as NFA;
         try {
+          console.log(JSON.stringify(nfa));
           const result = await CPPCode.runNFAorDFA(nfa, textToRun);
           setRunResult(result);
           setRunStepText('');
@@ -199,7 +202,6 @@ const MainPage = (props: MainPageProps) => {
       const result = JSON.parse(
         await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
       );
-      console.log(JSON.stringify(result));
       props.setStructure(result);
       resetRunResult();
     } catch (error) {
@@ -304,7 +306,7 @@ const MainPage = (props: MainPageProps) => {
           }}
           value={textToRun}
         />
-        <BasicButton small style={mainPageStyles.runStep} onPress={runStep}>
+        <BasicButton small style={mainPageStyles.runStep} onPress={runCharacter}>
           Run Character
         </BasicButton>
         <BasicButton small onPress={runStructure}>
