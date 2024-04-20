@@ -98,13 +98,15 @@ const CameraRollPage = (props: CameraRollPageProps) => {
         <>
           <Image
             source={{ uri: currentPhotoPath }}
-            style={[cameraRollPageStyles.mainPhoto, StyleSheet.absoluteFill]}
+            style={StyleSheet.absoluteFill}
           />
-          <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
-          <BasicButton onPress={() => setCurrentPhotoPath(undefined)}>
-            Choose Another Photo
-          </BasicButton>
-          <BasicButton onPress={postPhotoHere}>Post Photo</BasicButton>
+          <View style={cameraRollPageStyles.buttonList}>
+            <BasicButton onPress={usePhoto}>Use Photo</BasicButton>
+            <BasicButton onPress={() => setCurrentPhotoPath(undefined)}>
+              Choose Another Photo
+            </BasicButton>
+            <BasicButton onPress={postPhotoHere}>Post Photo</BasicButton>
+          </View>
         </>
       ) : (
         <>

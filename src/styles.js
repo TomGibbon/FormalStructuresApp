@@ -141,9 +141,15 @@ export const cameraPageStyles = StyleSheet.create({
     height: 75,
     backgroundColor: 'white',
     borderRadius: 75,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  container: {
-    flex: 1,
+  photoButtonInnerCircle: {
+    borderRadius: 75,
+    borderWidth: 1,
+    width: 65,
+    height: 65,
   },
   closeButton: {
     marginTop: basicMargin,
@@ -151,7 +157,7 @@ export const cameraPageStyles = StyleSheet.create({
   },
   buttonList: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginTop: basicMargin,
     marginHorizontal: basicMargin,
   },
@@ -175,8 +181,11 @@ export const cameraRollPageStyles = StyleSheet.create({
     height: 122,
     width: 122,
   },
-  mainPhoto: {
-    zIndex: -1,
+  buttonList: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: basicMargin,
+    marginHorizontal: basicMargin,
   },
 });
 

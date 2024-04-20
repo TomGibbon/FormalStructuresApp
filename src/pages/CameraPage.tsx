@@ -10,10 +10,10 @@ import {
   StyleSheet,
   Text,
   View,
-  Pressable,
   ActivityIndicator,
   Image,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { cameraPageStyles } from '../styles.js';
 import Structure from '../types/Structure';
@@ -93,7 +93,7 @@ const CameraPage = (props: CameraPageProps) => {
   };
 
   return (
-    <View style={cameraPageStyles.container}>
+    <>
       {photo ? (
         <>
           <Image source={{ uri: photo.path }} style={StyleSheet.absoluteFill} />
@@ -118,10 +118,12 @@ const CameraPage = (props: CameraPageProps) => {
             isActive={true}
             photo={true}
           />
-          <Pressable
+          <TouchableOpacity
             onPress={takePicture}
             style={cameraPageStyles.photoButton}
-          />
+          >
+            <View style={cameraPageStyles.photoButtonInnerCircle} />
+          </TouchableOpacity>
           <IconButton
             style={cameraPageStyles.closeButton}
             icon={CloseIcon}
@@ -129,7 +131,7 @@ const CameraPage = (props: CameraPageProps) => {
           />
         </>
       )}
-    </View>
+    </>
   );
 };
 
