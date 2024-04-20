@@ -160,12 +160,10 @@ const MainPage = (props: MainPageProps) => {
     } else {
       try {
         const newText = runStepText + textToRun[runStepText.length];
-        console.log('newText: ' + newText);
         switch (props.structure.type) {
           case 'nfa':
             const nfa = props.structure.structure as NFA;
             const result = await CPPCode.runCharacter(nfa, newText);
-            console.log(result);
             setActiveIds(result);
         }
         setRunStepText(newText);
@@ -180,7 +178,6 @@ const MainPage = (props: MainPageProps) => {
       case 'nfa':
         const nfa = props.structure.structure as NFA;
         try {
-          console.log(JSON.stringify(nfa));
           const result = await CPPCode.runNFAorDFA(nfa, textToRun);
           setRunResult(result);
           setRunStepText('');
