@@ -702,7 +702,7 @@ bool photoToNFATest() {
   vector<long> times;
   vector<string> results;
   string result;
-  for (int i = 30; i < 31; i++) {
+  for (int i = 1; i < 34; i++) {
     std::cout << "Running test " << to_string(i) << "\n";
     auto start = chrono::high_resolution_clock::now();
     result = photoToNFA("test_photos/test_photo_" + to_string(i) + ".jpg", true);
@@ -748,11 +748,11 @@ int main() {
   // tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
   // tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
   // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
-  tests.push_back(TestObject("runDFA", runDFATest, true));
-  tests.push_back(TestObject("runNFA", runNFATest, true));
+  // tests.push_back(TestObject("runDFA", runDFATest, true));
+  // tests.push_back(TestObject("runNFA", runNFATest, true));
   // tests.push_back(TestObject("validateNFA", validateNFATest, true));
   // tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
-  // tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
+  tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
   // tests.push_back(TestObject("textTrain", textTrainTest));
   int numPassed = 0;
   for (TestObject test : tests) {

@@ -641,10 +641,13 @@ namespace mainCode {
     GaussianBlur(gray, blurred, Size(7, 7), 1);
     Mat outputArray;
     double thresholdValue = threshold(blurred, outputArray, 0, 255, THRESH_BINARY + THRESH_OTSU);
+    cout << "originalThreshold: " << thresholdValue << "\n";
     thresholdValue -= 20;
-    cout << "ThresholdValue: " << to_string(thresholdValue) << "\n";
+    cout << "updatedThresholdValue: " << to_string(thresholdValue) << "\n";
     Mat bin;
     threshold(blurred, bin, thresholdValue, 255, THRESH_BINARY_INV);
+    // imwrite("otsu-image.jpg", blurred);
+    // imwrite("otsu-image-bin.jpg", bin);
     if (testing) {
       imshow("binunthinned", bin);
       imshow("blurred", blurred);
@@ -728,10 +731,10 @@ namespace mainCode {
         }
       }
       copyMakeBorder(arrow, arrow, 5, 5, 5, 5, BORDER_CONSTANT);
-      if (testing) {
-        imshow("arrow", arrow);
-        waitKey(0);
-      }
+      // if (testing) {
+      //   imshow("arrow", arrow);
+      //   waitKey(0);
+      // }
 
       // Extract end points
       int kernelData[3][3] = {
@@ -815,12 +818,12 @@ namespace mainCode {
       Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
       copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
 
-      if (testing) {
-        imshow("arrow", arrow);
-        imshow("end points", arrowEndPointImg);
-        imshow("clustered", arrowClustered);
-        waitKey(0);
-      }
+      // if (testing) {
+      //   imshow("arrow", arrow);
+      //   imshow("end points", arrowEndPointImg);
+      //   imshow("clustered", arrowClustered);
+      //   waitKey(0);
+      // }
     }
 
     // Generate NFA
