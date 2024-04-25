@@ -1,35 +1,13 @@
-# Stuff to DEFINITELY DO
+# Must
 - Remove post photo button
-- TEST!!!!!!!!
+- Comment
+- Create README
 
-# Stuff to try to do
-- Expand hitbox of arrow in edit page
+# Should
 
-# Test
-- Draw up front-end tests
-- Do photo testing with accuracy and record time
-
-# Optimise photo to DFA
-- Detect text
-- Allow crossed arrows
-? Allow states to be moved
+# Could
+# Won't
 
 # Bugs
 
-
-
-MOCK
-# Must
-- Add delete transition option on edit page
-- Add functionality for NFA drawing to light up active states in red
-- Test Run Character button
-- Fix bug with saving structure
-
-# Should
-- Add functionality to Previous Structures button
-- Add gap below close button on camera roll page
-
-# Could
-- Allow states to be moved
-
-# Won't
+Test NFA generation bug. When creating the epsilon closure, the epsilon closure of resulting states may not be fully initialized

@@ -18,7 +18,7 @@ namespace mainCode {
     Id(id), Name(name), IsStart(isStart), IsFinal(isFinal) {}
 
   string State::convertToJSON(bool testing) {
-    if (testing) {
+    if (testing) { // Adds spaces and tabs to make it more readable
       return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"name\":\"" + Name + "\", \"isStart\":" + boolToString(IsStart) + ", \"isFinal\":" + boolToString(IsFinal) + " }";
     } else {
       return "{\"id\":" + to_string(Id) + ",\"name\":\"" + Name + "\",\"isStart\":" + boolToString(IsStart) + ",\"isFinal\":" + boolToString(IsFinal) + "}";
@@ -30,7 +30,7 @@ namespace mainCode {
     Id(id), Start(start), End(end), Token(token) {}
 
   string Transition::convertToJSON(bool testing) {
-    if (testing) {
+    if (testing) { // Adds spaces and tabs to make it more readable
       return "\n\t\t\t{ \"id\":" + to_string(Id) + ", \"start\":" + to_string(Start) + ", \"end\":" + to_string(End) + ", \"token\":\"" + Token + "\" }";
     } else {
       return "{\"id\":" + to_string(Id) + ",\"start\":" + to_string(Start) + ",\"end\":" + to_string(End) + ",\"token\":\"" + Token + "\"}";
@@ -56,7 +56,7 @@ namespace mainCode {
 
     string transitionsJSON = "";
     i = 0;
-    if (Transitions.size() > 0) {
+    if (Transitions.size() > 0) { // Initial check due to size_t underflow probelem
       for (; i < Transitions.size() - 1; i++) {
         transitionsJSON += Transitions[i].convertToJSON(testing) + ",";
         if (testing) {
@@ -66,7 +66,7 @@ namespace mainCode {
       transitionsJSON += Transitions[i].convertToJSON(testing);
     }
 
-    if (testing) {
+    if (testing) { // Add spaces and tabs to make it more readable
       return "{\n\t\"structure\":\n\t{\n\t\t\"isDfa\":" + boolToString(IsDfa) + ",\n\t\t\"states\":\n\t\t[" + statesJSON + "\n\t\t],\n\t\t\"transitions\":\n\t\t[" + transitionsJSON + "\n\t\t]\n\t},\n\t\"type\":\"nfa\"\n}";
     } else {
       return "{\"structure\":{\"isDfa\":" + boolToString(IsDfa) + ",\"states\":[" + statesJSON + "],\"transitions\":[" + transitionsJSON + "]},\"type\":\"nfa\"}";
@@ -79,14 +79,14 @@ namespace mainCode {
 
   MathmaticalDFA::MathmaticalDFA(NFA dfa): 
     States(getStates(dfa.States)), Alphabet(getAlphabet(dfa.Transitions)), TransitionTable(), StartState(getStartState(dfa.States)), FinalStates(getFinalStates(dfa.States)) {
-      map<int, map<string, int>> transitionTable; // No need to declare cells as dfa is assumed to have all possible transitions mapped
+      map<int, map<string, int>> transitionTable;
       for (Transition transition : dfa.Transitions) {
         int start = transition.Start;
         int end = transition.End;
         string token = transition.Token;
 
-        map<string, int> startTable = transitionTable[start];
-        startTable[token] = end;
+        map<string, int> startTable = transitionTable[start];  // Get current transitions for start state
+        startTable[token] = end; // Add new transition to it
         transitionTable[start] = startTable;
       }
       TransitionTable = transitionTable;
@@ -97,15 +97,8 @@ namespace mainCode {
 
   MathmaticalNFA::MathmaticalNFA(NFA nfa):
     States(getStates(nfa.States)), Alphabet(getAlphabet(nfa.Transitions)), StartState(getStartState(nfa.States)), FinalStates(getFinalStates(nfa.States)) {
-      Alphabet.insert("ε");
+      Alphabet.insert("ε"); // Make sure that epsilon is in the alphabet
       map<int, map<string, set<int>>> transitionTable;
-
-      // Declare each cell in map
-      for (State state : nfa.States) {
-        for (string token : Alphabet) {
-          transitionTable[state.Id][token] = {};
-        }
-      }
 
       // Start by adding all single transitions
       for (Transition transition : nfa.Transitions) {
@@ -181,108 +174,6 @@ namespace mainCode {
   void printSet(string name, set<int> set) {
     cout << name << ": {";
     for (int i : set) {
-      // switch (i) {
-      //   case 0:
-      //     cout << "[]";
-      //     break;
-      //   case 1:
-      //     cout << "[a ]";
-      //     break;
-      //   case 2:
-      //     cout << "[a b ]";
-      //     break;
-      //   case 3:
-      //     cout << "[a b c ]";
-      //     break;
-      //   case 4:
-      //     cout << "[a b c d ]";
-      //     break;
-      //   case 5:
-      //     cout << "[a b c d e ]";
-      //     break;
-      //   case 6:
-      //     cout << "[a b c e ]";
-      //     break;
-      //   case 7:
-      //     cout << "[a b d ]";
-      //     break;
-      //   case 8:
-      //     cout << "[a b d e ]";
-      //     break;
-      //   case 9:
-      //     cout << "[a b e ]";
-      //     break;
-      //   case 10:
-      //     cout << "[a c ]";
-      //     break;
-      //   case 11:
-      //     cout << "[a c d ]";
-      //     break;
-      //   case 12:
-      //     cout << "[a c d e ]";
-      //     break;
-      //   case 13:
-      //     cout << "[a c e ]";
-      //     break;
-      //   case 14:
-      //     cout << "[a d ]";
-      //     break;
-      //   case 15:
-      //     cout << "[a d e ]";
-      //     break;
-      //   case 16:
-      //     cout << "[a e ]";
-      //     break;
-      //   case 17:
-      //     cout << "[b ]";
-      //     break;
-      //   case 18:
-      //     cout << "[b c ]";
-      //     break;
-      //   case 19:
-      //     cout << "[b c d ]";
-      //     break;
-      //   case 20:
-      //     cout << "[b c d e ]";
-      //     break;
-      //   case 21:
-      //     cout << "[b c e ]";
-      //     break;
-      //   case 22:
-      //     cout << "[b d ]";
-      //     break;
-      //   case 23:
-      //     cout << "[b d e ]";
-      //     break;
-      //   case 24:
-      //     cout << "[b e ]";
-      //     break;
-      //   case 25:
-      //     cout << "[c ]";
-      //     break;
-      //   case 26:
-      //     cout << "[c d ]";
-      //     break;
-      //   case 27:
-      //     cout << "[c d e ]";
-      //     break;
-      //   case 28:
-      //     cout << "[c e ]";
-      //     break;
-      //   case 29:
-      //     cout << "[d ]";
-      //     break;
-      //   case 30:
-      //     cout << "[d e ]";
-      //     break;
-      //   case 31:
-      //     cout << "[e ]";
-      //     break;
-      //   default:
-      //     cout << to_string(i);
-      //     break;
-      // }
-      // cout << " ";
       cout << to_string(i) << " ";
     }
     cout << "}\n";
@@ -319,17 +210,6 @@ namespace mainCode {
     }
     return result;
   }
-  
-  // template <typename T>
-  // vector<T> vectorDifference(vector<T> vec1, vector<T> vec2) {
-  //   vector<T> result;
-  //   for (T item : vec1) {
-  //     if (find(vec2.begin(), vec2.end(), item) == vec2.end()) {
-  //       result.push_back(item);
-  //     }
-  //   }
-  //   return result;
-  // }
 
   // DFA / NFA functions
 
@@ -370,6 +250,7 @@ namespace mainCode {
 
  // Open CV functions
 
+  // This function is originally designed at https://stackoverflow.com/questions/66718462/how-to-detect-different-types-of-arrows-in-image
   void thinningIteration(Mat& img, int iter) {
     CV_Assert(img.channels() == 1);
     CV_Assert(img.depth() != sizeof(uchar));
@@ -445,6 +326,7 @@ namespace mainCode {
     img &= ~marker;
   }
 
+  // This function is originally designed at https://stackoverflow.com/questions/66718462/how-to-detect-different-types-of-arrows-in-image
   void thinning(const Mat& src, Mat& dst) {
     dst = src.clone();
     dst /= 255;         // convert to binary image
@@ -463,164 +345,6 @@ namespace mainCode {
     dst *= 255;
   }
 
-  // Arrow getArrowFromContour(vector<Point> contour, int minArrowArea, Mat bin, RNG rng, Mat res) {
-  //   // Filter contours too small to be an arrow
-  //   Rect boundingBox = boundingRect(contour);
-  //   if (boundingBox.area() < minArrowArea) {
-  //     return Arrow(Point(-1, -1), Point(-1, -1));
-  //   }
-  //
-  //   // Work on only one contour at a time
-  //   Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
-  //   drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
-  //
-  //   // Extract end points
-  //   int kernelData[3][3] = {
-  //     {1, 1, 1},
-  //     {1, 10, 1},
-  //     {1, 1, 1}
-  //   };
-  //   Mat kernel(3, 3, CV_32SC1, kernelData);
-  //   Mat endPointImg;
-  //   filter2D(newBinary, endPointImg, -1, kernel);
-  //   for (int y = 0; y < endPointImg.rows; y++) {
-  //     for (int x = 0; x < endPointImg.cols; x++) {
-  //       if (endPointImg.at<uchar>(y, x) == 110) {
-  //         endPointImg.at<uchar>(y, x) = 255;
-  //       } else {
-  //         endPointImg.at<uchar>(y, x) = 0;
-  //       }
-  //     }
-  //   }
-  //
-  //   // Find clusters
-  //   vector<Point> nonZeroPoints;
-  //   findNonZero(endPointImg, nonZeroPoints);
-  //   if (nonZeroPoints.size() == 3 || nonZeroPoints.size() == 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
-  //     Mat points(nonZeroPoints.size(), 2, CV_32SC1);
-  //     for (int i = 0; i < nonZeroPoints.size(); i++) {
-  //       points.at<int>(i, 0) = nonZeroPoints[i].x;
-  //       points.at<int>(i, 1) = nonZeroPoints[i].y;
-  //     }
-  //     Mat floatPoints;
-  //     points.convertTo(floatPoints, CV_32FC1);
-  //     TermCriteria criteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 10, 1.0);
-  //     Mat labels, centers;
-  //     kmeans(floatPoints, 2, labels, criteria, 10, KMEANS_RANDOM_CENTERS, centers);
-  //
-  //     // Identify tip and tail
-  //     int cluster0Count = 0;
-  //     int cluster1Count = 0;
-  //     for (int i = 0; i < labels.rows; i++) {
-  //       if (labels.at<int>(i, 0) == 0) {
-  //         cluster0Count++;
-  //       } else {
-  //         cluster1Count++;
-  //       }
-  //     }
-  //     Point tip;
-  //     Point tail;
-  //     if (cluster0Count > cluster1Count) {
-  //       tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
-  //       tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
-  //     } else {
-  //       tail = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
-  //       tip = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
-  //     }
-  //
-  //     // Draw onto res
-  //     Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-  //     circle(res, tip, 5, color, FILLED);
-  //     circle(res, tail, 5, color, FILLED);
-  //     string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
-  //     putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
-  //
-  //     return Arrow(tip, tail);
-  //   }
-  //   return Arrow(Point(-1, -1), Point(-1, -1));
-  // }
-
-  // cv::Ptr<ml::KNearest> textTrain() {
-  //   cout << "\n";
-  //   Mat src = imread("digits.png", IMREAD_COLOR);
-  //   if (src.empty()) {
-  //     cerr << "Could not open file\n";
-  //     return nullptr;
-  //   }
-  //   cout << "Training\n";
-  //   Mat gray;
-  //   cvtColor(src, gray, COLOR_BGR2GRAY);
-  //   Mat bin;
-  //   threshold(gray, bin, 25, 255, THRESH_BINARY_INV);
-  //   bitwise_not(bin, bin);
-  //   thinning(bin, bin);
-  //
-  //   vector<vector<Mat>> cells;
-  //   for (int i = 0; i < 50; i++) {
-  //     vector<Mat> row;
-  //     for (int j = 0; j < 100; j++) {
-  //       row.push_back(bin(Rect(j * 20, i * 20, 20, 20)).clone());
-  //       // imshow("d", bin(Rect(j * 20, i * 20, 20, 20)).clone());
-  //       // waitKey(0);
-  //     }
-  //     cells.push_back(row);
-  //   }
-  //
-  //   Mat train, test;
-  //   // Mat x(50 * 100, 20 * 20, CV_32F);
-  //   for (int i = 0; i < 50; i++) {
-  //     for (int j = 0; j < 50; j++) {
-  //       train.push_back(cells[i][j].reshape(1, 1));
-  //       test.push_back(cells[i][j + 50].reshape(1, 1));
-  //     }
-  //   }
-  //   train.convertTo(train, CV_32F);
-  //   test.convertTo(test, CV_32F);
-  //
-  //   Mat train_labels, test_labels;
-  //   for (int i = 0; i < 10; i++) {
-  //     Mat label = Mat::ones(250, 1, CV_32F) * i;
-  //     train_labels.push_back(label);
-  //     test_labels.push_back(label);
-  //   }
-  //
-  //   Ptr<ml::KNearest> knn = ml::KNearest::create();
-  //   knn->train(train, ml::ROW_SAMPLE, train_labels);
-  //
-  //   Mat result, dist;
-  //   knn->findNearest(test, 5, result, noArray(), dist);
-  //   Mat matches = result == test_labels;
-  //   int correct = countNonZero(matches);
-  //   float accuracy = (float) correct * 100 / result.rows;
-  //
-  //   cout << "Accuracy: " << accuracy << "%\n";
-  //
-  //   return knn;
-  //
-  //   // string filename = "knn_data.yml";
-  //   // FileStorage fs_write(filename, FileStorage::WRITE);
-  //   // if (!fs_write.isOpened()) {
-  //   //   cerr << "Failed to open file for writing\n";
-  //   //   return;
-  //   // }
-  //   // fs_write << "train" << train;
-  //   // fs_write << "train_labels" << train_labels;
-  //   // fs_write.release();
-  //
-  //   // // Now load the data
-  //   // FileStorage fs_read(filename, FileStorage::READ);
-  //   // if (!fs_read.isOpened()) {
-  //   //   cerr << "Failed to open file for reading\n";
-  //   //   return;
-  //   // }
-  //
-  //   // // Read the data
-  //   // Mat loaded_train, loaded_train_labels;
-  //   // fs_read["train"] >> loaded_train;
-  //   // fs_read["train_labels"] >> loaded_train_labels;
-  //   // fs_read.release();
-  // }
-
   // Exported
 
   string photoToNFA(string path, bool testing) {
@@ -630,15 +354,15 @@ namespace mainCode {
       return "Could not open file";
     }
     if (src.cols == 3024 && src.rows == 4032) {
-      resize(src, src, Size(1260, 1680));
+      resize(src, src, Size(1260, 1680)); // Resize to speed up thinning
     } 
     cout << "Cols: " << src.cols << ", Rows: " << src.rows << "\n";
     int srcSize = src.cols * src.rows;
     RNG rng;
     Mat gray;
-    cvtColor(src, gray, COLOR_BGR2GRAY);
+    cvtColor(src, gray, COLOR_BGR2GRAY); // Grayscale
     Mat blurred;
-    GaussianBlur(gray, blurred, Size(7, 7), 1);
+    GaussianBlur(gray, blurred, Size(7, 7), 1); // Add blur to remove noise
     Mat outputArray;
     double thresholdValue = threshold(blurred, outputArray, 0, 255, THRESH_BINARY + THRESH_OTSU);
     cout << "originalThreshold: " << thresholdValue << "\n";

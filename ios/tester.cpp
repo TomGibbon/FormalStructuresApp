@@ -737,23 +737,22 @@ bool photoToNFATest() {
 
 int main() {
   vector<TestObject> tests;
-  // tests.push_back(TestObject("mathmaticalDFAConstructor", mathmaticalDFAConstructorTest, true));
-  // tests.push_back(TestObject("mathmaticalNFAConstructor", mathmaticalNFAConstructorTest, true));
-  // tests.push_back(TestObject("setIntersection", setIntersectionTest, true));
-  // tests.push_back(TestObject("setUnion", setUnionTest, true));
-  // tests.push_back(TestObject("setDifference", setDifferenceTest, true));
-  // tests.push_back(TestObject("getStates", getStatesTest, false));
-  // tests.push_back(TestObject("getAlphabet", getAlphabetTest, false));
-  // tests.push_back(TestObject("getStartState", getStartStateTest, false));
-  // tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
-  // tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
-  // tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
-  // tests.push_back(TestObject("runDFA", runDFATest, true));
-  // tests.push_back(TestObject("runNFA", runNFATest, true));
-  // tests.push_back(TestObject("validateNFA", validateNFATest, true));
-  // tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
-  tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
-  // tests.push_back(TestObject("textTrain", textTrainTest));
+  tests.push_back(TestObject("mathmaticalDFAConstructor", mathmaticalDFAConstructorTest, true));
+  tests.push_back(TestObject("mathmaticalNFAConstructor", mathmaticalNFAConstructorTest, true));
+  tests.push_back(TestObject("setIntersection", setIntersectionTest, true));
+  tests.push_back(TestObject("setUnion", setUnionTest, true));
+  tests.push_back(TestObject("setDifference", setDifferenceTest, true));
+  tests.push_back(TestObject("getStates", getStatesTest, false));
+  tests.push_back(TestObject("getAlphabet", getAlphabetTest, false));
+  tests.push_back(TestObject("getStartState", getStartStateTest, false));
+  tests.push_back(TestObject("getFinalStates", getFinalStatesTest, false));
+  tests.push_back(TestObject("simplifyDFA", simplifyDFATest, true));
+  tests.push_back(TestObject("convertNFAtoDFA", convertNFAtoDFATest, true));
+  tests.push_back(TestObject("runDFA", runDFATest, true));
+  tests.push_back(TestObject("runNFA", runNFATest, true));
+  tests.push_back(TestObject("validateNFA", validateNFATest, true));
+  tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
+  // tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
   int numPassed = 0;
   for (TestObject test : tests) {
     cout << whiteColor << test.Name << ": ";
