@@ -1,13 +1,14 @@
-# Must
-- Remove post photo button
-- Comment
-- Create README
+# Must
+- Add delete transition option on edit page
+- Add functionality for NFA drawing to light up active states in red
+- Test Run Character button
+- Fix bug with saving structure
 
 # Should
+- Add functionality to Previous Structures button
+- Add gap below close button on camera roll page
 
 # Could
+- Allow states to be moved
+
 # Won't
-
-# Bugs
-
-Test NFA generation bug. When creating the epsilon closure, the epsilon closure of resulting states may not be fully initialized
