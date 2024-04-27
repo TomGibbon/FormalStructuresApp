@@ -18,19 +18,19 @@ RCT_EXPORT_MODULE();
   NSArray *stateDicts = nfaDict[@"states"];
   NSArray *transitionDicts = nfaDict[@"transitions"];
 
+  // Generate states
   std::vector<mainCode::State> states;
   for (NSDictionary *stateDict in stateDicts) {
     int _id = [stateDict[@"id"] intValue];
     std::string name = [stateDict[@"name"] UTF8String];
     bool isStart = [stateDict[@"isStart"] boolValue];
     bool isFinal = [stateDict[@"isFinal"] boolValue];
-    // int locX = [stateDict[@"locX"] intValue];
-    // int locY = [stateDict[@"locY"] intValue];
 
     mainCode::State state(_id, name, isStart, isFinal);
     states.push_back(state);
   }
 
+  // Generate transitions
   std::vector<mainCode::Transition> transitions;
   for (NSDictionary *transitionDict in transitionDicts) {
     int _id = [transitionDict[@"id"] intValue];
@@ -87,7 +87,7 @@ RCT_EXPORT_METHOD(runNFAorDFA:(NSDictionary *)nfaDict
       resultingStates = mainCode::runNFA(nfa, [word UTF8String]);
     }
     bool result = false;
-    for (int resultingState : resultingStates) {
+    for (int resultingState : resultingStates) { // Check to see if there is a final state in resulting states
       for (mainCode::State state : nfa.States) {
         if (state.Id == resultingState && state.IsFinal) {
           result = true;
@@ -152,21 +152,12 @@ RCT_EXPORT_METHOD(runCharacter:(NSDictionary *)nfaDict
       result = mainCode::runNFA(nfa, [word UTF8String]);
     }
 
+    // Convert result into a resolvable array
     NSMutableArray *resultArray = [NSMutableArray arrayWithCapacity:result.size()];
     for (int i : result) {
       [resultArray addObject:@(i)];
     }
     resolve(resultArray);
-    // std::string resultingString = "[";
-    // for (int i : result) {
-    //   resultingString += std::to_string(i) + ",";
-    // }
-    // if (result.size() > 0) {
-    //   resultingString.back() = ']';
-    // } else {
-    //   resultingString = "[]";
-    // }
-    // resolve(@(resultingString.c_str()));
   } @catch (NSException *exception) {
     reject(exception.name, [NSString stringWithFormat:@"Error: %@", exception.reason], nil);
   }

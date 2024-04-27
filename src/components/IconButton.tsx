@@ -1,5 +1,8 @@
-import React from 'react';
+//
+//  Displays a basic button with an icon instead of text
+//
 
+import React from 'react';
 import {
   ImageSourcePropType,
   View,
@@ -23,7 +26,7 @@ const IconButton = (props: IconProps) => {
     ? iconStyles.smallImageContainer
     : iconStyles.imageContainer;
 
-  const combinedStyles = props.style
+  const combinedStyles = props.style // Combine any styles passed through props with default button styles
     ? {
         ...specificIconStyles,
         ...(props.style as object),

@@ -1,5 +1,8 @@
+//
+//  Allows the user to take a photo and input it
+//
+
 import React, { useEffect, useRef, useState } from 'react';
-import BasicButton from '../components/BasicButton';
 import {
   Camera,
   PhotoFile,
@@ -15,10 +18,11 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+
+import BasicButton from '../components/BasicButton';
 import { cameraPageStyles } from '../styles.js';
 import Structure from '../types/Structure';
 import CPPCode from '../nativeModules';
-// import { getDefaultStructureLocation } from '../components/StructureDrawing';
 import { postPhoto } from '../helperFunctions';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
@@ -34,6 +38,7 @@ const CameraPage = (props: CameraPageProps) => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const [photo, setPhoto] = useState<PhotoFile>();
 
+  
   useEffect(() => {
     if (!hasPermission) {
       requestPermission();

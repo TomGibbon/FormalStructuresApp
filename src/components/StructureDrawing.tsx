@@ -1,12 +1,15 @@
-import React from 'react';
+//
+//  Handles generating all SVGs based on a given structure
+//
 
+import React from 'react';
+import { Share } from 'react-native';
 import { Defs, Marker, Path, Svg } from 'react-native-svg';
+import RNFS from 'react-native-fs';
 
 import Structure from '../types/Structure';
 import NFADrawing, { exportNFA } from './NFADrawing';
 import NFA from '../types/NFA';
-import RNFS from 'react-native-fs';
-import { Share } from 'react-native';
 
 type StructureDrawingProps = {
   structure: Structure;
@@ -30,15 +33,7 @@ type StructureDrawingProps = {
   setSelectingTransitionNewStartState?: (newValue: boolean) => void;
 };
 
-// export const getDefaultStructureLocation = (structure: Structure) => {
-//   switch (structure.type) {
-//     case 'nfa':
-//       return getDefaultNFALocation(structure.structure as NFA);
-//     default:
-//       return structure;
-//   }
-// };
-
+// Exports the structure as a normal SVG
 export const exportSVG = (structure: Structure) => {
   let content = '';
   switch (structure.type) {
@@ -53,11 +48,7 @@ export const exportSVG = (structure: Structure) => {
   }
   content += '</svg>';
   const path = RNFS.DocumentDirectoryPath + '/Structure_SVG.svg';
-  RNFS.writeFile(
-    RNFS.DocumentDirectoryPath + '/Structure_SVG.svg',
-    content,
-    'utf8'
-  )
+  RNFS.writeFile(RNFS.DocumentDirectoryPath + '/Structure_SVG.svg', content, 'utf8')
     .then(() => {
       Share.share({
         url: path,
@@ -69,30 +60,27 @@ export const exportSVG = (structure: Structure) => {
     });
 };
 
+// Generates an SVG from the structure to be displayed on the app 
 const StructureDrawing = (props: StructureDrawingProps) => {
+  
+  // If un-editable, set each value to their respective defaults
   const editable = props.editable ?? false;
   const defaultSetFunction = () => {};
   const setCurrentStructure = props.setCurrentStructure ?? defaultSetFunction;
   const setSelectedState = props.setSelectedState ?? defaultSetFunction;
-  const setSelectedTransitionArrow =
-    props.setSelectedTransitionArrow ?? defaultSetFunction;
-  const selectingNewTransitionEndState =
-    props.selectingNewTransitionEndState ?? false;
-  const selectingTransitionNewStartState =
-    props.selectingTransitionNewStartState ?? false;
-  const selectingTransitionNewEndState =
-    props.selectingTransitionNewEndState ?? false;
-  const setSelectingNewTransitionEndState =
-    props.setSelectingNewTransitionEndState ?? defaultSetFunction;
-  const setSelectingTransitionNewStartState =
-    props.setSelectingTransitionNewStartState ?? defaultSetFunction;
-  const setSelectingTransitionNewEndState =
-    props.setSelectingTransitionNewEndState ?? defaultSetFunction;
+  const setSelectedTransitionArrow = props.setSelectedTransitionArrow ?? defaultSetFunction;
+  const selectingNewTransitionEndState = props.selectingNewTransitionEndState ?? false;
+  const selectingTransitionNewStartState = props.selectingTransitionNewStartState ?? false;
+  const selectingTransitionNewEndState = props.selectingTransitionNewEndState ?? false;
+  const setSelectingNewTransitionEndState = props.setSelectingNewTransitionEndState ?? defaultSetFunction;
+  const setSelectingTransitionNewStartState = props.setSelectingTransitionNewStartState ?? defaultSetFunction;
+  const setSelectingTransitionNewEndState = props.setSelectingTransitionNewEndState ?? defaultSetFunction;
 
   let elements: JSX.Element[] = [];
 
   switch (props.structure.type) {
     case 'nfa':
+      // Get NFA elements
       elements = NFADrawing(
         props.structure.structure as NFA,
         editable,
@@ -112,6 +100,7 @@ const StructureDrawing = (props: StructureDrawingProps) => {
       break;
   }
 
+  // Define markers in return function
   return (
     <Svg
       viewBox={`

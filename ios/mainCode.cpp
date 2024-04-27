@@ -1,16 +1,11 @@
 #include "mainCode.hpp"
-#include <iostream>
-#include <fstream>
-#include <opencv2/dnn.hpp>
-#include <cmath>
 
 using namespace std;
 using namespace cv;
-using namespace cv::dnn;
 
 namespace mainCode {
   // ==================================
-  // ======== ** Classes ** ===========
+  // ========= ** Classes ** ==========
   // ==================================
 
   // State
@@ -92,6 +87,7 @@ namespace mainCode {
       TransitionTable = transitionTable;
     }
 
+  // MathmaticalNFA
   MathmaticalNFA::MathmaticalNFA(set<int> states, set<string> alphabet, map<int, map<string, set<int>>> transitionTable, int startState, set<int> finalStates):
     States(states), Alphabet(alphabet), TransitionTable(transitionTable), StartState(startState), FinalStates(finalStates) {}
 
@@ -147,8 +143,6 @@ namespace mainCode {
       TransitionTable = transitionTable;
     }
 
-  // OpenCV
-
   Circle::Circle(Point center, float radius):
     Center(center), Radius(radius) {}
 
@@ -161,7 +155,9 @@ namespace mainCode {
   Arrow::Arrow(Point tip, Point tail):
     Tip(tip), Tail(tail) {}
   
-  // Helpers
+  // ==================================
+  // ===== ** Helper Functions ** =====
+  // ==================================
 
   void printVector(string name, vector<int> list) {
     cout << name << ": {";
@@ -211,7 +207,9 @@ namespace mainCode {
     return result;
   }
 
-  // DFA / NFA functions
+  // ==================================
+  // === ** DFA / NFA Functions ** ====
+  // ==================================
 
   set<int> getStates(vector<State> states) {
     set<int> result;
@@ -248,7 +246,9 @@ namespace mainCode {
     return finalStates;
   }
 
- // Open CV functions
+  // ==================================
+  // ===== ** OpenCV Functions ** =====
+  // ==================================
 
   // This function is originally designed at https://stackoverflow.com/questions/66718462/how-to-detect-different-types-of-arrows-in-image
   void thinningIteration(Mat& img, int iter) {
@@ -345,7 +345,9 @@ namespace mainCode {
     dst *= 255;
   }
 
-  // Exported
+  // ==================================
+  // = ** Main Exported Functions ** ==
+  // ==================================
 
   string photoToNFA(string path, bool testing) {
     cout << "\n";
@@ -365,30 +367,27 @@ namespace mainCode {
     GaussianBlur(gray, blurred, Size(7, 7), 1); // Add blur to remove noise
     Mat outputArray;
     double thresholdValue = threshold(blurred, outputArray, 0, 255, THRESH_BINARY + THRESH_OTSU);
-    cout << "originalThreshold: " << thresholdValue << "\n";
     thresholdValue -= 20;
-    cout << "updatedThresholdValue: " << to_string(thresholdValue) << "\n";
+    cout << "thresholdValue: " << to_string(thresholdValue) << "\n";
     Mat bin;
     threshold(blurred, bin, thresholdValue, 255, THRESH_BINARY_INV);
-    // imwrite("otsu-image.jpg", blurred);
-    // imwrite("otsu-image-bin.jpg", bin);
     if (testing) {
       imshow("binunthinned", bin);
       imshow("blurred", blurred);
       waitKey(0);
     }
     thinning(bin, bin);
-    Mat res = src.clone();
-    Mat circleRes = src.clone();
-    Mat arrowRes = src.clone();
-    Mat contourRes = src.clone();
+    Mat res = src.clone(); // Final result
+    Mat circleRes = src.clone(); // Image with all circles detected
+    Mat arrowRes = src.clone(); // Image with all arrows detected
+    Mat contourRes = src.clone(); // Image with contours
     vector<vector<Point>> contours;
-    findContours(bin.clone(), contours, RETR_LIST, CHAIN_APPROX_NONE);
+    findContours(bin.clone(), contours, RETR_LIST, CHAIN_APPROX_NONE); // Gets contours
     for (int i = 0; i < contours.size(); i++) {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
       drawContours(contourRes, contours, i, color, 5);
     }
-    int minArrowArea = ceil(srcSize / 400); // About 25 000 for 3024 x 4032
+    int minArrowArea = ceil(srcSize / 400);
     int minCircleArea = ceil(srcSize / 910);
     int duplicateContourThreshold = ceil(srcSize / 1200000);
 
@@ -406,11 +405,9 @@ namespace mainCode {
       double perimeter = arcLength(hull, true);
       double circularity = (4 * CV_PI * area) / (perimeter * perimeter);
       if (circularity > 0.92 && area > minCircleArea) {
-
-        // min enclosing circle
         Point2f center;
         float radius;
-        minEnclosingCircle(contour, center, radius);
+        minEnclosingCircle(contour, center, radius); // Get min enclosing circle
 
         // Check for duplicate circle detection
         bool duplicate = false;
@@ -425,9 +422,8 @@ namespace mainCode {
           circle(circleRes, center, radius, color, 3);
           detectedCircles.push_back(Circle(center, radius));
         }
-        remainingContours.push_back(contour);
       } else {
-        remainingContours.push_back(contour);
+        remainingContours.push_back(contour); // Must check later if its an arrow
       }
     }
 
@@ -443,22 +439,6 @@ namespace mainCode {
       // Work on only one contour at a time
       Mat newBinary(bin.size(), CV_8UC1, Scalar(0));
       drawContours(newBinary, vector<vector<Point>>{ contour }, 0, Scalar(10));
-      
-      Mat arrow = newBinary(boundingBox).clone();
-      for (int y = 0; y < arrow.rows; y++) {
-        for (int x = 0; x < arrow.cols; x++) {
-          if (arrow.at<uchar>(y, x) == 10) {
-            arrow.at<uchar>(y, x) = 255;
-          } else {
-            arrow.at<uchar>(y, x) = 0;
-          }
-        }
-      }
-      copyMakeBorder(arrow, arrow, 5, 5, 5, 5, BORDER_CONSTANT);
-      // if (testing) {
-      //   imshow("arrow", arrow);
-      //   waitKey(0);
-      // }
 
       // Extract end points
       int kernelData[3][3] = {
@@ -479,16 +459,12 @@ namespace mainCode {
         }
       }
 
-      Mat arrowEndPointImg = endPointImg(boundingBox).clone();
-      copyMakeBorder(arrowEndPointImg, arrowEndPointImg, 5, 5, 5, 5, BORDER_CONSTANT);
-
       // Find clusters
       vector<Point> nonZeroPoints;
       findNonZero(endPointImg, nonZeroPoints);
       if (nonZeroPoints.size() != 3 && nonZeroPoints.size() != 4) { // Allow tip to have either 2 or 3 endpoints and tail have only 1
         continue;
       }
-      
       Mat points(nonZeroPoints.size(), 2, CV_32SC1);
       for (int i = 0; i < nonZeroPoints.size(); i++) {
         points.at<int>(i, 0) = nonZeroPoints[i].x;
@@ -515,12 +491,10 @@ namespace mainCode {
         continue;
       }
 
-      Mat arrowClusteredUnCropped = endPointImg.clone();
-      cvtColor(arrowClusteredUnCropped, arrowClusteredUnCropped, COLOR_GRAY2BGR);
-
+      // Convert cluster centers to points
       Point tip;
       Point tail;
-      if (cluster0Count > cluster1Count) {
+      if (cluster0Count > cluster1Count) { // Tip has more endpoints than tail
         tip = Point(centers.at<float>(0, 0), centers.at<float>(0, 1));
         tail = Point(centers.at<float>(1, 0), centers.at<float>(1, 1));
       } else {
@@ -532,22 +506,8 @@ namespace mainCode {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
       circle(arrowRes, tip, 20, color, FILLED);
       circle(arrowRes, tail, 20, color, FILLED);
-      // string text = "[" + to_string(tip.x) + ", " + to_string(tip.y) + "], [" + to_string(tail.x) + ", " + to_string(tail.y) + "]";
-      // putText(res, text, tail, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
 
       detectedArrows.push_back(Arrow(tip, tail));
-
-      circle(arrowClusteredUnCropped, tip, 5, Scalar(0, 0, 255), FILLED);
-      circle(arrowClusteredUnCropped, tail, 5, Scalar(0, 0, 255), FILLED);
-      Mat arrowClustered = arrowClusteredUnCropped(boundingBox).clone();
-      copyMakeBorder(arrowClustered, arrowClustered, 5, 5, 5, 5, BORDER_CONSTANT);
-
-      // if (testing) {
-      //   imshow("arrow", arrow);
-      //   imshow("end points", arrowEndPointImg);
-      //   imshow("clustered", arrowClustered);
-      //   waitKey(0);
-      // }
     }
 
     // Generate NFA
@@ -555,24 +515,28 @@ namespace mainCode {
     vector<Circle> circlesToSkip;
     int stateId = 0;
     for (Circle circle : detectedCircles) {
+
       // Check if current circle is a final inner ring
       bool found = false;
       for (Circle innerCircle : circlesToSkip) {
-        if (innerCircle.Center.x == circle.Center.x && innerCircle.Center.y == circle.Center.y && innerCircle.Radius == circle.Radius) {
+        if (innerCircle.Center.x == circle.Center.x &&
+            innerCircle.Center.y == circle.Center.y &&
+            innerCircle.Radius == circle.Radius) {
           found = true;
           break;
         }
       }
+
       if (!found) {
         // Check for final state circle
         bool isFinal = false;
         for (Circle secondCircle : detectedCircles) {
-          bool secondWithinCircle = (secondCircle.Radius < circle.Radius && secondCircle.Radius > circle.Radius / 2);
-          bool circleWithinSecond = (circle.Radius < secondCircle.Radius && circle.Radius > secondCircle.Radius / 2);
+          bool secondWithinCircle = secondCircle.Radius < circle.Radius && secondCircle.Radius > circle.Radius / 2; // Inner radius must be within 50-100% of the outer radius
+          bool circleWithinSecond = circle.Radius < secondCircle.Radius && circle.Radius > secondCircle.Radius / 2;
           bool circlesWithinEachOther = sqrt(std::pow(circle.Center.x - secondCircle.Center.x, 2) + std::pow(circle.Center.y - secondCircle.Center.y, 2)) < abs(circle.Radius - secondCircle.Radius);
           if ((circleWithinSecond || secondWithinCircle) && circlesWithinEachOther) {
             isFinal = true;
-            if (circle.Radius > secondCircle.Radius) {
+            if (circle.Radius > secondCircle.Radius) { // State cirle is the outer circle
               stateCircles.push_back(StateCircle(State(stateId, "q" + to_string(stateId), false, true), circle));
               circlesToSkip.push_back(secondCircle); // May check in seperate loop
             } else {
@@ -587,16 +551,20 @@ namespace mainCode {
         stateId++;
       }
     }
+
+    // Draw circles onto res
     for (StateCircle c : stateCircles) {
       Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
       circle(res, c.CorrespondingCircle.Center, c.CorrespondingCircle.Radius, color, 5);
     }
 
+    // Find transitions
     vector<Transition> transitions;
     int startId = -1;
     int transitionId = 0;
     for (Arrow arrow : detectedArrows) {
-      float minTipDistance = INFINITY;
+      // Calculate tip and tail distances from states
+      float minTipDistance = INFINITY; // Default as max value
       float minTailDistance = INFINITY;
       StateCircle tipStateCircle;
       StateCircle tailStateCircle;
@@ -615,6 +583,7 @@ namespace mainCode {
       // Check if starting arrow
       if (minTipDistance < 2.5 * tipStateCircle.CorrespondingCircle.Radius) { // Arrow too far away
         if (minTailDistance > 1.7 * tailStateCircle.CorrespondingCircle.Radius) {
+          // Starting arrow
           Scalar color = Scalar(0, 0, 255);
           circle(res, arrow.Tip, 5, color, FILLED);
           circle(res, arrow.Tail, 5, color, FILLED);
@@ -633,6 +602,7 @@ namespace mainCode {
             return "More than 1 start state";
           }
         } else {
+          // Regular transition
           transitions.push_back(Transition(transitionId, tailStateCircle.CorrespondingState.Id, tipStateCircle.CorrespondingState.Id, "0"));
           Scalar color = Scalar(0, 0, 255);
           circle(res, arrow.Tip, 5, color, FILLED);
@@ -669,6 +639,8 @@ namespace mainCode {
         continue;
       }
       states.push_back(state);
+
+      // Draw state
       Scalar color = Scalar(255, 0, 0);
       circle(res, stateCircle.CorrespondingCircle.Center, stateCircle.CorrespondingCircle.Radius, color, 5);
       putText(res, state.Name, stateCircle.CorrespondingCircle.Center, FONT_HERSHEY_SIMPLEX, 0.8, color, 2);
@@ -679,13 +651,11 @@ namespace mainCode {
 
     NFA nfa(false, states, transitions);
 
-    bool isDFA = checkIfDFA(nfa);
+    bool isDFA = checkIfDFA(nfa); // Calculate whether it is a DFA or NFA
     nfa.IsDfa = isDFA;
 
     cout << nfa.convertToJSON(true);
-
     if (testing) {
-      imshow("bin", bin);
       imshow("contours", contourRes);
       imshow("circles", circleRes);
       imshow("arrows", arrowRes);
@@ -793,6 +763,7 @@ namespace mainCode {
     vector<Transition> transitions;
     for (int startState : reachableStates) {
       for (string token : dfa.Alphabet) {
+        // Find the start state
         int startId = 0;
         for (set<int> partition : p) {
           if (partition.find(startState) != partition.end()) {
@@ -800,6 +771,7 @@ namespace mainCode {
           }
           startId++;
         }
+        // Find the end state
         int endState = dfa.TransitionTable[startState][token];
         int endId = 0;
         for (set<int> partition : p) {
@@ -808,6 +780,7 @@ namespace mainCode {
           }
           endId++;
         }
+        // Check if transition has already been generated
         bool alreadyInList = false;
         for (Transition preAddedTransition : transitions) {
           if (preAddedTransition.Start == startId && preAddedTransition.End == endId && preAddedTransition.Token == token) {
@@ -844,8 +817,6 @@ namespace mainCode {
 
     int newId = 0;
     for (set<int> subset : stateSubsets) {
-      // printSet("Looking at subset", subset);
-      // printSet("Starter", nfa.TransitionTable[nfa.StartState]["ε"]);
       // Detemine if corresponding state is start or final
       bool isStart = nfa.TransitionTable[nfa.StartState]["ε"] == subset;
       bool isFinal = !setIntersection(nfa.FinalStates, subset).empty();
@@ -871,15 +842,12 @@ namespace mainCode {
       newId++;
     }
 
-    // NFA anotenfa(true, newStates, newTransitions);
-    // cout << "nfa:\n";
-    // cout << anotenfa.convertToJSON(true) << "\n\n";
-
     return simplifyDFA(NFA(true, newStates, newTransitions));
   }
 
   set<int> runDFA(NFA oldDfa, string word) {
-    MathmaticalDFA dfa(oldDfa);
+    MathmaticalDFA dfa(oldDfa); // Convert to Mathmatical model
+
     int currentState = dfa.StartState;
     for (char character : word) {
       string characterString(1, character);
@@ -897,7 +865,7 @@ namespace mainCode {
 
     set<int> currentStates = { nfa.StartState };
     for (char character : word) {
-      string characterString(1, character);
+      string characterString(1, character); // Must have character as a string not a char
       set<int> newStates = {};
       for (int currentState : currentStates) {
         set<int> epsilonClosure = nfa.TransitionTable[currentState]["ε"];
@@ -917,10 +885,10 @@ namespace mainCode {
 
   int validateNFA(NFA nfa) {
     int numStartStates = 0;
-    vector<string> names;
+    vector<string> names; // Stores all names from states when checking for duplicate
     for (State state : nfa.States) {
       if (find(names.begin(), names.end(), state.Name) != names.end()) {
-        return 1;
+        return 1; // Duplicate state name
       }
       names.push_back(state.Name);
       if (state.IsStart) {
@@ -928,18 +896,18 @@ namespace mainCode {
       }
     }
     if (numStartStates != 1) {
-      return 2;
+      return 2; // Wrong number of start states
     }
     vector<Transition> checkedTransitions;
     for (Transition transition : nfa.Transitions) {
       for (Transition checkedTransition : checkedTransitions) {
         if (checkedTransition.Start == transition.Start && checkedTransition.End == transition.End && checkedTransition.Token == transition.Token) {
-          return 3;
+          return 3; // Duplicate transition
         }
       }
       checkedTransitions.push_back(transition);
     }
-    return 0;
+    return 0; // NFA is valid
   }
 
   bool checkIfDFA(NFA oldNfa) {
@@ -949,15 +917,15 @@ namespace mainCode {
         return false;
       }
     }
+
     MathmaticalNFA nfa(oldNfa);
     for (int state : nfa.States) {
       for (string token : nfa.Alphabet) {
-        if (nfa.TransitionTable[state][token].size() != 1) {
+        if (nfa.TransitionTable[state][token].size() != 1) { // There should be exactly 1 transition for each token from each state for a DFA
           return false;
         }
       }
     }
     return true;
   }
-
 }

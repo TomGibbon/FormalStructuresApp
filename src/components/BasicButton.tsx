@@ -1,5 +1,10 @@
+// 
+//  Basic button used throughout the application
+//
+
 import React, { PropsWithChildren } from 'react';
 import { StyleProp, Text, TouchableOpacity, ViewStyle } from 'react-native';
+
 import { basicButtonStyles } from '../styles.js';
 
 type BasicButtonProps = PropsWithChildren<{
@@ -13,7 +18,7 @@ const BasicButton = (props: BasicButtonProps) => {
     ? basicButtonStyles.smallBasicButton
     : basicButtonStyles.basicButton;
 
-  const combinedStyles = props.style
+  const combinedStyles = props.style // Combine any styles passed through props with default button styles
     ? {
         ...buttonStyles,
         ...(props.style as object),

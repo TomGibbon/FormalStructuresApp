@@ -1,3 +1,7 @@
+//
+//  The loading screen used when long processes are occuring
+//
+
 import React from 'react';
 import { Text, View } from 'react-native';
 

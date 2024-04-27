@@ -1,6 +1,4 @@
 #include "mainCode.hpp"
-#include <iostream>
-#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -694,6 +692,15 @@ bool checkIfDFATest() {
   overallPass = overallPass && passed;
   printOutcome(passed);
 
+  cout << "- No transition DFA: ";
+  nfa.States = { s0 };
+  nfa.Transitions = {};
+  predictedResult = true;
+  result = checkIfDFA(nfa);
+  passed = result == predictedResult;
+  overallPass = overallPass && passed;
+  printOutcome(passed);
+
   return overallPass;
 }
 
@@ -705,7 +712,10 @@ bool photoToNFATest() {
   for (int i = 1; i < 34; i++) {
     std::cout << "Running test " << to_string(i) << "\n";
     auto start = chrono::high_resolution_clock::now();
-    result = photoToNFA("test_photos/test_photo_" + to_string(i) + ".jpg", true);
+
+    // result = photoToNFA("test_photos/test_photo_" + to_string(i) + ".jpg", true); // Uncomment to view images after each test
+    result = photoToNFA("test_photos/test_photo_" + to_string(i) + ".jpg", false); // Uncomment to not view images after each test
+    
     auto end = chrono::high_resolution_clock::now();
     std::cout << "\n";
     if (result != "Could not open file" &&
@@ -730,13 +740,10 @@ bool photoToNFATest() {
   return true;
 }
 
-// bool textTrainTest() {
-//   textTrain();
-//   return true;
-// }
-
 int main() {
   vector<TestObject> tests;
+
+  // Comment out which functions that should not be tested
   tests.push_back(TestObject("mathmaticalDFAConstructor", mathmaticalDFAConstructorTest, true));
   tests.push_back(TestObject("mathmaticalNFAConstructor", mathmaticalNFAConstructorTest, true));
   tests.push_back(TestObject("setIntersection", setIntersectionTest, true));
@@ -752,7 +759,9 @@ int main() {
   tests.push_back(TestObject("runNFA", runNFATest, true));
   tests.push_back(TestObject("validateNFA", validateNFATest, true));
   tests.push_back(TestObject("checkIfDFA", checkIfDFATest, true));
-  // tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
+  tests.push_back(TestObject("photoToDFA", photoToNFATest, false));
+
+
   int numPassed = 0;
   for (TestObject test : tests) {
     cout << whiteColor << test.Name << ": ";

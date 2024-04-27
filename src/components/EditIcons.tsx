@@ -1,3 +1,7 @@
+//
+//  Used to generate the rows used for adding states to the structure on the edit page
+//
+
 import React, { ReactNode } from 'react';
 
 import Structure, { copyStructure } from '../types/Structure';
@@ -15,7 +19,6 @@ import { stateRadius } from './NFADrawing';
 import { editIconStyles } from '../styles';
 import BasicButton from './BasicButton';
 import NFA from '../types/NFA';
-// import { getDefaultStructureLocation } from './StructureDrawing';
 
 const symbolWidth = 130;
 const symbolHeight = 80;
@@ -108,6 +111,7 @@ type EditIconProps = {
   onPress: () => void;
 };
 
+// Singluar row for adding something
 const EditIcon = (props: EditIconProps) => {
   return (
     <View style={editIconStyles.editIcon}>
@@ -120,15 +124,18 @@ const EditIcon = (props: EditIconProps) => {
   );
 };
 
+// Generates array of different EditIcons depending on the structure type.
 const EditIcons = (
   structure: Structure,
   setCurrentStructure: (newStructure: Structure) => void
 ) => {
   const newStructure = copyStructure(structure);
+
+  // Function used to add a state to the current structure
   const stateAdd = (isStart: boolean, isFinal: boolean) => {
     const newNfa = newStructure.structure as NFA;
     let newId = 0;
-    while (newNfa.states.find(state => state.id === newId)) {
+    while (newNfa.states.find(state => state.id === newId)) { // Get smallest new id
       newId++;
     }
     newNfa.states.push({
@@ -136,10 +143,7 @@ const EditIcons = (
       name: 'q' + newId,
       isStart: isStart,
       isFinal: isFinal,
-      // locX: 0,
-      // locY: 0,
     });
-    // setCurrentStructure(getDefaultStructureLocation(newStructure));
     setCurrentStructure(newStructure);
   };
 

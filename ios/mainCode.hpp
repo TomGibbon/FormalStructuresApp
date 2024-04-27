@@ -13,7 +13,9 @@ using namespace cv;
 
 namespace mainCode {
 
-  // Classes
+  // ==================================
+  // ========= ** Classes ** ==========
+  // ==================================
 
   class State {
     public:
@@ -21,10 +23,7 @@ namespace mainCode {
       string Name;
       bool IsStart;
       bool IsFinal;
-      // int LocX;
-      // int LocY;
 
-      // State(int id, string name, bool isStart, bool isFinal, int locX, int locY);
       State(int id, string name, bool isStart, bool isFinal);
       string convertToJSON(bool testing);
   };
@@ -82,8 +81,8 @@ namespace mainCode {
       Circle(cv::Point center, float radius);
   };
 
-  // Intermediate stages for NFA generation
-
+  // Intermediate stages for NFA generation in photo algorithm
+  
   class StateCircle {
     public:
       State CorrespondingState;
@@ -101,7 +100,9 @@ namespace mainCode {
       Arrow(cv::Point tip, cv::Point tail);
   };
 
-  // Helpers
+  // ==================================
+  // ===== ** Helper Functions ** =====
+  // ==================================
   void printVector(string name, vector<int> list);
   void printSet(string name, set<int> set);
   string boolToString(bool x);
@@ -112,13 +113,17 @@ namespace mainCode {
   template <typename T>
   set<T> setDifference(set<T> set1, set<T> set2);
 
-  // DFA / NFA functions
+  // ==================================
+  // === ** DFA / NFA Functions ** ====
+  // ==================================
   set<int> getStates(vector<State> states);
   set<string> getAlphabet(vector<Transition> transitions);
   int getStartState(vector<State> states);
   set<int> getFinalStates(vector<State> states);
 
-  // Exported
+  // ==================================
+  // = ** Main Exported Functions ** ==
+  // ==================================
   NFA simplifyDFA(NFA oldDfa);
   NFA convertNFAtoDFA(NFA oldNfa);
   set<int> runDFA(NFA oldDfa, string word);
@@ -126,8 +131,6 @@ namespace mainCode {
   int validateNFA(NFA nfa);
   bool checkIfDFA(NFA oldNfa);
   string photoToNFA(string path, bool testing);
-  // void arrowDetection(string path);
-  // cv::Ptr<ml::KNearest> textTrain();
 }
 
 #endif
