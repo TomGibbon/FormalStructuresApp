@@ -1,17 +1,12 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+//
+//  Top-level component accessed in the project (equivalent to a main function)
+//
 
 import React, { useEffect, useState } from 'react';
-
 import { SafeAreaView, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { appStyles } from './src/styles.js';
-
 import MainPage from './src/pages/MainPage';
 import CameraPage from './src/pages/CameraPage';
 import Structure from './src/types/Structure';
@@ -20,6 +15,7 @@ import Loading from './src/components/Loading';
 import EditPage from './src/pages/EditPage';
 import PreviousStructuresPage from './src/pages/PreviousStructuresPage';
 
+// 2 default structures added to previously saved structures to begin with
 const defaultStructures = [
   {
     structure: {
@@ -140,6 +136,7 @@ type PageProps = {
   setSavedStructure: (newStructure: Structure) => void;
 };
 
+// Handles which page to display
 const Page = (props: PageProps) => {
   switch (props.pageNumber) {
     case 0:
@@ -193,33 +190,22 @@ function App(): JSX.Element {
   const [pageNumber, setPageNumber] = useState(0);
   const [structure, setStructure] = useState<Structure>(defaultStructures[0]);
   const [isLoading, setIsLoading] = useState(false);
-  const [savedStructure, setSavedStructure] = useState<Structure>(
-    defaultStructures[0]
-  );
-
-  console.log('rerendering');
+  const [savedStructure, setSavedStructure] = useState<Structure>(defaultStructures[0]);
 
   useEffect(() => {
-    const setDefaultPreviousStructures = async () => {
+    const setDefaultPreviousStructures = async () => { // Async function used in useEffec, so must pre-define, then call
       try {
-        const previousStructures = await AsyncStorage.getItem(
-          'previous-structures'
-        );
-        if (previousStructures === null) {
-          await AsyncStorage.setItem(
-            'previous-structures',
-            JSON.stringify(defaultStructures)
-          );
+        const previousStructures = await AsyncStorage.getItem('previous-structures'); // Get previous structures
+        
+        if (previousStructures === null) { // If no exist, first time opening the app, so set them to be the default structures.
+                                           // This will only happen the very first time the app is opened, as AsyncStorage persits over hard app resets.
+          await AsyncStorage.setItem('previous-structures', JSON.stringify(defaultStructures));
         }
       } catch (error) {
         console.error(error);
       }
     };
-
-    // setStructure(getDefaultStructureLocation(structure));
-    setStructure(structure);
     setDefaultPreviousStructures();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

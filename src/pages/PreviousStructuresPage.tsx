@@ -1,3 +1,7 @@
+//
+//  Allows the user to select a previously saved structure
+//
+
 import React, { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -5,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { previousStructuresPageStyles } from '../styles';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
-import StructureDrawing from '../components/StructureDrawing'; // getDefaultStructureLocation,
+import StructureDrawing from '../components/StructureDrawing';
 import Structure from '../types/Structure';
 
 type PreviousStructruresPageProps = {
@@ -17,10 +21,9 @@ const PreviousStructuresPage = (props: PreviousStructruresPageProps) => {
   const [previousStructures, setPreviousStructures] = useState<Structure[]>([]);
 
   useEffect(() => {
-    const readAndSetStructures = async () => {
+    const readAndSetStructures = async () => { // Async function in a useEffect, so must be pre-defined, then called.
       try {
-        // const result = await readPreviousStructures();
-        const result = await AsyncStorage.getItem('previous-structures');
+        const result = await AsyncStorage.getItem('previous-structures'); // Get structures
         if (result !== null) {
           setPreviousStructures(JSON.parse(result));
         }
@@ -37,7 +40,6 @@ const PreviousStructuresPage = (props: PreviousStructruresPageProps) => {
       <ScrollView>
         <View style={previousStructuresPageStyles.gridContainer}>
           {previousStructures.map((structure, index) => {
-            // structure = getDefaultStructureLocation(structure);
             return (
               <TouchableOpacity
                 style={previousStructuresPageStyles.structure}
@@ -49,9 +51,9 @@ const PreviousStructuresPage = (props: PreviousStructruresPageProps) => {
               >
                 <StructureDrawing
                   structure={structure}
-                  svgWidth={previousStructuresPageStyles.structure.width}
+                  svgWidth={previousStructuresPageStyles.structure.width} // Width and height are the same as the container
                   svgHeight={previousStructuresPageStyles.structure.height}
-                  scale={5}
+                  scale={5} // Set zoom for displaying the previous structure
                   translateX={0}
                   translateY={0}
                 />

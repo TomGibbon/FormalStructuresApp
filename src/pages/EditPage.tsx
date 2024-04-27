@@ -1,3 +1,7 @@
+//
+//  Allows the user to edit their structure
+//
+
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, View, Alert, PanResponder, Text } from 'react-native';
 import _ from 'lodash';
@@ -28,28 +32,19 @@ type EditPageProps = {
 };
 
 const EditPage = (props: EditPageProps) => {
-  const [currentStructure, setCurrentStructure] = useState<Structure>(
-    copyStructure(props.structure)
-  );
+  const [currentStructure, setCurrentStructure] = useState<Structure>(copyStructure(props.structure));
   const [editing, setEditing] = useState(false);
   const [svgWidth, setSvgWidth] = useState(0);
   const [svgHeight, setSvgHeight] = useState(0);
 
-  const [selectedState, setSelectedState] = useState<number | undefined>(
-    undefined
-  );
-  const [selectedTransitionArrow, setSelectedTransitionArrow] = useState<
-    number[] | undefined
-  >(undefined);
-  const [selectingNewTransitionEndState, setSelectingNewTransitionEndState] =
-    useState(false);
-  const [
-    selectingTransitionNewStartState,
-    setSelectingTransitionNewStartState,
-  ] = useState(false);
-  const [selectingTransitionNewEndState, setSelectingTransitionNewEndState] =
-    useState(false);
+  // Used inside structure drawing for state and transition presses
+  const [selectedState, setSelectedState] = useState<number | undefined>(undefined);
+  const [selectedTransitionArrow, setSelectedTransitionArrow] = useState<number[] | undefined>(undefined);
+  const [selectingNewTransitionEndState, setSelectingNewTransitionEndState] = useState(false);
+  const [selectingTransitionNewStartState, setSelectingTransitionNewStartState] = useState(false);
+  const [selectingTransitionNewEndState, setSelectingTransitionNewEndState] = useState(false);
 
+  // Used for the PanResponder
   const [scale, setScale] = useState(initialPosition.zoom);
   const [translateX, setTranslateX] = useState(initialPosition.x);
   const [translateY, setTranslateY] = useState(initialPosition.x);
@@ -73,6 +68,7 @@ const EditPage = (props: EditPageProps) => {
     }
   }, [editing]);
 
+  // Update references when states change
   useEffect(() => {
     scaleRef.current = scale;
     translateXRef.current = translateX;
@@ -83,35 +79,43 @@ const EditPage = (props: EditPageProps) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (event, gestureState) => {
-        if (gestureState.numberActiveTouches === 1) {
+        if (gestureState.numberActiveTouches === 1) { // Panning
           setTranslateX(previousTranslateXRef.current - gestureState.dx);
           setTranslateY(previousTranslateYRef.current - gestureState.dy);
+
+          // Reset zoom values in the scenario one finger was lifted off
           initialPinchSize.current = undefined;
           previousScaleRef.current = scaleRef.current;
-        } else if (gestureState.numberActiveTouches === 2) {
+
+        } else if (gestureState.numberActiveTouches === 2) { // Zooming and panning
           const touches = event.nativeEvent.touches.map(touch => ({
             x: touch.pageX,
             y: touch.pageY,
           }));
+
+          // Get initial pinch size if not yet defined
           if (!initialPinchSize.current) {
             initialPinchSize.current = Math.sqrt(
               (touches[0].x - touches[1].x) ** 2 +
-                (touches[0].y - touches[1].y) ** 2
+              (touches[0].y - touches[1].y) ** 2
             );
           }
+          
+          // Get new pinch size
           const newPinchSize = Math.sqrt(
             (touches[0].x - touches[1].x) ** 2 +
-              (touches[0].y - touches[1].y) ** 2
+            (touches[0].y - touches[1].y) ** 2
           );
-          setScale(
-            1.6 ** ((initialPinchSize.current - newPinchSize) / 100) *
-              previousScaleRef.current
-          );
+
+          setScale(1.6 ** ((initialPinchSize.current - newPinchSize) / 100) * previousScaleRef.current); // Use them to update scale
+          
+          // Perform panning
           setTranslateX(previousTranslateXRef.current - gestureState.dx);
           setTranslateY(previousTranslateYRef.current - gestureState.dy);
         }
       },
       onPanResponderRelease: () => {
+        // Update all previous values, and reset initial pinch size
         previousScaleRef.current = scaleRef.current;
         previousTranslateXRef.current = translateXRef.current;
         previousTranslateYRef.current = translateYRef.current;
@@ -120,8 +124,9 @@ const EditPage = (props: EditPageProps) => {
     })
   ).current;
 
+  // Tries to close the edit page without saving
   const close = () => {
-    if (!_.isEqual(props.structure, currentStructure)) {
+    if (!_.isEqual(props.structure, currentStructure)) { // Edited structure differs from original
       Alert.alert(
         'Warning',
         'Closing without saving will remove any progress',
@@ -142,31 +147,33 @@ const EditPage = (props: EditPageProps) => {
     }
   };
 
+  // Tries to save new structure
   const save = async () => {
     try {
       let validationCode = 0;
       switch (currentStructure.type) {
         case 'nfa':
           const nfa = currentStructure.structure as NFA;
-          validationCode = await CPPCode.validateNFA(nfa);
+          validationCode = await CPPCode.validateNFA(nfa); // Check if nfa is valid
       }
       if (validationCode === 0) {
-        if (currentStructure.type === 'nfa') {
-          const nfa = currentStructure.structure as NFA;
-          const isDfa = await CPPCode.checkIfDFA(nfa);
-          const newStructure = copyStructure(currentStructure);
-          const newNfa = newStructure.structure as NFA;
-          newNfa.isDfa = isDfa;
-          props.setStructure(newStructure);
-          props.setSavedStructure(newStructure);
-          await addToPreviousStructures(newStructure);
+        switch (currentStructure.type) {
+          case 'nfa':
+            const nfa = currentStructure.structure as NFA;
+            const isDfa = await CPPCode.checkIfDFA(nfa); // Calculate if it is a DFA
+            const newStructure = copyStructure(currentStructure);
+            const newNfa = newStructure.structure as NFA;
+            newNfa.isDfa = isDfa; // Update new NFA
+            props.setStructure(newStructure); // Set structure
+            props.setSavedStructure(newStructure); // Save structure
+            await addToPreviousStructures(newStructure); // Add to previously saved structures
         }
         props.setPageNumber(0);
       } else {
         let errorMessage = '';
         switch (currentStructure.type) {
           case 'nfa':
-            switch (validationCode) {
+            switch (validationCode) { // Find correct error message
               case 1:
                 errorMessage = 'States cannot have duplicate names';
                 break;
@@ -176,9 +183,12 @@ const EditPage = (props: EditPageProps) => {
               case 3:
                 errorMessage = 'Duplicate transitions exist';
                 break;
+              default: // Should not happen
+                errorMessage = 'Unkown error';
+                break;
             }
         }
-        Alert.alert('Cannot save structure', errorMessage, [{ text: 'OK' }]);
+        Alert.alert('Cannot save structure', errorMessage, [{ text: 'OK' }]); // Display error message
       }
     } catch (error) {
       console.error(error);
@@ -200,12 +210,12 @@ const EditPage = (props: EditPageProps) => {
       <View
         style={editPageStyles.svgContainer}
         onLayout={event => {
-          setSvgWidth(event.nativeEvent.layout.width);
+          setSvgWidth(event.nativeEvent.layout.width); // Make SVG the size of the parent container
           setSvgHeight(event.nativeEvent.layout.height);
         }}
       >
-        {svgWidth > 0 && svgHeight > 0 ? (
-          editing ? (
+        {svgWidth > 0 && svgHeight > 0 ? ( // Can sometimes be less than 0 when first rendering, which causes an error in the SVG viewbox, crashing the app
+          editing ? ( // Edit mode, so do not add PanResponder
             <View style={{ width: svgWidth, height: svgHeight }}>
               <StructureDrawing
                 structure={currentStructure}
@@ -221,22 +231,14 @@ const EditPage = (props: EditPageProps) => {
                 selectedTransitionArrow={selectedTransitionArrow}
                 setSelectedTransitionArrow={setSelectedTransitionArrow}
                 selectingNewTransitionEndState={selectingNewTransitionEndState}
-                setSelectingNewTransitionEndState={
-                  setSelectingNewTransitionEndState
-                }
+                setSelectingNewTransitionEndState={setSelectingNewTransitionEndState}
                 selectingTransitionNewEndState={selectingTransitionNewEndState}
-                setSelectingTransitionNewEndState={
-                  setSelectingTransitionNewEndState
-                }
-                selectingTransitionNewStartState={
-                  selectingTransitionNewStartState
-                }
-                setSelectingTransitionNewStartState={
-                  setSelectingTransitionNewStartState
-                }
+                setSelectingTransitionNewEndState={setSelectingTransitionNewEndState}
+                selectingTransitionNewStartState={selectingTransitionNewStartState}
+                setSelectingTransitionNewStartState={setSelectingTransitionNewStartState}
               />
             </View>
-          ) : (
+          ) : ( // Pan and zoom mode, so add PanResponder
             <View
               {...panResponder.panHandlers}
               style={{ width: svgWidth, height: svgHeight }}
@@ -255,19 +257,11 @@ const EditPage = (props: EditPageProps) => {
                 selectedTransitionArrow={selectedTransitionArrow}
                 setSelectedTransitionArrow={setSelectedTransitionArrow}
                 selectingNewTransitionEndState={selectingNewTransitionEndState}
-                setSelectingNewTransitionEndState={
-                  setSelectingNewTransitionEndState
-                }
+                setSelectingNewTransitionEndState={setSelectingNewTransitionEndState}
                 selectingTransitionNewEndState={selectingTransitionNewEndState}
-                setSelectingTransitionNewEndState={
-                  setSelectingTransitionNewEndState
-                }
-                selectingTransitionNewStartState={
-                  selectingTransitionNewStartState
-                }
-                setSelectingTransitionNewStartState={
-                  setSelectingTransitionNewStartState
-                }
+                setSelectingTransitionNewEndState={setSelectingTransitionNewEndState}
+                selectingTransitionNewStartState={selectingTransitionNewStartState}
+                setSelectingTransitionNewStartState={setSelectingTransitionNewStartState}
               />
             </View>
           )
@@ -275,7 +269,7 @@ const EditPage = (props: EditPageProps) => {
           <></>
         )}
       </View>
-      {selectingNewTransitionEndState ||
+      {selectingNewTransitionEndState || // If a process is running, add a cancel button and some text to display which process is running
       selectingTransitionNewEndState ||
       selectingTransitionNewStartState ? (
         <View style={editPageStyles.cancelList}>
@@ -303,6 +297,7 @@ const EditPage = (props: EditPageProps) => {
           <BasicButton
             style={editPageStyles.cancelListItem}
             onPress={() => {
+              // Only one process is running at a time, so the onPress can be the same regardless of which process is running by just resetting all
               setSelectedState(undefined);
               setSelectedTransitionArrow(undefined);
               setSelectingNewTransitionEndState(false);
@@ -318,7 +313,7 @@ const EditPage = (props: EditPageProps) => {
       )}
       <View style={editPageStyles.line} />
       <ScrollView style={editPageStyles.scrollView}>
-        {EditIcons(currentStructure, setCurrentStructure)}
+        {EditIcons(currentStructure, setCurrentStructure)} {/* Add edit icons */}
       </ScrollView>
     </>
   );

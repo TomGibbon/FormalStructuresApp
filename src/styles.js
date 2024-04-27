@@ -1,5 +1,10 @@
+//
+//  Contains all styles for the project
+//
+
 import { StyleSheet } from 'react-native';
 
+// Presets are used to make sure the design of the application is consistent
 const basicMargin = 10;
 const largeHeight = 50;
 const smallHeight = 40;

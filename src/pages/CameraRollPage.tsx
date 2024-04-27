@@ -1,3 +1,7 @@
+//
+//  Allows the user to select a photo from camera roll and input it into the photo to NFA function
+//
+
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -17,7 +21,6 @@ import { convertHEICtoJPG, postPhoto } from '../helperFunctions';
 import { cameraRollPageStyles } from '../styles';
 import CPPCode from '../nativeModules';
 import Structure from '../types/Structure';
-// import { getDefaultStructureLocation } from '../components/StructureDrawing';
 import IconButton from '../components/IconButton';
 import CloseIcon from '../../res/close_icon.png';
 
@@ -31,6 +34,7 @@ const CameraRollPage = (props: CameraRollPageProps) => {
   const [photos, setPhotos] = useState<PhotoIdentifier[]>([]);
   const [currentPhotoPath, setCurrentPhotoPath] = useState();
 
+  // Get first 21 photos from the camera roll
   useEffect(() => {
     CameraRoll.getPhotos({
       first: 21,
@@ -44,49 +48,36 @@ const CameraRollPage = (props: CameraRollPageProps) => {
       });
   }, []);
 
+  // Inputs photo into the photo to NFA algotithm
   const usePhoto = async () => {
     try {
-      props.setIsLoading(true);
-      const result = await CPPCode.photoToNFA(currentPhotoPath);
-      try {
-        // const processedResult = getDefaultStructureLocation(JSON.parse(result));
-        const processedResult = JSON.parse(result);
+      props.setIsLoading(true); // Could take time so alert the user that the process has started
+      const result = await CPPCode.photoToNFA(currentPhotoPath); // Run algorithm
+      try { // Nested try block needed to handle errors returned from photo to NFA algorithm
+        const processedResult = JSON.parse(result); // Assume returned value was a structure
         props.setStructure(processedResult);
         props.setPageNumber(0);
       } catch (error) {
-        switch (result) {
+        switch (result) { // Check if error was due to bad input
           case 'No start state':
           case 'More than 1 start state':
             Alert.alert('Problem with structure', result, [{ text: 'OK' }]);
             break;
           default:
-            throw error;
+            throw error; // Different error occured, throw it
         }
       }
     } catch (error) {
       console.error(error);
     }
-    props.setIsLoading(false);
+    props.setIsLoading(false); // Process has finished
   };
 
+  // Gets JPG photo from selected path
   const selectPhoto = async (path: string) => {
     try {
-      const jpgData = await convertHEICtoJPG(path);
-      setCurrentPhotoPath(jpgData.path);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const postPhotoHere = async () => {
-    if (!currentPhotoPath) {
-      console.error('No photo path');
-      return;
-    }
-    try {
-      props.setIsLoading(true);
-      await postPhoto(currentPhotoPath, props.setIsLoading);
-      props.setIsLoading(false);
+      const jpgData = await convertHEICtoJPG(path); // Convert to JPG format
+      setCurrentPhotoPath(jpgData.path); // Set current photo to JPG one
     } catch (error) {
       console.error(error);
     }
@@ -94,7 +85,7 @@ const CameraRollPage = (props: CameraRollPageProps) => {
 
   return (
     <>
-      {currentPhotoPath ? (
+      {currentPhotoPath ? ( // Photo selected
         <>
           <Image
             source={{ uri: currentPhotoPath }}
@@ -105,10 +96,16 @@ const CameraRollPage = (props: CameraRollPageProps) => {
             <BasicButton onPress={() => setCurrentPhotoPath(undefined)}>
               Choose Another Photo
             </BasicButton>
-            <BasicButton onPress={postPhotoHere}>Post Photo</BasicButton>
+            {/* <BasicButton
+              onPress={() => postPhoto(currentPhotoPath, props.setIsLoading)}
+            >
+              Post Photo
+            </BasicButton> */}
+
+            {/* This button was used when testing, to post photos to the AWS S3 bucket */}
           </View>
         </>
-      ) : (
+      ) : ( // Selecting photo
         <>
           <IconButton icon={CloseIcon} onPress={() => props.setPageNumber(0)} />
           <ScrollView>
@@ -117,9 +114,7 @@ const CameraRollPage = (props: CameraRollPageProps) => {
                 return (
                   <TouchableOpacity
                     style={cameraRollPageStyles.photoContainer}
-                    onPress={async () =>
-                      await selectPhoto(photo.node.image.uri)
-                    }
+                    onPress={async () => await selectPhoto(photo.node.image.uri)}
                     key={index}
                   >
                     <Image

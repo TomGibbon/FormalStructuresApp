@@ -1,15 +1,15 @@
+//
+//  Initial landing page for the app, and where each process can be accessed
+//
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, PanResponder, Text, TextInput, View } from 'react-native';
 
 import BasicButton from '../components/BasicButton';
 import IconButton from '../components/IconButton';
-import StructureDrawing, {
-  exportSVG,
-  // getDefaultStructureLocation,
-} from '../components/StructureDrawing';
+import StructureDrawing, { exportSVG } from '../components/StructureDrawing';
 import Structure from '../types/Structure';
 import { mainPageStyles } from '../styles.js';
-
 import SaveIcon from '../../res/save_icon.png';
 import PhotosIcon from '../../res/photos_icon.png';
 import CameraIcon from '../../res/camera_icon.png';
@@ -36,11 +36,12 @@ type MainPageProps = {
 const MainPage = (props: MainPageProps) => {
   const [svgWidth, setSvgWidth] = useState(0);
   const [svgHeight, setSvgHeight] = useState(0);
-  const [textToRun, setTextToRun] = useState('');
+  const [textToRun, setTextToRun] = useState(''); // Contains full text that will be ran on the structure (text in text box)
   const [runResult, setRunResult] = useState<boolean | undefined>(undefined);
-  const [runStepText, setRunStepText] = useState('');
+  const [runCharacterText, setRunCharacterText] = useState(''); // Contains the text that needs to be ran for the next character input
   const [activeIds, setActiveIds] = useState([]);
 
+  // Used for the PanResponder
   const [scale, setScale] = useState(initialPosition.zoom);
   const [translateX, setTranslateX] = useState(initialPosition.x);
   const [translateY, setTranslateY] = useState(initialPosition.x);
@@ -53,6 +54,7 @@ const MainPage = (props: MainPageProps) => {
   const previousTranslateYRef = useRef(initialPosition.x);
   const initialPinchSize = useRef<number | undefined>(undefined);
 
+  // Update references when states change
   useEffect(() => {
     scaleRef.current = scale;
     translateXRef.current = translateX;
@@ -63,35 +65,43 @@ const MainPage = (props: MainPageProps) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (event, gestureState) => {
-        if (gestureState.numberActiveTouches === 1) {
+        if (gestureState.numberActiveTouches === 1) { // Panning
           setTranslateX(previousTranslateXRef.current - gestureState.dx);
           setTranslateY(previousTranslateYRef.current - gestureState.dy);
+
+          // Reset zoom values in the scenario one finger was lifted off
           initialPinchSize.current = undefined;
           previousScaleRef.current = scaleRef.current;
-        } else if (gestureState.numberActiveTouches === 2) {
+
+        } else if (gestureState.numberActiveTouches === 2) { // Zooming and panning
           const touches = event.nativeEvent.touches.map(touch => ({
             x: touch.pageX,
             y: touch.pageY,
           }));
+
+          // Get initial pinch size if not yet defined
           if (!initialPinchSize.current) {
             initialPinchSize.current = Math.sqrt(
               (touches[0].x - touches[1].x) ** 2 +
-                (touches[0].y - touches[1].y) ** 2
+              (touches[0].y - touches[1].y) ** 2
             );
           }
+
+          // Get new pinch size
           const newPinchSize = Math.sqrt(
             (touches[0].x - touches[1].x) ** 2 +
-              (touches[0].y - touches[1].y) ** 2
+            (touches[0].y - touches[1].y) ** 2
           );
-          setScale(
-            1.6 ** ((initialPinchSize.current - newPinchSize) / 100) *
-              previousScaleRef.current
-          );
+
+          setScale(1.6 ** ((initialPinchSize.current - newPinchSize) / 100) * previousScaleRef.current); // Use them to update scale
+
+          // Perform panning
           setTranslateX(previousTranslateXRef.current - gestureState.dx);
           setTranslateY(previousTranslateYRef.current - gestureState.dy);
         }
       },
       onPanResponderRelease: () => {
+        // Update all previous values, and reset initial pinch size
         previousScaleRef.current = scaleRef.current;
         previousTranslateXRef.current = translateXRef.current;
         previousTranslateYRef.current = translateYRef.current;
@@ -100,40 +110,39 @@ const MainPage = (props: MainPageProps) => {
     })
   ).current;
 
+  // Resets all run varaiables, except textToRun as the text box's value can remain
   const resetRunResult = () => {
     setRunResult(undefined);
-    setRunStepText('');
+    setRunCharacterText('');
     setActiveIds([]);
   };
 
+  // Saves the structure
   const save = async () => {
     props.setSavedStructure(props.structure);
     await addToPreviousStructures(props.structure);
     Alert.alert('Structure saved!', undefined, [{ text: 'OK' }]);
   };
 
+  // Simplifies the structure
   const simplifyStructure = async () => {
     switch (props.structure.type) {
       case 'nfa':
         const nfa = props.structure.structure as NFA;
-        if (nfa.isDfa) {
+        if (nfa.isDfa) { // Run if the structure is a DFA
           try {
-            // const result = getDefaultStructureLocation(
-            //   JSON.parse(await CPPCode.simplifyDFA(nfa))
-            // );
-            const result = JSON.parse(await CPPCode.simplifyDFA(nfa));
+            const result = JSON.parse(await CPPCode.simplifyDFA(nfa)); // Run algorithm
             props.setStructure(result);
-            resetRunResult();
+            resetRunResult(); // Structure changed so reset run variables
           } catch (error) {
-            console.error(
-              'Error occured while simplifying structure: ' + error
-            );
+            console.error('Error occured while simplifying structure: ' + error);
           }
         }
         break;
     }
   };
 
+  // Gets a displayable representation of the structure type
   const structureType = () => {
     switch (props.structure.type) {
       case 'nfa':
@@ -143,6 +152,7 @@ const MainPage = (props: MainPageProps) => {
     }
   };
 
+  // Displays either Allowed! or Rejected!
   const runResultText = () => {
     switch (runResult) {
       case undefined:
@@ -154,33 +164,37 @@ const MainPage = (props: MainPageProps) => {
     }
   };
 
+  // Runs the next character on the structure
   const runCharacter = async () => {
-    if (runStepText === textToRun) {
+    if (runCharacterText === textToRun) { // Ran each character, so just run the full thing to get the result
       await runStructure();
     } else {
       try {
-        const newText = runStepText + textToRun[runStepText.length];
+        const newText = runCharacterText + textToRun[runCharacterText.length]; // Get text up to new character
         switch (props.structure.type) {
           case 'nfa':
             const nfa = props.structure.structure as NFA;
-            const result = await CPPCode.runCharacter(nfa, newText);
+            const result = await CPPCode.runCharacter(nfa, newText); // Get resulting active ids
             setActiveIds(result);
         }
-        setRunStepText(newText);
+        setRunCharacterText(newText); // Update variable for next press
       } catch (error) {
         console.error(error);
       }
     }
   };
 
+  // Run full text on the structure
   const runStructure = async () => {
     switch (props.structure.type) {
       case 'nfa':
         const nfa = props.structure.structure as NFA;
         try {
-          const result = await CPPCode.runNFAorDFA(nfa, textToRun);
+          const result = await CPPCode.runNFAorDFA(nfa, textToRun); // Run algorithm
           setRunResult(result);
-          setRunStepText('');
+
+          // Reset variables
+          setRunCharacterText('');
           setActiveIds([]);
         } catch (error) {
           console.error('Error occured while simplifying structure: ' + error);
@@ -189,27 +203,22 @@ const MainPage = (props: MainPageProps) => {
     }
   };
 
+  // Converts an NFA to a DFA
   const convertNFAtoDFA = async () => {
     try {
-      // const result = getDefaultStructureLocation(
-      //   JSON.parse(
-      //     await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
-      //   )
-      // );
-      const result = JSON.parse(
-        await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)
-      );
+      const result = JSON.parse(await CPPCode.convertNFAtoDFA(props.structure.structure as NFA)); // Run algorithm
       props.setStructure(result);
-      resetRunResult();
+      resetRunResult(); // Structure changed so reset run variables
     } catch (error) {
       console.error('Error occured while converting NFA to DFA: ' + error);
     }
   };
 
+  // Generates convert buttons
   const convertButtons = () => {
     switch (props.structure.type) {
       case 'nfa':
-        return (props.structure.structure as NFA).isDfa ? (
+        return (props.structure.structure as NFA).isDfa ? ( // DFA is already an NFA so no need to convert
           <></>
         ) : (
           <BasicButton
@@ -249,7 +258,7 @@ const MainPage = (props: MainPageProps) => {
         style={mainPageStyles.svgContainer}
         onLayout={event => {
           setSvgWidth(event.nativeEvent.layout.width - 2);
-          setSvgHeight(event.nativeEvent.layout.height - 2); // The - 2 keeps the structure in the borders of the outer container
+          setSvgHeight(event.nativeEvent.layout.height - 2); // The -2 keeps the structure in the borders of the outer container
         }}
       >
         <View style={mainPageStyles.editingButtonList}>
@@ -269,7 +278,7 @@ const MainPage = (props: MainPageProps) => {
             Simplify
           </BasicButton>
         </View>
-        {svgWidth > 0 && svgHeight > 0 ? (
+        {svgWidth > 0 && svgHeight > 0 ? ( // Can sometimes be less than 0 when first rendering, which causes an error in the SVG viewbox, crashing the app
           <View
             {...panResponder.panHandlers}
             style={{ height: svgHeight, width: svgWidth }}
@@ -297,9 +306,7 @@ const MainPage = (props: MainPageProps) => {
           style={mainPageStyles.textInput}
           onChangeText={event => {
             setTextToRun(event);
-            setRunResult(undefined);
-            setRunStepText('');
-            setActiveIds([]);
+            resetRunResult(); // Reset run variables
           }}
           value={textToRun}
         />
@@ -310,7 +317,7 @@ const MainPage = (props: MainPageProps) => {
           Run!
         </BasicButton>
       </View>
-      {props.structure.type === 'nfa' &&
+      {props.structure.type === 'nfa' && // Check if any convert buttons are needed
       props.structure.structure?.isDfa === false ? (
         <View style={mainPageStyles.convertBox}>
           <Text>Convert to:</Text>
