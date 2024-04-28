@@ -108,4 +108,6 @@ To build the app on a physical iPhone. (Note during development the build was bu
 12. Make sure the developer of the app (specified in the signing and capabilities settings on XCode) is trusted on the iPhone
 13. Make sure to allow the app to use the camera and camera roll
 
-If any errors occur while performing these steps, try to follow the error messages given. Sometimes errors can occur after XCode gets an update to their command line tools
+If any errors occur while performing these steps, try to follow the error messages given. Sometimes errors can occur after XCode gets an update to their command line tools.
+
+If still struggling to build, information can be found at https://reactnative.dev/docs/environment-setup?guide=native for steps in setting up the development environment
