@@ -1,4 +1,6 @@
-# Running the Testing File
+>**Note**: All code can be accessed by opening the root folder (AdditionalCode) in VSCode
+
+## Running the Testing File
 
 1. Download FormalStructuresApp repository from [this repository](https://github.com/TomGibbon/FormalStructuresApp). (If using the source code submitted through tabular, this step is not needed)
 2. Make sure OpenCV is installed by running `brew install opencv@4`
@@ -9,7 +11,7 @@
 To choose which tests to run, you can comment out different lines of code in the main function of the testing file (ios/tester.cpp).
 Furthermore, when testing photos, inside the photoToNFATest function, you can toggle which line is commented out, depending on whether you would like the photos to be displayed during testing or not.
 
-# Building the App on a Physical iPhone
+## Building the App on a Physical iPhone
 
 >**Note**: During development the build was built on an iPhone 12 with iOS 17.4
 
