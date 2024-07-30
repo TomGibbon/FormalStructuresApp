@@ -73,3 +73,5 @@ yarn-error.log
 
 # too large
 /ios/opencv2.framework/
+
+.env
