@@ -196,7 +196,7 @@ function App(): JSX.Element {
     const setDefaultPreviousStructures = async () => { // Async function used in useEffect, so must pre-define, then call
       try {
         const previousStructures = await AsyncStorage.getItem('previous-structures'); // Get previous structures
-        
+
         if (previousStructures === null) { // If no exist, first time opening the app, so set them to be the default structures.
                                            // This will only happen the very first time the app is opened, as AsyncStorage persits over hard app resets.
           await AsyncStorage.setItem('previous-structures', JSON.stringify(defaultStructures));
