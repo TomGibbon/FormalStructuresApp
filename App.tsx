@@ -193,7 +193,7 @@ function App(): JSX.Element {
   const [savedStructure, setSavedStructure] = useState<Structure>(defaultStructures[0]);
 
   useEffect(() => {
-    const setDefaultPreviousStructures = async () => { // Async function used in useEffec, so must pre-define, then call
+    const setDefaultPreviousStructures = async () => { // Async function used in useEffect, so must pre-define, then call
       try {
         const previousStructures = await AsyncStorage.getItem('previous-structures'); // Get previous structures
         
